@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel, AllowRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
 
@@ -24,7 +24,7 @@ class ServiceFailureCommand(PersistencePlugin):
             "crashes."
         ),
         allow=(
-            AllowRule(reason="No failure command configured", value_equals="not used"),
+            FilterRule(reason="No failure command configured", value_equals="not used"),
         ),
     )
 

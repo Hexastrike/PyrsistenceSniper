@@ -10,7 +10,7 @@ from pyrsistencesniper.core.image import ForensicImage, UserProfile
 from pyrsistencesniper.core.normalize import normalize_windows_path
 from pyrsistencesniper.core.profile import DetectionProfile
 from pyrsistencesniper.core.registry import RegistryHelper, RegistryNode
-from pyrsistencesniper.models.finding import AccessLevel, AllowRule, Finding
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
 
 
 class HiveScope(enum.Enum):
@@ -40,8 +40,8 @@ class CheckDefinition:
     description: str = ""
     targets: tuple[RegistryTarget, ...] = field(default_factory=tuple)
     references: tuple[str, ...] = field(default_factory=tuple)
-    allow: tuple[AllowRule, ...] = field(default_factory=tuple)
-    block: tuple[AllowRule, ...] = field(default_factory=tuple)
+    allow: tuple[FilterRule, ...] = field(default_factory=tuple)
+    block: tuple[FilterRule, ...] = field(default_factory=tuple)
 
 
 class PersistencePlugin:

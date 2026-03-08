@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel, AllowRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
 
@@ -23,7 +23,7 @@ class WindowsServiceImagePath(PersistencePlugin):
             "ImagePath may indicate a malicious or third-party service."
         ),
         allow=(
-            AllowRule(
+            FilterRule(
                 reason="Microsoft-signed service", signer="microsoft", not_lolbin=True
             ),
         ),
@@ -67,7 +67,7 @@ class WindowsServiceDll(PersistencePlugin):
             "may indicate a malicious service DLL."
         ),
         allow=(
-            AllowRule(
+            FilterRule(
                 reason="Microsoft-signed service DLL",
                 signer="microsoft",
                 not_lolbin=True,

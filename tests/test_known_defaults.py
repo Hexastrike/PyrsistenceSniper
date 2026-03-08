@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AllowRule, Finding
+from pyrsistencesniper.models.finding import FilterRule, Finding
 from pyrsistencesniper.plugins import _PLUGIN_REGISTRY, _discover_plugins
 
-# -- AllowRule.not_lolbin field -----------------------------------------------
+# -- FilterRule.not_lolbin field -----------------------------------------------
 
 
 def test_not_lolbin_blocks_lolbin() -> None:
-    rule = AllowRule(signer="microsoft", not_lolbin=True)
+    rule = FilterRule(signer="microsoft", not_lolbin=True)
     finding = Finding(
         value="powershell.exe", signer="Microsoft Windows", is_lolbin=True
     )
@@ -15,13 +15,13 @@ def test_not_lolbin_blocks_lolbin() -> None:
 
 
 def test_not_lolbin_blocks_unresolved() -> None:
-    rule = AllowRule(signer="microsoft", not_lolbin=True)
+    rule = FilterRule(signer="microsoft", not_lolbin=True)
     finding = Finding(value="unknown.exe", signer="Microsoft Windows", is_lolbin=None)
     assert rule.matches(finding) is False
 
 
 def test_not_lolbin_allows_non_lolbin() -> None:
-    rule = AllowRule(signer="microsoft", not_lolbin=True)
+    rule = FilterRule(signer="microsoft", not_lolbin=True)
     finding = Finding(value="svchost.exe", signer="Microsoft Windows", is_lolbin=False)
     assert rule.matches(finding) is True
 
@@ -30,19 +30,19 @@ def test_not_lolbin_allows_non_lolbin() -> None:
 
 
 def test_signer_substring_match() -> None:
-    rule = AllowRule(signer="microsoft")
+    rule = FilterRule(signer="microsoft")
     finding = Finding(value="test.exe", signer="Microsoft Corporation")
     assert rule.matches(finding) is True
 
 
 def test_signer_substring_no_match() -> None:
-    rule = AllowRule(signer="microsoft")
+    rule = FilterRule(signer="microsoft")
     finding = Finding(value="test.exe", signer="Evil Corp")
     assert rule.matches(finding) is False
 
 
 def test_signer_empty_no_match() -> None:
-    rule = AllowRule(signer="microsoft")
+    rule = FilterRule(signer="microsoft")
     finding = Finding(value="test.exe", signer="")
     assert rule.matches(finding) is False
 

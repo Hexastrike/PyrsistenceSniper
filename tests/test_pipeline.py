@@ -202,7 +202,7 @@ def test_run_all_checks_raw_skips_suppression(tmp_path: Path) -> None:
 
 def test_run_all_checks_allow_rule_suppression(tmp_path: Path) -> None:
     """Plugin allow rules suppress matching findings (non-raw mode)."""
-    from pyrsistencesniper.models.finding import AllowRule
+    from pyrsistencesniper.models.finding import FilterRule
 
     image, registry, filesystem, profile = _make_deps(tmp_path)
 
@@ -211,7 +211,7 @@ def test_run_all_checks_allow_rule_suppression(tmp_path: Path) -> None:
             id="stub_allow",
             technique="Stub Allow",
             mitre_id="T0000",
-            allow=(AllowRule(signer="microsoft", not_lolbin=True),),
+            allow=(FilterRule(signer="microsoft", not_lolbin=True),),
         )
 
         def run(self) -> list[Finding]:
@@ -247,7 +247,7 @@ def test_run_all_checks_allow_rule_suppression(tmp_path: Path) -> None:
 
 def test_run_all_checks_lolbin_not_suppressed(tmp_path: Path) -> None:
     """LOLBin findings bypass not_lolbin allow rules."""
-    from pyrsistencesniper.models.finding import AllowRule
+    from pyrsistencesniper.models.finding import FilterRule
 
     image, registry, filesystem, profile = _make_deps(tmp_path)
 
@@ -256,7 +256,7 @@ def test_run_all_checks_lolbin_not_suppressed(tmp_path: Path) -> None:
             id="stub_allow",
             technique="Stub Allow",
             mitre_id="T0000",
-            allow=(AllowRule(signer="microsoft", not_lolbin=True),),
+            allow=(FilterRule(signer="microsoft", not_lolbin=True),),
         )
 
         def run(self) -> list[Finding]:

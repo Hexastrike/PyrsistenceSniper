@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AllowRule, Finding
+from pyrsistencesniper.models.finding import FilterRule, Finding
 
 # The old _is_auto_suppressed function has been replaced by plugin-level
-# AllowRule entries with signer= and not_lolbin= fields.  These tests verify
-# that the same filtering behaviour is achieved through AllowRule.matches().
+# FilterRule entries with signer= and not_lolbin= fields.  These tests verify
+# that the same filtering behaviour is achieved through FilterRule.matches().
 
-_MS_RULE = AllowRule(signer="microsoft", not_lolbin=True)
+_MS_RULE = FilterRule(signer="microsoft", not_lolbin=True)
 
 # -- basic suppression logic --------------------------------------------------
 
@@ -106,18 +106,18 @@ def test_none_is_lolbin_not_suppressed() -> None:
 
 
 def test_value_and_signer_both_match() -> None:
-    rule = AllowRule(value_contains="explorer.exe", signer="microsoft")
+    rule = FilterRule(value_contains="explorer.exe", signer="microsoft")
     finding = Finding(value="explorer.exe", signer="Microsoft Windows")
     assert rule.matches(finding) is True
 
 
 def test_value_match_but_unsigned_no_match() -> None:
-    rule = AllowRule(value_contains="explorer.exe", signer="microsoft")
+    rule = FilterRule(value_contains="explorer.exe", signer="microsoft")
     finding = Finding(value="explorer.exe", signer="")
     assert rule.matches(finding) is False
 
 
 def test_value_match_but_wrong_signer_no_match() -> None:
-    rule = AllowRule(value_contains="explorer.exe", signer="microsoft")
+    rule = FilterRule(value_contains="explorer.exe", signer="microsoft")
     finding = Finding(value="explorer.exe", signer="Evil Corp")
     assert rule.matches(finding) is False

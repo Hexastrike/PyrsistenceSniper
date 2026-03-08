@@ -256,7 +256,7 @@ pyrsistencesniper/
     ...
   core/               # Registry parsing, filesystem ops, image handling,
                       #   Authenticode extraction, path normalization
-  models/             # Finding, AllowRule, Enrichment dataclasses
+  models/             # Finding, FilterRule, Enrichment dataclasses
   output/             # Console, CSV, HTML renderers
   enrichment/         # Optional enrichment plugins
 ```

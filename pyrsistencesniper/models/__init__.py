@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from pyrsistencesniper.models.finding import (
     AccessLevel,
-    AllowRule,
     AnnotatedResult,
     Enrichment,
+    FilterRule,
     Finding,
 )
 
-__all__ = ["AccessLevel", "AllowRule", "AnnotatedResult", "Enrichment", "Finding"]
+__all__ = ["AccessLevel", "AnnotatedResult", "Enrichment", "FilterRule", "Finding"]

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AllowRule
+from pyrsistencesniper.models.finding import FilterRule
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import (
     CheckDefinition,
@@ -24,7 +24,7 @@ class NetshHelper(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1546/007/",),
         allow=(
-            AllowRule(
+            FilterRule(
                 reason="Microsoft-signed netsh helper",
                 signer="microsoft",
                 not_lolbin=True,

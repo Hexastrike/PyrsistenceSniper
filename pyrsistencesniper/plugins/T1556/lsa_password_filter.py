@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AllowRule
+from pyrsistencesniper.models.finding import FilterRule
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import (
     CheckDefinition,
@@ -31,7 +31,7 @@ class LsaPasswordFilter(PersistencePlugin):
             ),
         ),
         allow=(
-            AllowRule(
+            FilterRule(
                 reason="Default Windows Security Configuration Engine",
                 value_contains="scecli",
             ),

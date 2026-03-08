@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel, AllowRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import (
     CheckDefinition,
@@ -36,10 +36,10 @@ class AeDebug(PersistencePlugin):
             ),
         ),
         allow=(
-            AllowRule(
+            FilterRule(
                 reason="Visual Studio JIT debugger", value_contains="vsjitdebugger"
             ),
-            AllowRule(reason="Dr. Watson debugger", value_contains="drwtsn32"),
+            FilterRule(reason="Dr. Watson debugger", value_contains="drwtsn32"),
         ),
     )
 
@@ -144,7 +144,7 @@ class WerRuntimeExceptionHelperModules(PersistencePlugin):
             "provides DLL-based persistence via application crashes."
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
-        allow=(AllowRule(signer="microsoft", not_lolbin=True),),
+        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
     )
 
     def run(self) -> list[Finding]:

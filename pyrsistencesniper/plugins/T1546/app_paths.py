@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel, AllowRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
 
@@ -25,7 +25,7 @@ class AppPaths(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
         allow=(
-            AllowRule(
+            FilterRule(
                 reason="Microsoft-signed application",
                 signer="microsoft",
                 not_lolbin=True,

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import yaml
 
-from pyrsistencesniper.models.finding import AllowRule, Finding
+from pyrsistencesniper.models.finding import FilterRule, Finding
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +16,8 @@ class CheckOverride:
     """Enable/disable state and allow/block rules scoped to a single check."""
 
     enabled: bool = True
-    allow: tuple[AllowRule, ...] = field(default_factory=tuple)
-    block: tuple[AllowRule, ...] = field(default_factory=tuple)
+    allow: tuple[FilterRule, ...] = field(default_factory=tuple)
+    block: tuple[FilterRule, ...] = field(default_factory=tuple)
 
 
 _DEFAULT_TRUSTED_SIGNERS: frozenset[str] = frozenset(
@@ -33,8 +33,8 @@ _DEFAULT_TRUSTED_SIGNERS: frozenset[str] = frozenset(
 class DetectionProfile:
     """YAML-driven detection profile with global and per-check allow/block rules."""
 
-    allow: tuple[AllowRule, ...] = field(default_factory=tuple)
-    block: tuple[AllowRule, ...] = field(default_factory=tuple)
+    allow: tuple[FilterRule, ...] = field(default_factory=tuple)
+    block: tuple[FilterRule, ...] = field(default_factory=tuple)
     checks: dict[str, CheckOverride] = field(default_factory=dict)
     trusted_signers: frozenset[str] = field(
         default_factory=lambda: _DEFAULT_TRUSTED_SIGNERS
@@ -111,7 +111,7 @@ class DetectionProfile:
         self,
         check_id: str,
         finding: Finding,
-        global_rules: tuple[AllowRule, ...],
+        global_rules: tuple[FilterRule, ...],
         override_attr: str,
     ) -> bool:
         """Test global rules then check-specific rules for a match."""
@@ -126,16 +126,16 @@ class DetectionProfile:
         return False
 
 
-def _parse_rules(raw: object) -> tuple[AllowRule, ...]:
-    """Convert a list of rule dictionaries into a tuple of AllowRule instances."""
+def _parse_rules(raw: object) -> tuple[FilterRule, ...]:
+    """Convert a list of rule dictionaries into a tuple of FilterRule instances."""
     if not isinstance(raw, list):
         return ()
-    rules: list[AllowRule] = []
+    rules: list[FilterRule] = []
     for item in raw:
         if not isinstance(item, dict):
             continue
         rules.append(
-            AllowRule(
+            FilterRule(
                 reason=item.get("reason", ""),
                 value_equals=item.get("value_equals", ""),
                 value_contains=item.get("value_contains", ""),

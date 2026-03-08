@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AllowRule
+from pyrsistencesniper.models.finding import FilterRule
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import (
     CheckDefinition,
@@ -57,11 +57,11 @@ class RunKeys(PersistencePlugin):
             ),
         ),
         allow=(
-            AllowRule(
+            FilterRule(
                 reason="Windows Security Health tray is a built-in autorun",
                 value_contains="SecurityHealthSystray",
             ),
-            AllowRule(
+            FilterRule(
                 reason="Microsoft-signed autorun", signer="microsoft", not_lolbin=True
             ),
         ),

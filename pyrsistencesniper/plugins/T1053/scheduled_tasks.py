@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 import defusedxml.ElementTree as ET
 
-from pyrsistencesniper.models.finding import AccessLevel, AllowRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
 
@@ -33,7 +33,7 @@ class ScheduledTaskFiles(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1053/005/",),
         allow=(
-            AllowRule(
+            FilterRule(
                 reason="Microsoft-signed scheduled task",
                 signer="microsoft",
                 not_lolbin=True,

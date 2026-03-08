@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AllowRule
+from pyrsistencesniper.models.finding import FilterRule
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import (
     CheckDefinition,
@@ -23,7 +23,7 @@ class WinlogonShell(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1547/004/",),
         allow=(
-            AllowRule(
+            FilterRule(
                 reason="Default Windows shell",
                 value_contains="explorer.exe",
                 signer="microsoft",
@@ -52,7 +52,7 @@ class WinlogonUserinit(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1547/004/",),
         allow=(
-            AllowRule(
+            FilterRule(
                 reason="Default Windows userinit",
                 value_contains="userinit.exe",
                 signer="microsoft",
@@ -103,7 +103,7 @@ class WinlogonNotifyPackages(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1547/004/",),
         allow=(
-            AllowRule(reason="Default notification package", value_contains="scecli"),
+            FilterRule(reason="Default notification package", value_contains="scecli"),
         ),
         targets=(
             RegistryTarget(

@@ -42,7 +42,7 @@ class Enrichment:
 
 
 @dataclass(frozen=True, slots=True)
-class AllowRule:
+class FilterRule:
     """Allowlist rule that suppresses matching findings during policy evaluation."""
 
     reason: str = ""

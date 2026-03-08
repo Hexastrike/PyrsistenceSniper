@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AllowRule
+from pyrsistencesniper.models.finding import FilterRule
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import (
     CheckDefinition,
@@ -31,7 +31,7 @@ class BootExecute(PersistencePlugin):
             ),
         ),
         allow=(
-            AllowRule(
+            FilterRule(
                 reason="Default Windows boot-time disk check",
                 value_contains="autocheck autochk",
             ),

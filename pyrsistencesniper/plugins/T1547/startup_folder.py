@@ -5,7 +5,7 @@ from pathlib import Path, PureWindowsPath
 from typing import TYPE_CHECKING
 
 from pyrsistencesniper.core.normalize import expand_env_vars
-from pyrsistencesniper.models.finding import AccessLevel, AllowRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
 
@@ -39,7 +39,7 @@ class StartupFolder(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         allow=(
-            AllowRule(
+            FilterRule(
                 reason="Microsoft-signed startup item",
                 signer="microsoft",
                 not_lolbin=True,

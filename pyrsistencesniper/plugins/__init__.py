@@ -10,7 +10,7 @@ from pyrsistencesniper.core.profile import DetectionProfile
 from pyrsistencesniper.core.registry import RegistryHelper
 from pyrsistencesniper.core.resolver import ResolutionPipeline
 from pyrsistencesniper.enrichment import run_enrichments
-from pyrsistencesniper.models.finding import AllowRule, AnnotatedResult, Finding
+from pyrsistencesniper.models.finding import AnnotatedResult, FilterRule, Finding
 from pyrsistencesniper.plugins.base import PersistencePlugin
 
 logger = logging.getLogger(__name__)
@@ -120,7 +120,7 @@ def run_all_checks(
     return results
 
 
-def _any_rule_matches(rules: tuple[AllowRule, ...], finding: Finding) -> bool:
+def _any_rule_matches(rules: tuple[FilterRule, ...], finding: Finding) -> bool:
     """Return True if at least one rule matches the given finding."""
     return any(rule.matches(finding) for rule in rules)
 

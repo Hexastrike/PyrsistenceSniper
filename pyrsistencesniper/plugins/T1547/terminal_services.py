@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel, AllowRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import (
     CheckDefinition,
@@ -77,7 +77,7 @@ class RdpWdsStartupPrograms(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         allow=(
-            AllowRule(reason="Default RDP startup program", value_contains="rdpclip"),
+            FilterRule(reason="Default RDP startup program", value_contains="rdpclip"),
         ),
         targets=(
             RegistryTarget(

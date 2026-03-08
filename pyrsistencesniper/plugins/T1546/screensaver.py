@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel, AllowRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
 
@@ -23,7 +23,7 @@ class Screensaver(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1546/002/",),
         allow=(
-            AllowRule(
+            FilterRule(
                 reason="Microsoft-signed screensaver",
                 signer="microsoft",
                 not_lolbin=True,

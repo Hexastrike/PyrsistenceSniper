@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel, AllowRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import (
     CheckDefinition,
@@ -71,7 +71,7 @@ class HhctrlOcx(PersistencePlugin):
             "provides code execution when any HTML Help content is rendered."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
-        allow=(AllowRule(signer="microsoft", not_lolbin=True),),
+        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Classes\CLSID\{adb880a6-d8ff-11cf-9377-00aa003b7a11}\InprocServer32",
@@ -94,7 +94,7 @@ class AutodialDll(PersistencePlugin):
             "execution in any process that uses WinSock."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
-        allow=(AllowRule(signer="microsoft", not_lolbin=True),),
+        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Services\WinSock2\Parameters",
@@ -117,7 +117,9 @@ class LsaExtensions(PersistencePlugin):
             "credentials and provide SYSTEM-level persistence."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
-        allow=(AllowRule(reason="Default LSA extension", value_contains="lsasrv.dll"),),
+        allow=(
+            FilterRule(reason="Default LSA extension", value_contains="lsasrv.dll"),
+        ),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\LsaExtensionConfig\LsaSrv",
@@ -207,8 +209,8 @@ class MsdtcXaDll(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         allow=(
-            AllowRule(reason="Default MSDTC XA DLL", value_contains="xa80.dll"),
-            AllowRule(reason="Default MSDTC OCI DLL", value_contains="oci.dll"),
+            FilterRule(reason="Default MSDTC XA DLL", value_contains="xa80.dll"),
+            FilterRule(reason="Default MSDTC OCI DLL", value_contains="oci.dll"),
         ),
         targets=(
             RegistryTarget(
@@ -237,7 +239,7 @@ class DiagTrackDll(PersistencePlugin):
             "persistence triggered by the telemetry service."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
-        allow=(AllowRule(signer="microsoft", not_lolbin=True),),
+        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Services\DiagTrack",
@@ -260,7 +262,7 @@ class DiagTrackListenerDll(PersistencePlugin):
             "SYSTEM-level persistence at boot."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
-        allow=(AllowRule(signer="microsoft", not_lolbin=True),),
+        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\WMI\Autologger\DiagTrack-Listener",
@@ -327,7 +329,7 @@ class WuServiceStartupDll(PersistencePlugin):
             "persistence triggered by Windows Update operations."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
-        allow=(AllowRule(signer="microsoft", not_lolbin=True),),
+        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Services\wuauserv\Parameters",
@@ -372,7 +374,7 @@ class MiniDumpAuxiliaryDlls(PersistencePlugin):
             "process crash dump is created."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
-        allow=(AllowRule(signer="microsoft", not_lolbin=True),),
+        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
     )
 
     def run(self) -> list[Finding]:
@@ -439,7 +441,7 @@ class GpExtensionDlls(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         allow=(
-            AllowRule(
+            FilterRule(
                 reason="Microsoft-signed GP extension",
                 signer="microsoft",
                 not_lolbin=True,
@@ -482,7 +484,7 @@ class WinsockAutoProxy(PersistencePlugin):
             "provides persistent DLL loading in any networking process."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
-        allow=(AllowRule(signer="microsoft", not_lolbin=True),),
+        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
     )
 
     def run(self) -> list[Finding]:

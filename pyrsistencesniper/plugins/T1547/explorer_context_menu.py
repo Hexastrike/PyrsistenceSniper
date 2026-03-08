@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel, AllowRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
 
@@ -29,7 +29,7 @@ class ExplorerContextMenu(PersistencePlugin):
             "or the invoking user."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
-        allow=(AllowRule(signer="microsoft", not_lolbin=True),),
+        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
     )
 
     def run(self) -> list[Finding]:
