@@ -411,11 +411,31 @@ class MiniDumpAuxiliaryDlls(PersistencePlugin):
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         allow=(
             FilterRule(signer="microsoft", not_lolbin=True),
-            FilterRule(reason="Default .NET MiniDump DLL", value_contains="clr.dll", signer="microsoft"),
-            FilterRule(reason="Default .NET MiniDump DLL", value_contains="mscorwks.dll", signer="microsoft"),
-            FilterRule(reason="Default JavaScript engine", value_contains="Chakra.dll", signer="microsoft"),
-            FilterRule(reason="Default JavaScript engine", value_contains="jscript9.dll", signer="microsoft"),
-            FilterRule(reason="Default .NET runtime", value_contains="mrt100.dll", signer="microsoft"),
+            FilterRule(
+                reason="Default .NET MiniDump DLL",
+                value_contains="clr.dll",
+                signer="microsoft",
+            ),
+            FilterRule(
+                reason="Default .NET MiniDump DLL",
+                value_contains="mscorwks.dll",
+                signer="microsoft",
+            ),
+            FilterRule(
+                reason="Default JavaScript engine",
+                value_contains="Chakra.dll",
+                signer="microsoft",
+            ),
+            FilterRule(
+                reason="Default JavaScript engine",
+                value_contains="jscript9.dll",
+                signer="microsoft",
+            ),
+            FilterRule(
+                reason="Default .NET runtime",
+                value_contains="mrt100.dll",
+                signer="microsoft",
+            ),
         ),
     )
 
@@ -528,11 +548,31 @@ class WinsockAutoProxy(PersistencePlugin):
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         allow=(
             FilterRule(signer="microsoft", not_lolbin=True),
-            FilterRule(reason="Default Winsock provider", value_contains="mswsock.dll", signer="microsoft"),
-            FilterRule(reason="Default Winsock provider", value_contains="napinsp.dll", signer="microsoft"),
-            FilterRule(reason="Default Winsock provider", value_contains="nlansp_c.dll", signer="microsoft"),
-            FilterRule(reason="Default Winsock provider", value_contains="winrnr.dll", signer="microsoft"),
-            FilterRule(reason="Default Winsock provider", value_contains="wshbth.dll", signer="microsoft"),
+            FilterRule(
+                reason="Default Winsock provider",
+                value_contains="mswsock.dll",
+                signer="microsoft",
+            ),
+            FilterRule(
+                reason="Default Winsock provider",
+                value_contains="napinsp.dll",
+                signer="microsoft",
+            ),
+            FilterRule(
+                reason="Default Winsock provider",
+                value_contains="nlansp_c.dll",
+                signer="microsoft",
+            ),
+            FilterRule(
+                reason="Default Winsock provider",
+                value_contains="winrnr.dll",
+                signer="microsoft",
+            ),
+            FilterRule(
+                reason="Default Winsock provider",
+                value_contains="wshbth.dll",
+                signer="microsoft",
+            ),
         ),
     )
 

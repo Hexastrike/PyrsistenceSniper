@@ -12,10 +12,12 @@ if TYPE_CHECKING:
 _ACTIVE_SETUP_PATH = r"Microsoft\Active Setup\Installed Components"
 
 # StubPath values that are bare flags rather than executable commands.
-_STUB_FLAGS: frozenset[str] = frozenset({
-    "/UserInstall",
-    "U",
-})
+_STUB_FLAGS: frozenset[str] = frozenset(
+    {
+        "/UserInstall",
+        "U",
+    }
+)
 
 
 @register_plugin

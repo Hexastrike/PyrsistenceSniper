@@ -55,6 +55,7 @@ class AnalysisContext:
         filesystem: FilesystemHelper,
         profile: DetectionProfile,
         hostname_override: str = "",
+        standalone: bool = False,
     ) -> None:
         self.root = root
         self._hives = hives
@@ -64,6 +65,7 @@ class AnalysisContext:
         self.profile = profile
         self._hostname_override = hostname_override
         self._cached_hostname: str | None = None
+        self._standalone = standalone
 
     def hive_path(self, hive_name: str, username: str = "") -> Path | None:
         """Locate a hive file by name, searching standard Windows paths."""
@@ -97,6 +99,10 @@ class AnalysisContext:
         # Check discovered hives first
         if name_lower in self._hives:
             return self._hives[name_lower]
+
+        # In standalone mode, only return explicitly discovered hives
+        if self._standalone:
+            return None
 
         # Fallback: standard Windows paths
         candidate = self.root / "Windows" / "System32" / "config" / hive_name

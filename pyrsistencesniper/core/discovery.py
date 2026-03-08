@@ -87,11 +87,13 @@ def build_context(
         else:
             hives = {name: resolved}
             profiles = []
+        standalone = True
     else:
         # Image root mode: full discovery
         root = resolved
         hives = _discover_hives(root)
         profiles = _discover_profiles(root)
+        standalone = False
 
     return AnalysisContext(
         root=root,
@@ -101,4 +103,5 @@ def build_context(
         filesystem=FilesystemHelper(image_root=root),
         profile=profile or DetectionProfile.default(),
         hostname_override=hostname,
+        standalone=standalone,
     )
