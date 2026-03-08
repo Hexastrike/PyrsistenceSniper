@@ -42,7 +42,12 @@ class PowerAutomate(PersistencePlugin):
             if not flows_dir.is_dir():
                 continue
 
-            for entry in flows_dir.iterdir():
+            try:
+                entries = list(flows_dir.iterdir())
+            except PermissionError:
+                continue
+
+            for entry in entries:
                 if entry.is_dir():
                     findings.append(
                         self._make_finding(

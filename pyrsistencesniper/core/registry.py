@@ -88,7 +88,8 @@ class RegistryHelper:
             reg_file.open(str(path))
             hive: object | None = reg_file
         except Exception:
-            logger.warning("Failed to open hive: %s", path, exc_info=True)
+            logger.warning("Failed to open hive: %s", path)
+            logger.debug("Hive open error details:", exc_info=True)
             hive = None
         self._hive_cache[key] = hive
         return hive

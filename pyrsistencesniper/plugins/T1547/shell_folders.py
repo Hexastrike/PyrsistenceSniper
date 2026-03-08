@@ -128,7 +128,11 @@ class ShellFoldersStartup(PersistencePlugin):
         """List files in the startup folder, excluding desktop.ini."""
         if not folder.is_dir():
             return
-        for entry in folder.iterdir():
+        try:
+            entries = list(folder.iterdir())
+        except PermissionError:
+            return
+        for entry in entries:
             if entry.is_file() and entry.name.lower() != "desktop.ini":
                 findings.append(
                     self._make_finding(

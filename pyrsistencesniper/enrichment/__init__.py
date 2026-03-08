@@ -43,7 +43,7 @@ def run_enrichments(
                 logger.warning(
                     "Enrichment plugin %s failed",
                     plugin_cls.__name__,
-                    exc_info=True,
                 )
+                logger.debug("Enrichment plugin error details:", exc_info=True)
         results.append((finding, tuple(enrichments)))
     return results

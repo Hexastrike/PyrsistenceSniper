@@ -115,7 +115,11 @@ class ForensicImage:
         profiles: list[UserProfile] = []
         if not users_dir.is_dir():
             return profiles
-        for entry in sorted(users_dir.iterdir()):
+        try:
+            entries = sorted(users_dir.iterdir())
+        except PermissionError:
+            return profiles
+        for entry in entries:
             if not entry.is_dir():
                 continue
             ntuser = entry / "NTUSER.DAT"

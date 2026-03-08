@@ -36,7 +36,8 @@ def _discover_plugins() -> None:
         try:
             __import__(modname)
         except Exception:
-            logger.warning("Failed to import plugin module %s", modname, exc_info=True)
+            logger.warning("Failed to import plugin module %s", modname)
+            logger.debug("Plugin import error details:", exc_info=True)
 
 
 def run_all_checks(
@@ -89,8 +90,8 @@ def run_all_checks(
             logger.warning(
                 "Plugin %s raised an exception",
                 plugin_cls.definition.id,
-                exc_info=True,
             )
+            logger.debug("Plugin error details:", exc_info=True)
 
     resolver = ResolutionPipeline(filesystem)
     total_findings = len(all_findings)

@@ -59,7 +59,12 @@ class ScheduledTaskFiles(PersistencePlugin):
         if depth >= _MAX_DEPTH:
             return
 
-        for entry in directory.iterdir():
+        try:
+            entries = list(directory.iterdir())
+        except PermissionError:
+            return
+
+        for entry in entries:
             if entry.is_dir():
                 self._walk_tasks(entry, findings, depth + 1)
             elif entry.is_file():
