@@ -11,6 +11,12 @@ if TYPE_CHECKING:
 
 _ACTIVE_SETUP_PATH = r"Microsoft\Active Setup\Installed Components"
 
+# StubPath values that are bare flags rather than executable commands.
+_STUB_FLAGS: frozenset[str] = frozenset({
+    "/UserInstall",
+    "U",
+})
+
 
 @register_plugin
 class ActiveSetup(PersistencePlugin):
@@ -43,7 +49,7 @@ class ActiveSetup(PersistencePlugin):
 
         for component, node in tree.children():
             value_str = self._to_str(node.get("StubPath"))
-            if value_str is None:
+            if value_str is None or value_str in _STUB_FLAGS:
                 continue
 
             findings.append(

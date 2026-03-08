@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import PureWindowsPath
 
-from pyrsistencesniper.core.lolbins import load_lolbin_names
-from pyrsistencesniper.core.normalize import canonicalize_windows_path
+from pyrsistencesniper.resolution.lolbins import load_lolbin_names
+from pyrsistencesniper.resolution.normalize import canonicalize_windows_path
 
 _lolbin_names: frozenset[str] | None = None
 

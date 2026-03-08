@@ -3,10 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, PropertyMock
 
-from pyrsistencesniper.core.filesystem import FilesystemHelper
-from pyrsistencesniper.core.image import ForensicImage
-from pyrsistencesniper.core.profile import DetectionProfile
-from pyrsistencesniper.core.registry import RegistryHelper, RegistryNode
+from pyrsistencesniper.core.context import AnalysisContext
+from pyrsistencesniper.forensics.registry import RegistryNode
 from pyrsistencesniper.models.finding import AccessLevel
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
 
@@ -22,17 +20,12 @@ class _StubPlugin(PersistencePlugin):
 
 
 def _make_plugin() -> _StubPlugin:
-    registry = MagicMock(spec=RegistryHelper)
-    filesystem = MagicMock(spec=FilesystemHelper)
-    image = MagicMock(spec=ForensicImage)
-    type(image).hostname = PropertyMock(return_value="TESTHOST")
-    profile = DetectionProfile.default()
-    return _StubPlugin(
-        registry=registry,
-        filesystem=filesystem,
-        image=image,
-        profile=profile,
-    )
+    context = MagicMock(spec=AnalysisContext)
+    type(context).hostname = PropertyMock(return_value="TESTHOST")
+    context.registry = MagicMock()
+    context.filesystem = MagicMock()
+    context.profile = MagicMock()
+    return _StubPlugin(context=context)
 
 
 # -- _open_hive ----------------------------------------------------------------
@@ -41,18 +34,18 @@ def _make_plugin() -> _StubPlugin:
 def test_open_hive_returns_hive() -> None:
     plugin = _make_plugin()
     sentinel = object()
-    plugin.image.hive_path.return_value = Path("/fake/SYSTEM")
+    plugin.context.hive_path.return_value = Path("/fake/SYSTEM")
     plugin.registry.open_hive.return_value = sentinel
 
     result = plugin._open_hive("SYSTEM")
     assert result is sentinel
-    plugin.image.hive_path.assert_called_once_with("SYSTEM")
+    plugin.context.hive_path.assert_called_once_with("SYSTEM")
     plugin.registry.open_hive.assert_called_once_with(Path("/fake/SYSTEM"))
 
 
 def test_open_hive_returns_none_when_no_path() -> None:
     plugin = _make_plugin()
-    plugin.image.hive_path.return_value = None
+    plugin.context.hive_path.return_value = None
 
     result = plugin._open_hive("SOFTWARE")
     assert result is None
@@ -61,7 +54,7 @@ def test_open_hive_returns_none_when_no_path() -> None:
 
 def test_open_hive_returns_none_when_open_fails() -> None:
     plugin = _make_plugin()
-    plugin.image.hive_path.return_value = Path("/fake/SYSTEM")
+    plugin.context.hive_path.return_value = Path("/fake/SYSTEM")
     plugin.registry.open_hive.return_value = None
 
     result = plugin._open_hive("SYSTEM")

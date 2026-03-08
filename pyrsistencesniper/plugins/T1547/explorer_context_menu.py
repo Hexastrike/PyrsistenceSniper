@@ -53,6 +53,8 @@ class ExplorerContextMenu(PersistencePlugin):
                 dll_path = self._resolve_clsid_inproc(hive, value_str)
                 if dll_path:
                     value_str = dll_path
+                elif "\\" not in value_str and not value_str.startswith("{"):
+                    continue  # Skip non-path, non-CLSID handler names
 
                 findings.append(
                     self._make_finding(

@@ -32,7 +32,7 @@ class WindowsTerminal(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        for profile in self.image.user_profiles:
+        for profile in self.context.user_profiles:
             settings_path = (
                 f"Users\\{profile.username}\\AppData\\Local"
                 "\\Packages\\Microsoft.WindowsTerminal_8wekyb3d8bbwe"

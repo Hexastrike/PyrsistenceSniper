@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pyregf
-from pyrsistencesniper.core.registry import RegistryHelper
+from pyrsistencesniper.forensics.registry import RegistryHelper
 
 # -- helpers to build fake pyregf objects ------------------------------------
 
@@ -73,7 +73,7 @@ def _make_hive(keys: dict[str, MagicMock | None] | None = None) -> MagicMock:
 # -- open_hive ---------------------------------------------------------------
 
 
-@patch("pyrsistencesniper.core.registry.pyregf")
+@patch("pyrsistencesniper.forensics.registry.pyregf")
 def test_open_hive_success(mock_pyregf: MagicMock, tmp_path: Path) -> None:
     fake_hive = MagicMock()
     mock_pyregf.file.return_value = fake_hive
@@ -87,7 +87,7 @@ def test_open_hive_success(mock_pyregf: MagicMock, tmp_path: Path) -> None:
     fake_hive.open.assert_called_once_with(str(hive_path))
 
 
-@patch("pyrsistencesniper.core.registry.pyregf")
+@patch("pyrsistencesniper.forensics.registry.pyregf")
 def test_open_hive_failure(mock_pyregf: MagicMock, tmp_path: Path) -> None:
     fake_hive = MagicMock()
     fake_hive.open.side_effect = OSError("bad hive")
@@ -98,7 +98,7 @@ def test_open_hive_failure(mock_pyregf: MagicMock, tmp_path: Path) -> None:
     assert result is None
 
 
-@patch("pyrsistencesniper.core.registry.pyregf")
+@patch("pyrsistencesniper.forensics.registry.pyregf")
 def test_open_hive_caches(mock_pyregf: MagicMock, tmp_path: Path) -> None:
     fake_hive = MagicMock()
     mock_pyregf.file.return_value = fake_hive

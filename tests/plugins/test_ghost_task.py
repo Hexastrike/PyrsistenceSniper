@@ -10,16 +10,15 @@ from .conftest import make_deps, make_node
 
 
 def _make_plugin(tmp_path: Path) -> GhostTask:
-    image, registry, filesystem, profile = make_deps(tmp_path)
-    return GhostTask(
-        registry=registry, filesystem=filesystem, image=image, profile=profile
-    )
+    context, registry, _filesystem, _profile = make_deps(tmp_path)
+    context.registry = registry
+    return GhostTask(context=context)
 
 
 def test_no_tree_key(tmp_path: Path) -> None:
     plugin = _make_plugin(tmp_path)
     plugin.registry.load_subtree.return_value = None  # type: ignore[union-attr]
-    plugin.image.hive_path.return_value = Path("/fake/SOFTWARE")  # type: ignore[union-attr]
+    plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")  # type: ignore[union-attr]
     plugin.registry.open_hive.return_value = MagicMock()  # type: ignore[union-attr]
 
     assert plugin.run() == []
@@ -33,7 +32,7 @@ def test_ghost_task_detected(tmp_path: Path) -> None:
     tree_node = make_node(name="Tree", children={"EvilTask": task_child})
 
     plugin = _make_plugin(tmp_path)
-    plugin.image.hive_path.return_value = Path("/fake/SOFTWARE")  # type: ignore[union-attr]
+    plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")  # type: ignore[union-attr]
     plugin.registry.open_hive.return_value = MagicMock()  # type: ignore[union-attr]
     plugin.registry.load_subtree.side_effect = [tree_node, None]  # type: ignore[union-attr]
 
@@ -55,7 +54,7 @@ def test_task_with_xml_not_flagged(tmp_path: Path) -> None:
     tasks_tree = make_node(name="Tasks", children={"{GUID-OK}": tasks_guid_node})
 
     plugin = _make_plugin(tmp_path)
-    plugin.image.hive_path.return_value = Path("/fake/SOFTWARE")  # type: ignore[union-attr]
+    plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")  # type: ignore[union-attr]
     plugin.registry.open_hive.return_value = MagicMock()  # type: ignore[union-attr]
     plugin.registry.load_subtree.side_effect = [tree_node, tasks_tree]  # type: ignore[union-attr]
 
@@ -69,7 +68,7 @@ def test_no_tasks_dir_returns_empty(tmp_path: Path) -> None:
     )
 
     plugin = _make_plugin(tmp_path)
-    plugin.image.hive_path.return_value = Path("/fake/SOFTWARE")  # type: ignore[union-attr]
+    plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")  # type: ignore[union-attr]
     plugin.registry.open_hive.return_value = MagicMock()  # type: ignore[union-attr]
     plugin.registry.load_subtree.side_effect = [tree_node, None]  # type: ignore[union-attr]
 

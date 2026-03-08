@@ -8,10 +8,8 @@ from .conftest import make_deps
 
 
 def _make_plugin(tmp_path: Path) -> ScheduledTaskFiles:
-    image, registry, filesystem, profile = make_deps(tmp_path)
-    return ScheduledTaskFiles(
-        registry=registry, filesystem=filesystem, image=image, profile=profile
-    )
+    context, _registry, _filesystem, _profile = make_deps(tmp_path)
+    return ScheduledTaskFiles(context=context)
 
 
 def test_no_tasks_dir(tmp_path: Path) -> None:

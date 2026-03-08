@@ -31,7 +31,7 @@ class PowerAutomate(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        for profile in self.image.user_profiles:
+        for profile in self.context.user_profiles:
             flows_dir = (
                 self.filesystem.image_root
                 / "Users"

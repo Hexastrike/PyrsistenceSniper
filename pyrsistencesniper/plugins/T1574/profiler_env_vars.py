@@ -68,7 +68,7 @@ def _scan_env_vars(
     findings: list[Finding] = []
 
     system_env_path = _SYSTEM_ENV_PATH_TEMPLATE.replace(
-        "{controlset}", plugin.image.active_controlset
+        "{controlset}", plugin.context.active_controlset
     )
     node = plugin._load_subtree("SYSTEM", system_env_path)
     if node is not None:
@@ -83,7 +83,7 @@ def _scan_env_vars(
                     )
                 )
 
-    for profile in plugin.image.user_profiles:
+    for profile in plugin.context.user_profiles:
         if profile.ntuser_path is None:
             continue
         hive = plugin.registry.open_hive(profile.ntuser_path)

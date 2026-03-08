@@ -1,8 +1,17 @@
 from __future__ import annotations
 
 import enum
-from collections.abc import Mapping
 from dataclasses import dataclass, field
+from pathlib import Path
+
+
+@dataclass(frozen=True, slots=True)
+class UserProfile:
+    """User profile location within a forensic image."""
+
+    username: str
+    profile_path: Path
+    ntuser_path: Path | None = None
 
 
 class AccessLevel(enum.Enum):
@@ -38,7 +47,7 @@ class Enrichment:
     """Key-value data attached to a finding by an enrichment plugin."""
 
     provider: str = ""
-    data: Mapping[str, str] = field(default_factory=dict)
+    data: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)

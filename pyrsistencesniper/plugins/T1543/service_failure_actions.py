@@ -32,7 +32,7 @@ class ServiceFailureCommand(PersistencePlugin):
         findings: list[Finding] = []
 
         services_path = _SERVICES_PATH_TEMPLATE.replace(
-            "{controlset}", self.image.active_controlset
+            "{controlset}", self.context.active_controlset
         )
         tree = self._load_subtree("SYSTEM", services_path)
         if tree is None:

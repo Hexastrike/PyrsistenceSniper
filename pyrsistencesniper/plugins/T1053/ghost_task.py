@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from pyrsistencesniper.core.registry import RegistryNode
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
 
@@ -29,6 +29,16 @@ class GhostTask(PersistencePlugin):
             "schtasks.exe, making them invisible to standard enumeration."
         ),
         references=("https://attack.mitre.org/techniques/T1053/005/",),
+        allow=(
+            FilterRule(
+                reason="Standard Windows task",
+                path_contains="Microsoft\\Windows\\",
+            ),
+            FilterRule(
+                reason="Standard Windows task",
+                path_contains="Microsoft\\OneCore\\",
+            ),
+        ),
     )
 
     def run(self) -> list[Finding]:

@@ -25,7 +25,14 @@ class AmsiProviders(PersistencePlugin):
             "code in-process."
         ),
         references=("https://attack.mitre.org/techniques/T1546/015/",),
-        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
+        allow=(
+            FilterRule(signer="microsoft", not_lolbin=True),
+            FilterRule(
+                reason="Windows Defender AMSI provider",
+                value_contains="MpOav.dll",
+                signer="microsoft",
+            ),
+        ),
     )
 
     def run(self) -> list[Finding]:

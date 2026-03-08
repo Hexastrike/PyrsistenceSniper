@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-from pyrsistencesniper.core.filesystem import FilesystemHelper
+from pyrsistencesniper.forensics.filesystem import FilesystemHelper
 
 # -- resolve ------------------------------------------------------------------
 

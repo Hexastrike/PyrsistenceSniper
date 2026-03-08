@@ -9,10 +9,8 @@ from .conftest import make_deps
 
 
 def _make_plugin(tmp_path: Path) -> WmiEventSubscription:
-    image, registry, filesystem, profile = make_deps(tmp_path)
-    return WmiEventSubscription(
-        registry=registry, filesystem=filesystem, image=image, profile=profile
-    )
+    context, _registry, _filesystem, _profile = make_deps(tmp_path)
+    return WmiEventSubscription(context=context)
 
 
 def test_no_objects_data(tmp_path: Path) -> None:

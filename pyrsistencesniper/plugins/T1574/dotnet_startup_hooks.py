@@ -31,7 +31,7 @@ class DotNetStartupHooks(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
         system_env_path = _SYSTEM_ENV_PATH_TEMPLATE.replace(
-            "{controlset}", self.image.active_controlset
+            "{controlset}", self.context.active_controlset
         )
 
         hive = self._open_hive("SYSTEM")

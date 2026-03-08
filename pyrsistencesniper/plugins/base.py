@@ -1,47 +1,30 @@
 from __future__ import annotations
 
-import enum
 from collections.abc import Iterator
-from dataclasses import dataclass, field
 from typing import ClassVar
 
-from pyrsistencesniper.core.filesystem import FilesystemHelper
-from pyrsistencesniper.core.image import ForensicImage, UserProfile
-from pyrsistencesniper.core.normalize import normalize_windows_path
-from pyrsistencesniper.core.profile import DetectionProfile
-from pyrsistencesniper.core.registry import RegistryHelper, RegistryNode
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
+from pyrsistencesniper.core.context import AnalysisContext
+from pyrsistencesniper.forensics.registry import RegistryNode
+from pyrsistencesniper.models.check import CheckDefinition, HiveScope, RegistryTarget
+from pyrsistencesniper.models.finding import (
+    AccessLevel,
+    Finding,
+    UserProfile,
+)
+from pyrsistencesniper.resolution.normalize import normalize_windows_path
 
+# Opaque handle returned by RegistryHelper.open_hive(); the concrete type
+# is pyregf.file but we avoid coupling to the C extension at import time.
+Hive = object
 
-class HiveScope(enum.Enum):
-    """Specifies whether a registry target uses HKLM, HKU, or both."""
-
-    HKLM = "HKLM"
-    HKU = "HKU"
-    BOTH = "BOTH"
-
-
-@dataclass(frozen=True, slots=True)
-class RegistryTarget:
-    """Describes a single registry path and value selector to scan."""
-
-    path: str = ""
-    values: str = "*"
-    scope: HiveScope = HiveScope.BOTH
-
-
-@dataclass(frozen=True, slots=True)
-class CheckDefinition:
-    """Immutable specification of a persistence check's metadata and targets."""
-
-    id: str = ""
-    technique: str = ""
-    mitre_id: str = ""
-    description: str = ""
-    targets: tuple[RegistryTarget, ...] = field(default_factory=tuple)
-    references: tuple[str, ...] = field(default_factory=tuple)
-    allow: tuple[FilterRule, ...] = field(default_factory=tuple)
-    block: tuple[FilterRule, ...] = field(default_factory=tuple)
+# Re-export models for backward compatibility — plugins import from here
+__all__ = [
+    "CheckDefinition",
+    "Hive",
+    "HiveScope",
+    "PersistencePlugin",
+    "RegistryTarget",
+]
 
 
 class PersistencePlugin:
@@ -53,24 +36,16 @@ class PersistencePlugin:
 
     definition: ClassVar[CheckDefinition]
 
-    def __init__(
-        self,
-        registry: RegistryHelper,
-        filesystem: FilesystemHelper,
-        image: ForensicImage,
-        profile: DetectionProfile,
-        *,
-        raw: bool = False,
-    ) -> None:
-        self.registry = registry
-        self.filesystem = filesystem
-        self.image = image
-        self.profile = profile
+    def __init__(self, context: AnalysisContext, *, raw: bool = False) -> None:
+        self.context = context
+        self.registry = context.registry
+        self.filesystem = context.filesystem
+        self.profile = context.profile
         self._raw = raw
 
-    def _open_hive(self, hive_name: str) -> object | None:
+    def _open_hive(self, hive_name: str) -> Hive | None:
         """Resolve and open a registry hive by name. Returns None on failure."""
-        hive_path = self.image.hive_path(hive_name)
+        hive_path = self.context.hive_path(hive_name)
         if hive_path is None:
             return None
         return self.registry.open_hive(hive_path)
@@ -99,7 +74,7 @@ class PersistencePlugin:
             mitre_id=defn.mitre_id,
             description=description or defn.description,
             access_gained=access,
-            hostname=self.image.hostname,
+            hostname=self.context.hostname,
             check_id=defn.id,
             references=defn.references,
         )
@@ -112,16 +87,16 @@ class PersistencePlugin:
         s = str(val).strip()
         return s if s else None
 
-    def _iter_user_hives(self) -> Iterator[tuple[UserProfile, object]]:
+    def _iter_user_hives(self) -> Iterator[tuple[UserProfile, Hive]]:
         """Iterate over user profiles, yielding each with its opened NTUSER hive."""
-        for profile in self.image.user_profiles:
+        for profile in self.context.user_profiles:
             if profile.ntuser_path is None:
                 continue
             hive = self.registry.open_hive(profile.ntuser_path)
             if hive is not None:
                 yield profile, hive
 
-    def _resolve_clsid_default(self, hive: object, subpath: str) -> str:
+    def _resolve_clsid_default(self, hive: Hive, subpath: str) -> str:
         """Return the (Default) value at a registry subpath, or empty string."""
         node = self.registry.load_subtree(hive, subpath)
         if node is None:
@@ -129,7 +104,7 @@ class PersistencePlugin:
         val = node.get("(Default)")
         return str(val) if val else ""
 
-    def _resolve_clsid_inproc(self, hive: object, clsid: str) -> str:
+    def _resolve_clsid_inproc(self, hive: Hive, clsid: str) -> str:
         """Look up a CLSID's InprocServer32 DLL path, or return empty string."""
         if not clsid.startswith("{"):
             return ""
@@ -138,7 +113,18 @@ class PersistencePlugin:
         )
 
     def run(self) -> list[Finding]:
-        """Execute the check. Override in subclasses for custom detection."""
+        """Execute the check. Override in subclasses for custom detection.
+
+        Filtering convention — plugins filter at two levels:
+
+        * **In run()**: reject values that are not valid findings (garbage
+          data, non-executable flags, wrong value types).  These are data
+          quality checks and apply even when ``--raw`` is used.
+        * **FilterRule (allow/block)**: suppress values that *are* valid
+          persistence entries but are known-good defaults (e.g.
+          ``explorer.exe`` for ``winlogon_shell``).  These are policy
+          decisions and are bypassed by ``--raw``.
+        """
         return self._execute_definition()
 
     def _execute_definition(self) -> list[Finding]:
@@ -149,6 +135,8 @@ class PersistencePlugin:
         for target in defn.targets:
             for hive, key_path, canonical_prefix in self._iter_hive_contexts(target):
                 for name, raw_value in self._read_values(hive, key_path, target.values):
+                    # REG_MULTI_SZ values arrive as lists; flatten each
+                    # non-blank element into its own finding.
                     if isinstance(raw_value, list):
                         entries = [
                             str(v)
@@ -158,9 +146,15 @@ class PersistencePlugin:
                         if not entries:
                             continue
                     else:
-                        entries = [str(raw_value) if raw_value is not None else ""]
+                        s = str(raw_value) if raw_value is not None else ""
+                        if not s.strip():
+                            continue
+                        entries = [s]
 
                     for value_str in entries:
+                        # Build a human-readable registry path like
+                        # HKLM\SOFTWARE\...\ValueName from the canonical
+                        # prefix, key path, and value name.
                         reg_path = (
                             f"{canonical_prefix}\\{key_path}"
                             if key_path
@@ -187,7 +181,7 @@ class PersistencePlugin:
 
     def _iter_hive_contexts(
         self, target: RegistryTarget
-    ) -> Iterator[tuple[object, str, str]]:
+    ) -> Iterator[tuple[Hive, str, str]]:
         """Yield (hive_object, key_path, canonical_prefix) for each applicable hive."""
         scope = target.scope
 
@@ -201,17 +195,17 @@ class PersistencePlugin:
 
             if "{controlset}" in key_path:
                 key_path = key_path.replace(
-                    "{controlset}", self.image.active_controlset
+                    "{controlset}", self.context.active_controlset
                 )
 
-            hive_path = self.image.hive_path(hive_name)
+            hive_path = self.context.hive_path(hive_name)
             if hive_path is not None:
                 hive = self.registry.open_hive(hive_path)
                 if hive is not None:
                     yield hive, key_path, f"HKLM\\{hive_name}"
 
         if scope in (HiveScope.HKU, HiveScope.BOTH):
-            for user_profile in self.image.user_profiles:
+            for user_profile in self.context.user_profiles:
                 if user_profile.ntuser_path is None:
                     continue
                 hive = self.registry.open_hive(user_profile.ntuser_path)
@@ -220,7 +214,7 @@ class PersistencePlugin:
                 yield hive, target.path, f"HKU\\{user_profile.username}"
 
     def _read_values(
-        self, hive: object, key_path: str, values_selector: str
+        self, hive: Hive, key_path: str, values_selector: str
     ) -> Iterator[tuple[str, object]]:
         """Yield (name, value) pairs from the registry node at key_path."""
         node = self.registry.load_subtree(hive, key_path)

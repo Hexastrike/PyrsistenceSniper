@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pyrsistencesniper.core.normalize import (
+from pyrsistencesniper.resolution.normalize import (
     canonicalize_registry_path,
     canonicalize_windows_path,
     expand_env_vars,

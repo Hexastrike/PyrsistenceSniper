@@ -71,7 +71,14 @@ class HhctrlOcx(PersistencePlugin):
             "provides code execution when any HTML Help content is rendered."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
-        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
+        allow=(
+            FilterRule(signer="microsoft", not_lolbin=True),
+            FilterRule(
+                reason="Default HTML Help control",
+                value_contains="hhctrl.ocx",
+                signer="microsoft",
+            ),
+        ),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Classes\CLSID\{adb880a6-d8ff-11cf-9377-00aa003b7a11}\InprocServer32",
@@ -94,7 +101,14 @@ class AutodialDll(PersistencePlugin):
             "execution in any process that uses WinSock."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
-        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
+        allow=(
+            FilterRule(signer="microsoft", not_lolbin=True),
+            FilterRule(
+                reason="Default autodial DLL",
+                value_contains="rasadhlp.dll",
+                signer="microsoft",
+            ),
+        ),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Services\WinSock2\Parameters",
@@ -239,7 +253,14 @@ class DiagTrackDll(PersistencePlugin):
             "persistence triggered by the telemetry service."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
-        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
+        allow=(
+            FilterRule(signer="microsoft", not_lolbin=True),
+            FilterRule(
+                reason="Default DiagTrack service",
+                value_contains="svchost.exe",
+                signer="microsoft",
+            ),
+        ),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Services\DiagTrack",
@@ -262,7 +283,14 @@ class DiagTrackListenerDll(PersistencePlugin):
             "SYSTEM-level persistence at boot."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
-        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
+        allow=(
+            FilterRule(signer="microsoft", not_lolbin=True),
+            FilterRule(
+                reason="Default DiagTrack listener",
+                value_contains="Diagtrack-Listener.etl",
+                signer="microsoft",
+            ),
+        ),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\WMI\Autologger\DiagTrack-Listener",
@@ -329,7 +357,14 @@ class WuServiceStartupDll(PersistencePlugin):
             "persistence triggered by Windows Update operations."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
-        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
+        allow=(
+            FilterRule(signer="microsoft", not_lolbin=True),
+            FilterRule(
+                reason="Default Windows Update DLL",
+                value_contains="wuaueng.dll",
+                signer="microsoft",
+            ),
+        ),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Services\wuauserv\Parameters",
@@ -374,7 +409,14 @@ class MiniDumpAuxiliaryDlls(PersistencePlugin):
             "process crash dump is created."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
-        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
+        allow=(
+            FilterRule(signer="microsoft", not_lolbin=True),
+            FilterRule(reason="Default .NET MiniDump DLL", value_contains="clr.dll", signer="microsoft"),
+            FilterRule(reason="Default .NET MiniDump DLL", value_contains="mscorwks.dll", signer="microsoft"),
+            FilterRule(reason="Default JavaScript engine", value_contains="Chakra.dll", signer="microsoft"),
+            FilterRule(reason="Default JavaScript engine", value_contains="jscript9.dll", signer="microsoft"),
+            FilterRule(reason="Default .NET runtime", value_contains="mrt100.dll", signer="microsoft"),
+        ),
     )
 
     def run(self) -> list[Finding]:
@@ -484,13 +526,20 @@ class WinsockAutoProxy(PersistencePlugin):
             "provides persistent DLL loading in any networking process."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
-        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
+        allow=(
+            FilterRule(signer="microsoft", not_lolbin=True),
+            FilterRule(reason="Default Winsock provider", value_contains="mswsock.dll", signer="microsoft"),
+            FilterRule(reason="Default Winsock provider", value_contains="napinsp.dll", signer="microsoft"),
+            FilterRule(reason="Default Winsock provider", value_contains="nlansp_c.dll", signer="microsoft"),
+            FilterRule(reason="Default Winsock provider", value_contains="winrnr.dll", signer="microsoft"),
+            FilterRule(reason="Default Winsock provider", value_contains="wshbth.dll", signer="microsoft"),
+        ),
     )
 
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        cs = self.image.active_controlset
+        cs = self.context.active_controlset
         ns_path = (
             f"{cs}\\Services\\WinSock2\\Parameters\\NameSpace_Catalog5\\Catalog_Entries"
         )

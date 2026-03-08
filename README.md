@@ -110,23 +110,34 @@ pyrsistencesniper /mnt/case042/C --technique T1547 T1546
 # Apply a custom detection profile
 pyrsistencesniper /mnt/case042/C --profile ./profiles/customer_baseline.yaml
 
+# Scan a standalone NTUSER.DAT hive
+pyrsistencesniper /path/to/NTUSER.DAT
+
+# Scan a standalone SYSTEM hive with verbose output
+pyrsistencesniper /path/to/SYSTEM -v
+
 # List all available persistence checks
 pyrsistencesniper --list-checks
 ```
 
-### Working with loose hive files
+### Standalone artifact scanning
 
-PyrsistenceSniper expects a full image root. The real power comes from cross-referencing registry entries against the filesystem — validating signatures, checking if binaries exist, computing hashes. A loose hive can't give you that.
-
-If you only have individual hive files, place them in the expected directory structure:
+Pass a single hive file directly — no directory structure needed:
 
 ```bash
-mkdir -p /tmp/evidence/Windows/System32/config
-cp SYSTEM SOFTWARE /tmp/evidence/Windows/System32/config/
-mkdir -p /tmp/evidence/Users/unknown
-cp NTUSER.DAT /tmp/evidence/Users/unknown/
-pyrsistencesniper /tmp/evidence
+# Scan a standalone NTUSER.DAT
+pyrsistencesniper /path/to/NTUSER.DAT
+
+# Scan a standalone SYSTEM hive
+pyrsistencesniper /path/to/SYSTEM
+
+# Scan a standalone SOFTWARE hive with CSV output
+pyrsistencesniper /path/to/SOFTWARE --format csv --output results.csv
 ```
+
+Supported standalone artifacts: `SYSTEM`, `SOFTWARE`, `SAM`, `SECURITY`, `NTUSER.DAT`, `UsrClass.dat`, `DEFAULT`, `Amcache.hve`.
+
+PyrsistenceSniper auto-detects standalone mode and runs only the checks that apply to the given hive. Note that resolution features (file existence, hashes, signatures) are unavailable in standalone mode since there's no filesystem to cross-reference.
 
 ---
 
@@ -136,7 +147,7 @@ PyrsistenceSniper runs each finding through a multi-stage pipeline:
 
 1. **Plugin execution** — Each check scans registry hives, filesystem artifacts, scheduled task XMLs, or WMI repositories for persistence indicators.
 2. **Resolution** — Findings are enriched with file existence, SHA-256 hash, Authenticode signer, LOLBin classification, and OS directory detection.
-3. **Filtering** — Plugin-level and profile-level allow/block rules suppress known-good entries. In most environments this cuts output by 80–90%.
+3. **Filtering** — Two levels: plugins reject invalid data (empty values, non-executable flags) unconditionally, then allow/block rules suppress known-good entries. `--raw` bypasses the rules but not the data-quality filters. In most environments this cuts output by 80–90%.
 4. **Enrichment** — Optional enrichment plugins can attach additional metadata before output.
 5. **Output** — Findings are rendered in the requested format (console, CSV, or HTML).
 
@@ -160,7 +171,7 @@ Console output groups findings by MITRE technique and flags anomalies. CSV outpu
 
 ## 🛡️ Supported Checks
 
-113 persistence checks across 9 MITRE ATT&CK techniques. Run `pyrsistencesniper --list-checks` for a quick overview in the terminal.
+94 persistence checks across 9 MITRE ATT&CK techniques. Run `pyrsistencesniper --list-checks` for a quick overview in the terminal.
 
 | MITRE ID | Technique | Checks |
 |----------|-----------|--------|
@@ -247,18 +258,22 @@ make cov                          # Tests with coverage report
 ```
 pyrsistencesniper/
   cli.py              # Entry point and argument parsing
-  plugins/            # Detection plugins, grouped by MITRE technique
-    base.py           # PersistencePlugin, CheckDefinition, RegistryTarget
+  core/               # Analysis context, pipeline orchestration, detection profiles, logging
+  forensics/          # Offline artifact I/O — registry hive parsing, filesystem access,
+                      #   Authenticode signature extraction
+  resolution/         # Post-detection enrichment — path normalization, metadata resolution,
+                      #   LOLBin classification
+  models/             # Domain data models — Finding, CheckDefinition, FilterRule, etc.
+  plugins/            # Detection plugins, grouped by MITRE ATT&CK technique
+    base.py           # PersistencePlugin base class
     T1547/            # Boot/logon autostart execution
     T1546/            # Event-triggered execution
     T1574/            # Hijack execution flow
     T1543/            # Services
     ...
-  core/               # Registry parsing, filesystem ops, image handling,
-                      #   Authenticode extraction, path normalization
-  models/             # Finding, FilterRule, Enrichment dataclasses
-  output/             # Console, CSV, HTML renderers
   enrichment/         # Optional enrichment plugins
+  output/             # Console, CSV, HTML renderers
+  ui/                 # CLI presentation — banner, progress display
 ```
 
 ### Adding a plugin
@@ -292,7 +307,7 @@ class LogonScripts(PersistencePlugin):
     )
 ```
 
-The base class handles registry scanning, value extraction, and finding creation. For checks that need custom logic (filesystem walking, cross-referencing multiple hives, etc.), override `run()` and return a `list[Finding]`. The plugin gets dependency-injected helpers via `self.registry`, `self.filesystem`, `self.image`, and `self.profile`.
+The base class handles registry scanning, value extraction, and finding creation. For checks that need custom logic (filesystem walking, cross-referencing multiple hives, etc.), override `run()` and return a `list[Finding]`. The plugin gets dependency-injected helpers via `self.registry`, `self.filesystem`, and `self.profile`.
 
 ---
 

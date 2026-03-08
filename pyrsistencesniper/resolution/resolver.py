@@ -2,19 +2,28 @@ from __future__ import annotations
 
 import dataclasses
 import logging
-from typing import Any
+from typing import Any, TypedDict
 
-from pyrsistencesniper.core.filesystem import FilesystemHelper
-from pyrsistencesniper.core.helpers import _in_system_path, is_builtin, is_lolbin
-from pyrsistencesniper.core.normalize import (
+from pyrsistencesniper.forensics.filesystem import FilesystemHelper
+from pyrsistencesniper.forensics.signer import SignerExtractor
+from pyrsistencesniper.models.finding import Finding
+from pyrsistencesniper.resolution.helpers import _in_system_path, is_builtin, is_lolbin
+from pyrsistencesniper.resolution.normalize import (
     canonicalize_windows_path,
     expand_env_vars,
     extract_executable_from_cmdline,
 )
-from pyrsistencesniper.core.signer import SignerExtractor
-from pyrsistencesniper.models.finding import Finding
 
 logger = logging.getLogger(__name__)
+
+
+class _CacheEntry(TypedDict):
+    exists: bool
+    sha256: str
+    is_lolbin: bool
+    is_builtin: bool
+    signer: str
+    is_in_os_directory: bool
 
 
 class ResolutionPipeline:
@@ -22,7 +31,7 @@ class ResolutionPipeline:
 
     def __init__(self, filesystem: FilesystemHelper) -> None:
         self._fs = filesystem
-        self._cache: dict[str, dict[str, Any]] = {}
+        self._cache: dict[str, _CacheEntry] = {}
         self._signer = SignerExtractor(filesystem)
 
     def resolve(self, finding: Finding) -> Finding:

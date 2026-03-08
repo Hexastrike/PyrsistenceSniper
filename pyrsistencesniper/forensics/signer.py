@@ -19,7 +19,7 @@ try:
 except ImportError:
     _HAS_SIGNIFY_CTL = False
 
-from pyrsistencesniper.core.filesystem import FilesystemHelper
+from pyrsistencesniper.forensics.filesystem import FilesystemHelper
 
 logger = logging.getLogger(__name__)
 

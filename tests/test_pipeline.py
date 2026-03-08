@@ -5,13 +5,16 @@ from pathlib import Path
 from typing import ClassVar
 from unittest.mock import MagicMock, patch
 
-from pyrsistencesniper.core.filesystem import FilesystemHelper
-from pyrsistencesniper.core.image import ForensicImage
+from pyrsistencesniper.core.context import AnalysisContext
 from pyrsistencesniper.core.profile import DetectionProfile
-from pyrsistencesniper.core.registry import RegistryHelper
+from pyrsistencesniper.forensics.filesystem import FilesystemHelper
+from pyrsistencesniper.forensics.registry import RegistryHelper
 from pyrsistencesniper.models.finding import Finding
 from pyrsistencesniper.plugins import run_all_checks
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+
+_RESOLVER_CLS = "pyrsistencesniper.resolution.resolver.ResolutionPipeline"
+_RUN_ENRICHMENTS = "pyrsistencesniper.enrichment.run_enrichments"
 
 # -- Helpers ------------------------------------------------------------------
 
@@ -43,18 +46,15 @@ class _ExplodingPlugin(PersistencePlugin):
         raise RuntimeError("boom")
 
 
-def _make_deps(
-    tmp_path: Path,
-) -> tuple[ForensicImage, RegistryHelper, FilesystemHelper, DetectionProfile]:
-    image = MagicMock(spec=ForensicImage)
-    image.hostname = "TESTHOST"
-    image.active_controlset = "ControlSet001"
-    image.user_profiles = []
-
-    registry = RegistryHelper()
-    filesystem = FilesystemHelper(image_root=tmp_path)
-    profile = DetectionProfile.default()
-    return image, registry, filesystem, profile
+def _make_context(tmp_path: Path) -> MagicMock:
+    context = MagicMock(spec=AnalysisContext)
+    context.hostname = "TESTHOST"
+    context.active_controlset = "ControlSet001"
+    context.user_profiles = []
+    context.profile = DetectionProfile.default()
+    context.filesystem = FilesystemHelper(image_root=tmp_path)
+    context.registry = RegistryHelper()
+    return context
 
 
 def _fake_resolve(f: Finding) -> Finding:
@@ -66,7 +66,7 @@ def _fake_resolve(f: Finding) -> Finding:
 
 def test_run_all_checks_sequential(tmp_path: Path) -> None:
     """Sequential loop should collect all findings."""
-    image, registry, filesystem, profile = _make_deps(tmp_path)
+    ctx = _make_context(tmp_path)
 
     with (
         patch(
@@ -74,20 +74,15 @@ def test_run_all_checks_sequential(tmp_path: Path) -> None:
             {"stub_a": _StubPluginA, "stub_b": _StubPluginB},
         ),
         patch("pyrsistencesniper.plugins._discover_plugins"),
-        patch("pyrsistencesniper.plugins.ResolutionPipeline") as mock_resolver_cls,
+        patch(_RESOLVER_CLS) as mock_resolver_cls,
         patch(
-            "pyrsistencesniper.plugins.run_enrichments",
+            _RUN_ENRICHMENTS,
             side_effect=lambda f, **kw: [(x, []) for x in f],
         ),
     ):
         mock_resolver_cls.return_value.resolve.side_effect = lambda f: f
 
-        results = run_all_checks(
-            image=image,
-            registry=registry,
-            filesystem=filesystem,
-            profile=profile,
-        )
+        results = run_all_checks(ctx)
 
     paths = {r[0].path for r in results}
     assert paths == {"stub_a_path", "stub_b_path"}
@@ -95,7 +90,7 @@ def test_run_all_checks_sequential(tmp_path: Path) -> None:
 
 def test_run_all_checks_plugin_exception_isolated(tmp_path: Path) -> None:
     """A failing plugin should not prevent others from returning findings."""
-    image, registry, filesystem, profile = _make_deps(tmp_path)
+    ctx = _make_context(tmp_path)
 
     with (
         patch(
@@ -103,20 +98,15 @@ def test_run_all_checks_plugin_exception_isolated(tmp_path: Path) -> None:
             {"stub_a": _StubPluginA, "exploding": _ExplodingPlugin},
         ),
         patch("pyrsistencesniper.plugins._discover_plugins"),
-        patch("pyrsistencesniper.plugins.ResolutionPipeline") as mock_resolver_cls,
+        patch(_RESOLVER_CLS) as mock_resolver_cls,
         patch(
-            "pyrsistencesniper.plugins.run_enrichments",
+            _RUN_ENRICHMENTS,
             side_effect=lambda f, **kw: [(x, []) for x in f],
         ),
     ):
         mock_resolver_cls.return_value.resolve.side_effect = lambda f: f
 
-        results = run_all_checks(
-            image=image,
-            registry=registry,
-            filesystem=filesystem,
-            profile=profile,
-        )
+        results = run_all_checks(ctx)
 
     assert len(results) == 1
     assert results[0][0].path == "stub_a_path"
@@ -124,7 +114,7 @@ def test_run_all_checks_plugin_exception_isolated(tmp_path: Path) -> None:
 
 def test_run_all_checks_progress_callback(tmp_path: Path) -> None:
     """Progress callback should be invoked for each pipeline stage."""
-    image, registry, filesystem, profile = _make_deps(tmp_path)
+    ctx = _make_context(tmp_path)
     calls: list[tuple[str, int, int]] = []
 
     def on_progress(stage: str, current: int, total: int) -> None:
@@ -136,21 +126,15 @@ def test_run_all_checks_progress_callback(tmp_path: Path) -> None:
             {"stub_a": _StubPluginA, "stub_b": _StubPluginB},
         ),
         patch("pyrsistencesniper.plugins._discover_plugins"),
-        patch("pyrsistencesniper.plugins.ResolutionPipeline") as mock_resolver_cls,
+        patch(_RESOLVER_CLS) as mock_resolver_cls,
         patch(
-            "pyrsistencesniper.plugins.run_enrichments",
+            _RUN_ENRICHMENTS,
             side_effect=lambda f, **kw: [(x, []) for x in f],
         ),
     ):
         mock_resolver_cls.return_value.resolve.side_effect = lambda f: f
 
-        results = run_all_checks(
-            image=image,
-            registry=registry,
-            filesystem=filesystem,
-            profile=profile,
-            progress=on_progress,
-        )
+        results = run_all_checks(ctx, progress=on_progress)
 
     assert len(results) == 2
 
@@ -171,7 +155,7 @@ def test_run_all_checks_progress_callback(tmp_path: Path) -> None:
 
 def test_run_all_checks_raw_skips_suppression(tmp_path: Path) -> None:
     """raw=True should skip all filtering, including auto-suppression."""
-    image, registry, filesystem, profile = _make_deps(tmp_path)
+    ctx = _make_context(tmp_path)
 
     with (
         patch(
@@ -179,21 +163,15 @@ def test_run_all_checks_raw_skips_suppression(tmp_path: Path) -> None:
             {"stub_a": _StubPluginA},
         ),
         patch("pyrsistencesniper.plugins._discover_plugins"),
-        patch("pyrsistencesniper.plugins.ResolutionPipeline") as mock_resolver_cls,
+        patch(_RESOLVER_CLS) as mock_resolver_cls,
         patch(
-            "pyrsistencesniper.plugins.run_enrichments",
+            _RUN_ENRICHMENTS,
             side_effect=lambda f, **kw: [(x, []) for x in f],
         ),
     ):
         mock_resolver_cls.return_value.resolve.side_effect = _fake_resolve
 
-        results = run_all_checks(
-            image=image,
-            registry=registry,
-            filesystem=filesystem,
-            profile=profile,
-            raw=True,
-        )
+        results = run_all_checks(ctx, raw=True)
 
     # In raw mode, finding is NOT suppressed even though is_in_os_directory=True
     assert len(results) == 1
@@ -204,7 +182,7 @@ def test_run_all_checks_allow_rule_suppression(tmp_path: Path) -> None:
     """Plugin allow rules suppress matching findings (non-raw mode)."""
     from pyrsistencesniper.models.finding import FilterRule
 
-    image, registry, filesystem, profile = _make_deps(tmp_path)
+    ctx = _make_context(tmp_path)
 
     class _StubWithAllow(PersistencePlugin):
         definition: ClassVar[CheckDefinition] = CheckDefinition(
@@ -226,20 +204,15 @@ def test_run_all_checks_allow_rule_suppression(tmp_path: Path) -> None:
             {"stub_allow": _StubWithAllow},
         ),
         patch("pyrsistencesniper.plugins._discover_plugins"),
-        patch("pyrsistencesniper.plugins.ResolutionPipeline") as mock_resolver_cls,
+        patch(_RESOLVER_CLS) as mock_resolver_cls,
         patch(
-            "pyrsistencesniper.plugins.run_enrichments",
+            _RUN_ENRICHMENTS,
             side_effect=lambda f, **kw: [(x, []) for x in f],
         ),
     ):
         mock_resolver_cls.return_value.resolve.side_effect = _resolve_with_signer
 
-        results = run_all_checks(
-            image=image,
-            registry=registry,
-            filesystem=filesystem,
-            profile=profile,
-        )
+        results = run_all_checks(ctx)
 
     # MS-signed non-LOLBin should be suppressed by plugin allow rule
     assert len(results) == 0
@@ -249,7 +222,7 @@ def test_run_all_checks_lolbin_not_suppressed(tmp_path: Path) -> None:
     """LOLBin findings bypass not_lolbin allow rules."""
     from pyrsistencesniper.models.finding import FilterRule
 
-    image, registry, filesystem, profile = _make_deps(tmp_path)
+    ctx = _make_context(tmp_path)
 
     class _StubWithAllow(PersistencePlugin):
         definition: ClassVar[CheckDefinition] = CheckDefinition(
@@ -271,20 +244,15 @@ def test_run_all_checks_lolbin_not_suppressed(tmp_path: Path) -> None:
             {"stub_allow": _StubWithAllow},
         ),
         patch("pyrsistencesniper.plugins._discover_plugins"),
-        patch("pyrsistencesniper.plugins.ResolutionPipeline") as mock_resolver_cls,
+        patch(_RESOLVER_CLS) as mock_resolver_cls,
         patch(
-            "pyrsistencesniper.plugins.run_enrichments",
+            _RUN_ENRICHMENTS,
             side_effect=lambda f, **kw: [(x, []) for x in f],
         ),
     ):
         mock_resolver_cls.return_value.resolve.side_effect = _resolve_lolbin
 
-        results = run_all_checks(
-            image=image,
-            registry=registry,
-            filesystem=filesystem,
-            profile=profile,
-        )
+        results = run_all_checks(ctx)
 
     # LOLBin should NOT be suppressed even with signer allow rule
     assert len(results) == 1

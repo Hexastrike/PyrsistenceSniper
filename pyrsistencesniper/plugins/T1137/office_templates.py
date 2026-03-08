@@ -33,7 +33,7 @@ class OfficeTemplates(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        for profile in self.image.user_profiles:
+        for profile in self.context.user_profiles:
             for tpl_rel in _TEMPLATE_FILES:
                 full_path = f"Users\\{profile.username}\\{tpl_rel}"
                 if self.filesystem.exists(full_path):

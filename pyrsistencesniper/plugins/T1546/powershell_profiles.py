@@ -53,7 +53,7 @@ class PowerShellProfiles(PersistencePlugin):
                     )
                 )
 
-        for profile in self.image.user_profiles:
+        for profile in self.context.user_profiles:
             for ps_rel in _USER_PS_PROFILES:
                 full_path = f"Users\\{profile.username}\\{ps_rel}"
                 if self.filesystem.exists(full_path):

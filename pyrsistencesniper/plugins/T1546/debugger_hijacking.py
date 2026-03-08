@@ -144,7 +144,14 @@ class WerRuntimeExceptionHelperModules(PersistencePlugin):
             "provides DLL-based persistence via application crashes."
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
-        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
+        allow=(
+            FilterRule(signer="microsoft", not_lolbin=True),
+            FilterRule(reason="Default .NET WER helper", value_contains="mscordacwks.dll", signer="microsoft"),
+            FilterRule(reason="Default IE WER helper", value_contains="iertutil.dll", signer="microsoft"),
+            FilterRule(reason="Default MSI WER helper", value_contains="msiwer.dll", signer="microsoft"),
+            FilterRule(reason="Default biometric WER helper", value_contains="wbiosrvc.dll", signer="microsoft"),
+            FilterRule(reason="Edge WER helper", value_contains="msedge_wer.dll", signer="microsoft"),
+        ),
     )
 
     def run(self) -> list[Finding]:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pyrsistencesniper.core.helpers import _in_system_path, is_builtin, is_lolbin
+from pyrsistencesniper.resolution.helpers import _in_system_path, is_builtin, is_lolbin
 
 # -- is_lolbin ----------------------------------------------------------------
 

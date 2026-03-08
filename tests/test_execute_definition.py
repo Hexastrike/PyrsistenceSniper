@@ -4,11 +4,9 @@ from pathlib import Path
 from typing import ClassVar
 from unittest.mock import MagicMock, PropertyMock
 
-from pyrsistencesniper.core.filesystem import FilesystemHelper
-from pyrsistencesniper.core.image import ForensicImage, UserProfile
-from pyrsistencesniper.core.profile import DetectionProfile
-from pyrsistencesniper.core.registry import RegistryHelper, RegistryNode
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.core.context import AnalysisContext
+from pyrsistencesniper.forensics.registry import RegistryNode
+from pyrsistencesniper.models.finding import AccessLevel, UserProfile
 from pyrsistencesniper.plugins.base import (
     CheckDefinition,
     HiveScope,
@@ -39,17 +37,15 @@ def _make_plugin(
             targets=targets,
         )
 
-    registry = MagicMock(spec=RegistryHelper)
-    filesystem = MagicMock(spec=FilesystemHelper)
-    image = MagicMock(spec=ForensicImage)
-    type(image).hostname = PropertyMock(return_value="TESTHOST")
-    type(image).active_controlset = PropertyMock(return_value=controlset)
-    type(image).user_profiles = PropertyMock(return_value=user_profiles or [])
-    profile = DetectionProfile.default()
+    context = MagicMock(spec=AnalysisContext)
+    type(context).hostname = PropertyMock(return_value="TESTHOST")
+    type(context).active_controlset = PropertyMock(return_value=controlset)
+    type(context).user_profiles = PropertyMock(return_value=user_profiles or [])
+    context.registry = MagicMock()
+    context.filesystem = MagicMock()
+    context.profile = MagicMock()
 
-    plugin = _Stub(
-        registry=registry, filesystem=filesystem, image=image, profile=profile
-    )
+    plugin = _Stub(context=context)
     return plugin
 
 
@@ -62,7 +58,7 @@ def test_hklm_wildcard_values() -> None:
     )
     plugin = _make_plugin((target,))
 
-    plugin.image.hive_path.return_value = Path("/fake/SOFTWARE")
+    plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")
     plugin.registry.open_hive.return_value = MagicMock()
     plugin.registry.load_subtree.return_value = _node(
         {"EvilApp": "evil.exe", "GoodApp": "good.exe"}
@@ -84,7 +80,7 @@ def test_hklm_specific_value() -> None:
     )
     plugin = _make_plugin((target,))
 
-    plugin.image.hive_path.return_value = Path("/fake/SOFTWARE")
+    plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")
     plugin.registry.open_hive.return_value = MagicMock()
     plugin.registry.load_subtree.return_value = _node(
         {"AutoRun": "malware.exe", "Other": "benign.exe"}
@@ -98,7 +94,7 @@ def test_hklm_specific_value() -> None:
 def test_hklm_missing_hive_returns_empty() -> None:
     target = RegistryTarget(path=r"SOFTWARE\Run", scope=HiveScope.HKLM)
     plugin = _make_plugin((target,))
-    plugin.image.hive_path.return_value = None
+    plugin.context.hive_path.return_value = None
 
     findings = plugin.run()
     assert findings == []
@@ -107,7 +103,7 @@ def test_hklm_missing_hive_returns_empty() -> None:
 def test_hklm_missing_key_returns_empty() -> None:
     target = RegistryTarget(path=r"SOFTWARE\Run", scope=HiveScope.HKLM)
     plugin = _make_plugin((target,))
-    plugin.image.hive_path.return_value = Path("/fake/SOFTWARE")
+    plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")
     plugin.registry.open_hive.return_value = MagicMock()
     plugin.registry.load_subtree.return_value = None
 
@@ -183,7 +179,7 @@ def test_both_scope_emits_hklm_and_hku() -> None:
 
     hklm_hive = MagicMock()
     hku_hive = MagicMock()
-    plugin.image.hive_path.return_value = Path("/fake/SOFTWARE")
+    plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")
     plugin.registry.open_hive.side_effect = [hklm_hive, hku_hive]
     plugin.registry.load_subtree.side_effect = [
         _node({"SysApp": "sys.exe"}),
@@ -208,7 +204,7 @@ def test_controlset_placeholder_replaced() -> None:
     )
     plugin = _make_plugin((target,), controlset="ControlSet002")
 
-    plugin.image.hive_path.return_value = Path("/fake/SYSTEM")
+    plugin.context.hive_path.return_value = Path("/fake/SYSTEM")
     hive = MagicMock()
     plugin.registry.open_hive.return_value = hive
     plugin.registry.load_subtree.return_value = _node({"Svc": "svc.dll"})
@@ -226,7 +222,7 @@ def test_multi_value_string_expanded() -> None:
     target = RegistryTarget(path=r"SOFTWARE\Key", values="Multi", scope=HiveScope.HKLM)
     plugin = _make_plugin((target,))
 
-    plugin.image.hive_path.return_value = Path("/fake/SOFTWARE")
+    plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")
     plugin.registry.open_hive.return_value = MagicMock()
     plugin.registry.load_subtree.return_value = _node(
         {"Multi": ["one.dll", "two.dll", "three.dll"]}
@@ -237,11 +233,35 @@ def test_multi_value_string_expanded() -> None:
     assert {f.value for f in findings} == {"one.dll", "two.dll", "three.dll"}
 
 
+def test_scalar_blank_value_skipped() -> None:
+    target = RegistryTarget(path=r"SOFTWARE\Key", values="Val", scope=HiveScope.HKLM)
+    plugin = _make_plugin((target,))
+
+    plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")
+    plugin.registry.open_hive.return_value = MagicMock()
+    plugin.registry.load_subtree.return_value = _node({"Val": ""})
+
+    findings = plugin.run()
+    assert findings == []
+
+
+def test_scalar_whitespace_value_skipped() -> None:
+    target = RegistryTarget(path=r"SOFTWARE\Key", values="Val", scope=HiveScope.HKLM)
+    plugin = _make_plugin((target,))
+
+    plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")
+    plugin.registry.open_hive.return_value = MagicMock()
+    plugin.registry.load_subtree.return_value = _node({"Val": "   "})
+
+    findings = plugin.run()
+    assert findings == []
+
+
 def test_multi_value_string_filters_blanks() -> None:
     target = RegistryTarget(path=r"SOFTWARE\Key", values="Multi", scope=HiveScope.HKLM)
     plugin = _make_plugin((target,))
 
-    plugin.image.hive_path.return_value = Path("/fake/SOFTWARE")
+    plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")
     plugin.registry.open_hive.return_value = MagicMock()
     plugin.registry.load_subtree.return_value = _node({"Multi": ["real.dll", "", "  "]})
 

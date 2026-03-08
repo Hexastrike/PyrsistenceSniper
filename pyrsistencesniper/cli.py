@@ -5,20 +5,9 @@ import logging
 import sys
 from pathlib import Path
 
-from rich.console import Console
-from rich.progress import (
-    BarColumn,
-    MofNCompleteColumn,
-    Progress,
-    SpinnerColumn,
-    TextColumn,
-)
-
-from pyrsistencesniper.core.filesystem import FilesystemHelper
-from pyrsistencesniper.core.image import ForensicImage
+from pyrsistencesniper.core.discovery import build_context
 from pyrsistencesniper.core.log import setup_logging
 from pyrsistencesniper.core.profile import DetectionProfile
-from pyrsistencesniper.core.registry import RegistryHelper
 from pyrsistencesniper.output import get_renderer
 from pyrsistencesniper.plugins import (
     _PLUGIN_REGISTRY,
@@ -92,18 +81,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Enable debug logging to stderr",
     )
-    parser.add_argument(
-        "--log-format",
-        type=str,
-        default=None,
-        help="Override the log line format string",
-    )
     return parser
 
 
 def main() -> None:
     """Parse arguments, run the detection pipeline, and render output."""
-    from pyrsistencesniper.banner import print_banner
+    from pyrsistencesniper.ui.banner import print_banner
 
     print_banner()
 
@@ -112,7 +95,6 @@ def main() -> None:
 
     setup_logging(
         level=logging.DEBUG if args.verbose else logging.WARNING,
-        fmt=args.log_format,
     )
 
     if args.list_checks:
@@ -120,7 +102,7 @@ def main() -> None:
         return
 
     if args.update_lolbins:
-        from pyrsistencesniper.core.lolbins import download_lolbins
+        from pyrsistencesniper.resolution.lolbins import download_lolbins
 
         download_lolbins()
         return
@@ -128,57 +110,36 @@ def main() -> None:
     if not args.paths:
         parser.error("the following arguments are required: paths")
 
-    image_root = args.paths[0]
-    registry = RegistryHelper()
-    image = ForensicImage(
-        root=image_root,
-        hostname_override=args.hostname,
-        registry=registry,
-    )
-    filesystem = FilesystemHelper(image_root=image_root)
-    profile = (
-        DetectionProfile.load(args.profile)
-        if args.profile
-        else DetectionProfile.default()
-    )
+    logger = logging.getLogger(__name__)
 
-    console = Console(stderr=True)
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        MofNCompleteColumn(),
-        console=console,
-        disable=not sys.stderr.isatty(),
-    ) as prog:
-        current_task_id = None
-        current_stage: str | None = None
-        current_total: int = 0
-
-        def on_progress(stage: str, current: int, total: int) -> None:
-            nonlocal current_task_id, current_stage, current_total
-            if stage != current_stage:
-                if current_task_id is not None:
-                    prog.update(current_task_id, completed=current_total)
-                current_task_id = prog.add_task(stage, total=total)
-                current_stage = stage
-            current_total = total
-            if current_task_id is not None:
-                prog.update(current_task_id, completed=current)
-
-        results = run_all_checks(
-            image=image,
-            registry=registry,
-            filesystem=filesystem,
-            profile=profile,
-            technique_filter=tuple(args.technique),
-            raw=args.raw,
-            progress=on_progress,
+    try:
+        profile = (
+            DetectionProfile.load(args.profile)
+            if args.profile
+            else DetectionProfile.default()
         )
+        ctx = build_context(args.paths[0], hostname=args.hostname, profile=profile)
 
-    renderer_cls = get_renderer(args.format)
-    renderer = renderer_cls()
-    renderer.render(results, output=args.output)
+        from pyrsistencesniper.ui.progress import make_progress_bar
+
+        progress_bar, on_progress = make_progress_bar()
+        with progress_bar:
+            results = run_all_checks(
+                ctx,
+                technique_filter=tuple(args.technique),
+                raw=args.raw,
+                progress=on_progress,
+            )
+
+        renderer_cls = get_renderer(args.format)
+        renderer = renderer_cls()
+        renderer.render(results, output=args.output)
+    except KeyboardInterrupt:
+        sys.exit(130)
+    except Exception as exc:
+        logger.debug("Fatal error details:", exc_info=True)
+        print(f"Error: {exc}", file=sys.stderr)
+        sys.exit(1)
 
 
 def _list_checks() -> None:

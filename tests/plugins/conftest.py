@@ -3,10 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, PropertyMock
 
-from pyrsistencesniper.core.filesystem import FilesystemHelper
-from pyrsistencesniper.core.image import ForensicImage, UserProfile
+from pyrsistencesniper.core.context import AnalysisContext
 from pyrsistencesniper.core.profile import DetectionProfile
-from pyrsistencesniper.core.registry import RegistryHelper, RegistryNode
+from pyrsistencesniper.forensics.filesystem import FilesystemHelper
+from pyrsistencesniper.forensics.registry import RegistryHelper, RegistryNode
+from pyrsistencesniper.models.finding import UserProfile
 
 
 def make_node(
@@ -14,6 +15,7 @@ def make_node(
     values: dict[str, object] | None = None,
     children: dict[str, RegistryNode] | None = None,
 ) -> RegistryNode:
+    """Build a RegistryNode stub with the given values and children."""
     vals = values or {}
     val_dict = {}
     for k, v in vals.items():
@@ -32,12 +34,43 @@ def make_deps(
     tmp_path: Path,
     user_profiles: list[UserProfile] | None = None,
 ) -> tuple[MagicMock, MagicMock, FilesystemHelper, DetectionProfile]:
-    image = MagicMock(spec=ForensicImage)
-    type(image).hostname = PropertyMock(return_value="TESTHOST")
-    type(image).active_controlset = PropertyMock(return_value="ControlSet001")
-    type(image).user_profiles = PropertyMock(return_value=user_profiles or [])
-
+    """Create a mock AnalysisContext and its dependencies for plugin testing."""
     registry = MagicMock(spec=RegistryHelper)
     filesystem = FilesystemHelper(image_root=tmp_path)
     profile = DetectionProfile.default()
-    return image, registry, filesystem, profile
+
+    context = MagicMock(spec=AnalysisContext)
+    type(context).hostname = PropertyMock(return_value="TESTHOST")
+    type(context).active_controlset = PropertyMock(return_value="ControlSet001")
+    type(context).user_profiles = PropertyMock(return_value=user_profiles or [])
+    context.registry = registry
+    context.filesystem = filesystem
+    context.profile = profile
+
+    return context, registry, filesystem, profile
+
+
+def make_plugin(
+    cls: type,
+    tmp_path: Path,
+    *,
+    user_profiles: list[UserProfile] | None = None,
+) -> object:
+    """Instantiate a plugin class with a mocked AnalysisContext."""
+    context, registry, _filesystem, _profile = make_deps(
+        tmp_path, user_profiles=user_profiles
+    )
+    context.registry = registry
+    return cls(context=context)
+
+
+def setup_hklm(
+    plugin: object,
+    tree_node: object,
+    *,
+    hive_path: str = "/fake/SOFTWARE",
+) -> None:
+    """Wire a mock HKLM hive so the plugin reads *tree_node* as its subtree."""
+    plugin.context.hive_path.return_value = Path(hive_path)  # type: ignore[union-attr]
+    plugin.registry.open_hive.return_value = MagicMock()  # type: ignore[union-attr]
+    plugin.registry.load_subtree.return_value = tree_node  # type: ignore[union-attr]

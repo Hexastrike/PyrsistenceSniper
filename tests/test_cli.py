@@ -62,15 +62,21 @@ def test_list_checks_output(capsys: object) -> None:
     assert "T1547" in out or "T1546" in out or "scheduled" in out.lower()
 
 
-def test_main_empty_image_no_crash(tmp_path: Path) -> None:
+def test_main_empty_image_no_crash(tmp_path: Path, capsys: object) -> None:
     """Running against an empty directory should produce no findings and no crash."""
+    fixture = capsys  # type: ignore[assignment]
     with patch("sys.argv", ["pyrsistencesniper", str(tmp_path), "--format", "csv"]):
         main()
+    captured = fixture.readouterr()  # type: ignore[union-attr]
+    assert "Error" not in captured.err
 
 
-def test_main_with_raw_flag(tmp_path: Path) -> None:
+def test_main_with_raw_flag(tmp_path: Path, capsys: object) -> None:
     """--raw should disable suppression without crashing."""
+    fixture = capsys  # type: ignore[assignment]
     with patch(
         "sys.argv", ["pyrsistencesniper", str(tmp_path), "--format", "csv", "--raw"]
     ):
         main()
+    captured = fixture.readouterr()  # type: ignore[union-attr]
+    assert "Error" not in captured.err

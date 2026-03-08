@@ -4,7 +4,7 @@ import hashlib
 import logging
 from pathlib import Path, PureWindowsPath
 
-from pyrsistencesniper.core.normalize import canonicalize_windows_path
+from pyrsistencesniper.resolution.normalize import canonicalize_windows_path
 
 logger = logging.getLogger(__name__)
 
