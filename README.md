@@ -1,4 +1,4 @@
-# PyrsistenceSniper
+# PyrsistenceSniper — Offline Windows Persistence Detection
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
