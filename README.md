@@ -95,7 +95,7 @@ usage: pyrsistencesniper [-h] [--hostname HOSTNAME] [--format {console,csv,html}
 Detect Windows persistence mechanisms from offline forensic artifacts.
 
 positional arguments:
-  paths                 Image root directory or individual artifact files
+  paths                 Image root directory (must contain Windows/ folder structure)
 
 options:
   -h, --help            show this help message and exit
@@ -158,6 +158,16 @@ List all available persistence checks:
 
 ```bash
 pyrsistencesniper --list-checks
+```
+
+PyrsistenceSniper expects a full image root rather than individual files. The real power comes from cross-referencing registry entries against the filesystem — validating signatures, checking if binaries actually exist, computing hashes. A loose hive file alone can't give you that. If you only have individual hive files, place them in the expected directory structure:
+
+```bash
+mkdir -p /tmp/evidence/Windows/System32/config
+cp SYSTEM SOFTWARE /tmp/evidence/Windows/System32/config/
+mkdir -p /tmp/evidence/Users/unknown
+cp NTUSER.DAT /tmp/evidence/Users/unknown/
+pyrsistencesniper /tmp/evidence
 ```
 
 ---

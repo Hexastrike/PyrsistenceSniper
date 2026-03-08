@@ -81,18 +81,3 @@ def _in_system_path(path: str) -> bool:
             break
         parent = parent.rsplit("\\", 1)[0]
     return parent in OS_SYSTEM_PATHS
-
-
-def is_os_executable(path: str) -> bool:
-    """Return True if the path is a built-in OS executable that is not a LOLBin."""
-    name = _executable_name(path)
-    return (
-        _in_system_path(path)
-        and name in BUILTIN_NAMES
-        and name not in _get_lolbin_names()
-    )
-
-
-def is_os_library(path: str) -> bool:
-    """Return True if the path is a DLL under a known OS system directory."""
-    return _in_system_path(path) and _executable_name(path).endswith(".dll")

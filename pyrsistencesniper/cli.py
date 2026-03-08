@@ -39,7 +39,7 @@ def build_parser() -> argparse.ArgumentParser:
         "paths",
         nargs="*",
         type=Path,
-        help="Image root directory or individual artifact files",
+        help="Image root directory (must contain Windows/ folder structure)",
     )
     parser.add_argument(
         "--hostname",
