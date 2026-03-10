@@ -25,10 +25,10 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
-        "paths",
-        nargs="*",
+        "path",
+        nargs="?",
         type=Path,
-        help="Image root directory (must contain Windows/ folder structure)",
+        help="Image root directory or standalone artifact file",
     )
     parser.add_argument(
         "--hostname",
@@ -107,8 +107,8 @@ def main() -> None:
         download_lolbins()
         return
 
-    if not args.paths:
-        parser.error("the following arguments are required: paths")
+    if not args.path:
+        parser.error("the following arguments are required: path")
 
     logger = logging.getLogger(__name__)
 
@@ -118,7 +118,7 @@ def main() -> None:
             if args.profile
             else DetectionProfile.default()
         )
-        ctx = build_context(args.paths[0], hostname=args.hostname, profile=profile)
+        ctx = build_context(args.path, hostname=args.hostname, profile=profile)
 
         from pyrsistencesniper.ui.progress import make_progress_bar
 

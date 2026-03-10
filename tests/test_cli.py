@@ -9,7 +9,7 @@ from pyrsistencesniper.cli import build_parser, main
 def test_build_parser_defaults() -> None:
     parser = build_parser()
     args = parser.parse_args(["/fake/image"])
-    assert args.paths == [Path("/fake/image")]
+    assert args.path == Path("/fake/image")
     assert args.format == "console"
     assert args.output is None
     assert args.raw is False
