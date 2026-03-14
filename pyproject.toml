@@ -1,6 +1,6 @@
 [project]
 name = "pyrsistencesniper"
-version = "0.4.1"
+version = "0.5.0"
 description = ""
 authors = [
     {name = "Maurice Fielenbach",email = "info@hexastrike.com"}

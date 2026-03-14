@@ -77,25 +77,25 @@ def _make_result(
 
 
 def test_html_autoescaping_value() -> None:
-    """A <script> tag in value must be escaped in HTML output."""
+    """A <script> tag in value must be encoded as \\u003c in JSON payload."""
     result = _make_result(value="<script>alert(1)</script>")
     out = io.StringIO()
     renderer = HtmlOutput()
     renderer._write([result], out)
     html = out.getvalue()
-    assert "<script>" not in html
-    assert "&lt;script&gt;" in html
+    assert "<script>alert(1)</script>" not in html
+    assert "\\u003cscript" in html
 
 
 def test_html_autoescaping_path() -> None:
-    """A <script> tag in path must be escaped in HTML output."""
+    """An XSS payload in path must be encoded as \\u003c in JSON payload."""
     result = _make_result(path='HKLM\\<img src=x onerror="alert(1)">')
     out = io.StringIO()
     renderer = HtmlOutput()
     renderer._write([result], out)
     html = out.getvalue()
-    assert 'onerror="alert(1)"' not in html
-    assert "&lt;img" in html
+    assert "<img src=x" not in html
+    assert "\\u003cimg" in html
 
 
 def test_csv_output_sanitizes_all_fields() -> None:

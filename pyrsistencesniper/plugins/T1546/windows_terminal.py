@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
 from pyrsistencesniper.resolution.normalize import normalize_windows_path
@@ -23,6 +23,20 @@ class WindowsTerminal(PersistencePlugin):
             "arbitrary commands when a new terminal tab is opened."
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
+        allow=(
+            FilterRule(
+                reason="Default Windows shell",
+                value_matches=r"(?i)^(%SystemRoot%\\System32\\)?cmd\.exe$",
+            ),
+            FilterRule(
+                reason="Default PowerShell",
+                value_matches=r"(?i)^(%SystemRoot%\\System32\\WindowsPowerShell\\v1\.0\\)?powershell\.exe$",
+            ),
+            FilterRule(
+                reason="Default PowerShell 7+",
+                value_matches=r"(?i)^pwsh\.exe$",
+            ),
+        ),
     )
 
     def run(self) -> list[Finding]:
