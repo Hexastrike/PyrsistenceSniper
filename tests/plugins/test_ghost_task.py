@@ -15,15 +15,6 @@ def _make_plugin(tmp_path: Path) -> GhostTask:
     return GhostTask(context=context)
 
 
-def test_no_tree_key(tmp_path: Path) -> None:
-    plugin = _make_plugin(tmp_path)
-    plugin.registry.load_subtree.return_value = None  # type: ignore[union-attr]
-    plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")  # type: ignore[union-attr]
-    plugin.registry.open_hive.return_value = MagicMock()  # type: ignore[union-attr]
-
-    assert plugin.run() == []
-
-
 def test_ghost_task_detected(tmp_path: Path) -> None:
     tasks_dir = tmp_path / "Windows" / "System32" / "Tasks"
     tasks_dir.mkdir(parents=True)
@@ -61,15 +52,44 @@ def test_task_with_xml_not_flagged(tmp_path: Path) -> None:
     assert plugin.run() == []
 
 
-def test_no_tasks_dir_returns_empty(tmp_path: Path) -> None:
-    tree_node = make_node(
-        name="Tree",
-        children={"Task1": make_node(name="Task1", values={"Id": "{G}"})},
-    )
+def test_multiple_ghost_tasks(tmp_path: Path) -> None:
+    """Two registry entries with no corresponding XML files produce two findings."""
+    tasks_dir = tmp_path / "Windows" / "System32" / "Tasks"
+    tasks_dir.mkdir(parents=True)
+
+    child_a = make_node(name="TaskA", values={"Id": "{GUID-A}"})
+    child_b = make_node(name="TaskB", values={"Id": "{GUID-B}"})
+    tree_node = make_node(name="Tree", children={"TaskA": child_a, "TaskB": child_b})
 
     plugin = _make_plugin(tmp_path)
     plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")  # type: ignore[union-attr]
     plugin.registry.open_hive.return_value = MagicMock()  # type: ignore[union-attr]
+    plugin.registry.load_subtree.side_effect = [tree_node, None]  # type: ignore[union-attr]
+
+    findings = plugin.run()
+    assert len(findings) == 2
+    found_values = {f.value for f in findings}
+    assert "{GUID-A}" in found_values
+    assert "{GUID-B}" in found_values
+    for finding in findings:
+        assert finding.access_gained == AccessLevel.SYSTEM
+        assert finding.mitre_id == "T1053.005"
+        assert finding.path.startswith("HKLM\\SOFTWARE\\")
+
+
+def test_xml_exists_not_flagged(tmp_path: Path) -> None:
+    """When the XML file exists on disk, the task is NOT a ghost task."""
+    tasks_dir = tmp_path / "Windows" / "System32" / "Tasks"
+    tasks_dir.mkdir(parents=True)
+    (tasks_dir / "RealTask").write_text("<Task/>")
+
+    task_child = make_node(name="RealTask", values={"Id": "{GUID-REAL}"})
+    tree_node = make_node(name="Tree", children={"RealTask": task_child})
+
+    plugin = _make_plugin(tmp_path)
+    plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")  # type: ignore[union-attr]
+    plugin.registry.open_hive.return_value = MagicMock()  # type: ignore[union-attr]
+    # No TaskCache\Tasks tree available, so fallback path = task name
     plugin.registry.load_subtree.side_effect = [tree_node, None]  # type: ignore[union-attr]
 
     assert plugin.run() == []

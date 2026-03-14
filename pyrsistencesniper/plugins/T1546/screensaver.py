@@ -1,13 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule
+from pyrsistencesniper.models.finding import AccessLevel, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 
 @register_plugin
@@ -22,13 +17,6 @@ class Screensaver(PersistencePlugin):
             "persistence triggered by idle timeout."
         ),
         references=("https://attack.mitre.org/techniques/T1546/002/",),
-        allow=(
-            FilterRule(
-                reason="Microsoft-signed screensaver",
-                signer="microsoft",
-                not_lolbin=True,
-            ),
-        ),
     )
 
     def run(self) -> list[Finding]:

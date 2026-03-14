@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from collections.abc import Callable
 
 from rich.console import Console
 from rich.progress import (
@@ -8,22 +9,13 @@ from rich.progress import (
     MofNCompleteColumn,
     Progress,
     SpinnerColumn,
+    TaskID,
     TextColumn,
 )
 
-from pyrsistencesniper.core import ProgressFn
 
-
-def make_progress_bar() -> tuple[Progress, ProgressFn]:
-    """Create a Rich progress bar and a callback that drives it.
-
-    Returns the Progress context manager and a ProgressFn callback.
-    The caller must use the Progress as a context manager::
-
-        progress_bar, on_progress = make_progress_bar()
-        with progress_bar:
-            results = run_all_checks(ctx, progress=on_progress)
-    """
+def make_progress_bar() -> tuple[Progress, Callable[[str, int, int], None]]:
+    """Create a Rich progress bar and a callback that drives it."""
     console = Console(stderr=True)
     prog = Progress(
         SpinnerColumn(),
@@ -34,7 +26,7 @@ def make_progress_bar() -> tuple[Progress, ProgressFn]:
         disable=not sys.stderr.isatty(),
     )
 
-    current_task_id = None
+    current_task_id: TaskID | None = None
     current_stage: str | None = None
     current_total: int = 0
 

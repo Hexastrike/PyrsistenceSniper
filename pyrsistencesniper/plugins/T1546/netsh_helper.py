@@ -25,9 +25,13 @@ class NetshHelper(PersistencePlugin):
         references=("https://attack.mitre.org/techniques/T1546/007/",),
         allow=(
             FilterRule(
-                reason="Microsoft-signed netsh helper",
-                signer="microsoft",
-                not_lolbin=True,
+                reason="Built-in netsh helper",
+                value_matches=(
+                    r"^(ifmon|rasmontr|authfwcfg|dhcpcmonitor|nshdnsclient"
+                    r"|dot3cfg|fwcfg|hnetmon|netiohlp|netprofm|nettrace"
+                    r"|nshhttp|nshipsec|nshwfp|rpcnsh|WcnNetsh|whhelper"
+                    r"|wlancfg|wshelper|wwancfg|peerdistsh)\.dll$"
+                ),
             ),
         ),
         targets=(

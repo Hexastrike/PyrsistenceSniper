@@ -1,3 +1,5 @@
+"""Resolution helpers: LOLBin, builtin, and OS-path classification."""
+
 from __future__ import annotations
 
 from pathlib import PureWindowsPath
@@ -5,7 +7,7 @@ from pathlib import PureWindowsPath
 from pyrsistencesniper.resolution.lolbins import load_lolbin_names
 from pyrsistencesniper.resolution.normalize import canonicalize_windows_path
 
-_lolbin_names: frozenset[str] | None = None
+_lolbin_cache: dict[str, frozenset[str]] = {}
 
 
 def _executable_name(path: str) -> str:
@@ -15,10 +17,9 @@ def _executable_name(path: str) -> str:
 
 def _get_lolbin_names() -> frozenset[str]:
     """Return the lazily-loaded set of LOLBin filenames."""
-    global _lolbin_names
-    if _lolbin_names is None:
-        _lolbin_names = load_lolbin_names()
-    return _lolbin_names
+    if "names" not in _lolbin_cache:
+        _lolbin_cache["names"] = load_lolbin_names()
+    return _lolbin_cache["names"]
 
 
 BUILTIN_NAMES: frozenset[str] = frozenset(

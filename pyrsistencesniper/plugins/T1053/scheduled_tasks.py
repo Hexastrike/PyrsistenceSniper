@@ -1,17 +1,15 @@
+"""Extract Exec actions from scheduled task XML files under System32\\Tasks."""
+
 from __future__ import annotations
 
 import logging
 from pathlib import Path, PureWindowsPath
-from typing import TYPE_CHECKING
 
-import defusedxml.ElementTree as ET
+import defusedxml.ElementTree as DefusedET
 
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +32,15 @@ class ScheduledTaskFiles(PersistencePlugin):
         references=("https://attack.mitre.org/techniques/T1053/005/",),
         allow=(
             FilterRule(
-                reason="Microsoft-signed scheduled task",
+                reason="Built-in Windows scheduled task",
                 signer="microsoft",
+                value_matches=r"^%(windir|systemroot)%\\",
+                not_lolbin=True,
+            ),
+            FilterRule(
+                reason="Windows Defender / ATP scheduled task",
+                signer="microsoft",
+                value_matches=r"Windows Defender",
                 not_lolbin=True,
             ),
         ),
@@ -85,7 +90,7 @@ class ScheduledTaskFiles(PersistencePlugin):
     ) -> None:
         """Extract Command and Arguments from each Exec element in a task XML file."""
         try:
-            tree = ET.parse(path)
+            tree = DefusedET.parse(path)
         except Exception:
             logger.debug("Failed to parse task XML: %s", path, exc_info=True)
             return

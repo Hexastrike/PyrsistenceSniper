@@ -1,13 +1,15 @@
+"""Detect persistence via Office default template files.
+
+Normal.dotm (Word) and PERSONAL.XLSB (Excel) are loaded automatically on
+application start.  Embedded macros in these templates provide persistence
+that triggers every time the application opens.
+"""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.models.finding import AccessLevel, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 _TEMPLATE_FILES: tuple[str, ...] = (
     r"AppData\Roaming\Microsoft\Templates\Normal.dotm",

@@ -1,13 +1,10 @@
+"""Detect persistence via service FailureCommand values in the registry."""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 _SERVICES_PATH_TEMPLATE = r"{controlset}\Services"
 
@@ -23,12 +20,16 @@ class ServiceFailureCommand(PersistencePlugin):
             "service fails. Abuse provides persistence triggered by service "
             "crashes."
         ),
+        references=("https://attack.mitre.org/techniques/T1543/003/",),
         allow=(
-            FilterRule(reason="No failure command configured", value_equals="not used"),
+            FilterRule(
+                reason="No failure command configured", value_matches=r"^not used$"
+            ),
         ),
     )
 
     def run(self) -> list[Finding]:
+        """Collect FailureCommand values from services under the active ControlSet."""
         findings: list[Finding] = []
 
         services_path = _SERVICES_PATH_TEMPLATE.replace(

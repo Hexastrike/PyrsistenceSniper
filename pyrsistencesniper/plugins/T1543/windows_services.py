@@ -1,13 +1,10 @@
+"""Detect persistence via Windows service ImagePath and ServiceDll values."""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 _SERVICES_PATH_TEMPLATE = r"{controlset}\Services"
 
@@ -22,9 +19,30 @@ class WindowsServiceImagePath(PersistencePlugin):
             "Windows services run executables at system start. A non-OS "
             "ImagePath may indicate a malicious or third-party service."
         ),
+        references=(
+            "https://attack.mitre.org/techniques/T1543/003/",
+            "https://docs.microsoft.com/en-us/windows/win32/services/service-programs",
+        ),
         allow=(
             FilterRule(
-                reason="Microsoft-signed service", signer="microsoft", not_lolbin=True
+                reason="svchost-hosted service",
+                value_matches=r"svchost\.exe\s+-k\b",
+                signer="microsoft",
+            ),
+            FilterRule(
+                reason="Built-in OS service",
+                value_matches=(
+                    r"(system32|syswow64|\\servicing\\"
+                    r"|Microsoft\.NET\\|Windows Media Player)\\"
+                ),
+                signer="microsoft",
+                not_lolbin=True,
+            ),
+            FilterRule(
+                reason="Windows Defender / ATP service",
+                value_matches=r"Windows Defender",
+                signer="microsoft",
+                not_lolbin=True,
             ),
         ),
     )
@@ -66,9 +84,14 @@ class WindowsServiceDll(PersistencePlugin):
             "svchost.exe-hosted services load a ServiceDll. A non-OS DLL "
             "may indicate a malicious service DLL."
         ),
+        references=(
+            "https://attack.mitre.org/techniques/T1543/003/",
+            "https://docs.microsoft.com/en-us/windows/win32/services/service-programs",
+        ),
         allow=(
             FilterRule(
-                reason="Microsoft-signed service DLL",
+                reason="Built-in OS service DLL",
+                value_matches=r"system32\\",
                 signer="microsoft",
                 not_lolbin=True,
             ),

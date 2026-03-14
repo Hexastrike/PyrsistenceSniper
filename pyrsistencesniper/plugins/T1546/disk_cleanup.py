@@ -1,13 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 _VOLUME_CACHES_PATH = r"Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches"
 
@@ -25,7 +20,18 @@ class DiskCleanupHandler(PersistencePlugin):
             "during cleanup operations."
         ),
         references=("https://attack.mitre.org/techniques/T1546/015/",),
-        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
+        allow=(
+            FilterRule(
+                reason="Built-in disk cleanup handler",
+                value_matches=r"\\system32\\",
+                signer="microsoft",
+                not_lolbin=True,
+            ),
+            FilterRule(
+                reason="Built-in disk cleanup DLL",
+                value_matches=r"(ieframe|shell32|dataclen|setupcln)\.dll$",
+            ),
+        ),
     )
 
     def run(self) -> list[Finding]:

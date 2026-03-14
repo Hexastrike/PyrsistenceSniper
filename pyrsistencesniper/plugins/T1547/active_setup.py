@@ -1,13 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 _ACTIVE_SETUP_PATH = r"Microsoft\Active Setup\Installed Components"
 
@@ -35,9 +30,14 @@ class ActiveSetup(PersistencePlugin):
         references=("https://attack.mitre.org/techniques/T1547/014/",),
         allow=(
             FilterRule(
-                reason="Microsoft-signed active setup",
+                reason="Built-in active setup component",
+                value_matches=r"\\system32\\",
                 signer="microsoft",
                 not_lolbin=True,
+            ),
+            FilterRule(
+                reason="Built-in media/IE setup",
+                value_matches=r"(unregmp2|ie4uinit)\.exe",
             ),
         ),
     )

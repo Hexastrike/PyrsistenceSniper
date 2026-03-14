@@ -35,6 +35,7 @@ _HTML_TEMPLATE = """\
   <th>Value</th>
   <th>Description</th>
   <th>Access</th>
+  <th>Severity</th>
   <th>SHA256</th>
   <th>Signer</th>
   <th>Flags</th>
@@ -51,6 +52,7 @@ _HTML_TEMPLATE = """\
   <td>{{ row.value }}</td>
   <td>{{ row.description }}</td>
   <td>{{ row.access_gained }}</td>
+  <td>{{ row.severity }}</td>
   <td>{{ row.sha256 }}</td>
   <td>{{ row.signer }}</td>
   <td>{{ row.flags }}</td>

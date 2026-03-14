@@ -1,9 +1,24 @@
+"""Check definitions, registry targets, and the HiveProtocol structural type."""
+
 from __future__ import annotations
 
 import enum
 from dataclasses import dataclass, field
+from typing import Protocol
 
 from pyrsistencesniper.models.finding import FilterRule
+
+
+class HiveProtocol(Protocol):
+    """Structural type for registry hive file handles.
+
+    Matches the interface of pyregf.file that the codebase actually uses,
+    without coupling to the C extension at import time.
+    """
+
+    def get_key_by_path(self, path: str) -> object | None:
+        """Resolve a registry key by its backslash-delimited path."""
+        ...
 
 
 class HiveScope(enum.Enum):
@@ -33,7 +48,5 @@ class CheckDefinition:
     description: str = ""
     targets: tuple[RegistryTarget, ...] = field(default_factory=tuple)
     references: tuple[str, ...] = field(default_factory=tuple)
-    # Policy-level suppression — filters valid-but-expected findings.
-    # Bypassed by --raw.  For rejecting invalid data, filter in run().
     allow: tuple[FilterRule, ...] = field(default_factory=tuple)
     block: tuple[FilterRule, ...] = field(default_factory=tuple)

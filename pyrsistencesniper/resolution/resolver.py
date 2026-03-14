@@ -1,3 +1,5 @@
+"""Post-detection resolution: file existence, hashing, signer, and classification."""
+
 from __future__ import annotations
 
 import dataclasses

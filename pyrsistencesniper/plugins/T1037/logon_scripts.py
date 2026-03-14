@@ -1,3 +1,10 @@
+"""Detect user logon script persistence via UserInitMprLogonScript (T1037.001).
+
+The UserInitMprLogonScript value in each user's Environment key runs a
+script at logon before the desktop loads, providing per-user persistence
+that executes in the user's security context.
+"""
+
 from __future__ import annotations
 
 from pyrsistencesniper.plugins import register_plugin
@@ -11,6 +18,8 @@ from pyrsistencesniper.plugins.base import (
 
 @register_plugin
 class LogonScripts(PersistencePlugin):
+    """Check for UserInitMprLogonScript persistence in per-user Environment keys."""
+
     definition = CheckDefinition(
         id="logon_scripts",
         technique="Logon Scripts (UserInitMprLogonScript)",

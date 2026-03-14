@@ -25,8 +25,7 @@ class ShellLauncher(PersistencePlugin):
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         allow=(
             FilterRule(
-                reason="Default shell launcher IniFileMapping",
-                value_contains="sys:",
+                reason="Default shell launcher IniFileMapping", value_matches=r"^sys:"
             ),
         ),
         targets=(

@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import (
     CheckDefinition,
@@ -10,9 +8,6 @@ from pyrsistencesniper.plugins.base import (
     PersistencePlugin,
     RegistryTarget,
 )
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 
 @register_plugin
@@ -77,7 +72,9 @@ class RdpWdsStartupPrograms(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         allow=(
-            FilterRule(reason="Default RDP startup program", value_contains="rdpclip"),
+            FilterRule(
+                reason="Default RDP startup program", value_matches=r"^rdpclip$"
+            ),
         ),
         targets=(
             RegistryTarget(

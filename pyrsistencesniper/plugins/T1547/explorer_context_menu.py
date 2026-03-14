@@ -1,13 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 _CTX_MENU_PATHS: tuple[str, ...] = (
     r"SOFTWARE\Classes\Directory\shellex\ContextMenuHandlers",
@@ -29,7 +24,18 @@ class ExplorerContextMenu(PersistencePlugin):
             "or the invoking user."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
-        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
+        allow=(
+            FilterRule(
+                reason="Built-in context menu handler",
+                value_matches=r"(\\system32\\|\\Windows Defender\\)",
+                signer="microsoft",
+                not_lolbin=True,
+            ),
+            FilterRule(
+                reason="Built-in shell extension DLL",
+                value_matches=r"(shell32|ieframe)\.dll$",
+            ),
+        ),
     )
 
     def run(self) -> list[Finding]:

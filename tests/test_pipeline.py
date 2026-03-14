@@ -6,15 +6,15 @@ from typing import ClassVar
 from unittest.mock import MagicMock, patch
 
 from pyrsistencesniper.core.context import AnalysisContext
+from pyrsistencesniper.core.pipeline import run_all_checks
 from pyrsistencesniper.core.profile import DetectionProfile
 from pyrsistencesniper.forensics.filesystem import FilesystemHelper
 from pyrsistencesniper.forensics.registry import RegistryHelper
-from pyrsistencesniper.models.finding import Finding
-from pyrsistencesniper.plugins import run_all_checks
+from pyrsistencesniper.models.finding import FilterRule, Finding, Severity
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
 
-_RESOLVER_CLS = "pyrsistencesniper.resolution.resolver.ResolutionPipeline"
-_RUN_ENRICHMENTS = "pyrsistencesniper.enrichment.run_enrichments"
+_RESOLVER_CLS = "pyrsistencesniper.core.pipeline.ResolutionPipeline"
+_RUN_ENRICHMENTS = "pyrsistencesniper.core.pipeline.run_enrichments"
 
 # -- Helpers ------------------------------------------------------------------
 
@@ -70,10 +70,10 @@ def test_run_all_checks_sequential(tmp_path: Path) -> None:
 
     with (
         patch(
-            "pyrsistencesniper.plugins._PLUGIN_REGISTRY",
+            "pyrsistencesniper.core.pipeline._PLUGIN_REGISTRY",
             {"stub_a": _StubPluginA, "stub_b": _StubPluginB},
         ),
-        patch("pyrsistencesniper.plugins._discover_plugins"),
+        patch("pyrsistencesniper.core.pipeline._discover_plugins"),
         patch(_RESOLVER_CLS) as mock_resolver_cls,
         patch(
             _RUN_ENRICHMENTS,
@@ -94,10 +94,10 @@ def test_run_all_checks_plugin_exception_isolated(tmp_path: Path) -> None:
 
     with (
         patch(
-            "pyrsistencesniper.plugins._PLUGIN_REGISTRY",
+            "pyrsistencesniper.core.pipeline._PLUGIN_REGISTRY",
             {"stub_a": _StubPluginA, "exploding": _ExplodingPlugin},
         ),
-        patch("pyrsistencesniper.plugins._discover_plugins"),
+        patch("pyrsistencesniper.core.pipeline._discover_plugins"),
         patch(_RESOLVER_CLS) as mock_resolver_cls,
         patch(
             _RUN_ENRICHMENTS,
@@ -122,10 +122,10 @@ def test_run_all_checks_progress_callback(tmp_path: Path) -> None:
 
     with (
         patch(
-            "pyrsistencesniper.plugins._PLUGIN_REGISTRY",
+            "pyrsistencesniper.core.pipeline._PLUGIN_REGISTRY",
             {"stub_a": _StubPluginA, "stub_b": _StubPluginB},
         ),
-        patch("pyrsistencesniper.plugins._discover_plugins"),
+        patch("pyrsistencesniper.core.pipeline._discover_plugins"),
         patch(_RESOLVER_CLS) as mock_resolver_cls,
         patch(
             _RUN_ENRICHMENTS,
@@ -150,19 +150,19 @@ def test_run_all_checks_progress_callback(tmp_path: Path) -> None:
     ]
 
 
-# -- Raw mode -----------------------------------------------------------------
+# -- Severity classification --------------------------------------------------
 
 
-def test_run_all_checks_raw_skips_suppression(tmp_path: Path) -> None:
-    """raw=True should skip all filtering, including auto-suppression."""
+def test_run_all_checks_min_severity_info_includes_all(tmp_path: Path) -> None:
+    """min_severity=INFO should include all findings regardless of severity."""
     ctx = _make_context(tmp_path)
 
     with (
         patch(
-            "pyrsistencesniper.plugins._PLUGIN_REGISTRY",
+            "pyrsistencesniper.core.pipeline._PLUGIN_REGISTRY",
             {"stub_a": _StubPluginA},
         ),
-        patch("pyrsistencesniper.plugins._discover_plugins"),
+        patch("pyrsistencesniper.core.pipeline._discover_plugins"),
         patch(_RESOLVER_CLS) as mock_resolver_cls,
         patch(
             _RUN_ENRICHMENTS,
@@ -171,16 +171,14 @@ def test_run_all_checks_raw_skips_suppression(tmp_path: Path) -> None:
     ):
         mock_resolver_cls.return_value.resolve.side_effect = _fake_resolve
 
-        results = run_all_checks(ctx, raw=True)
+        results = run_all_checks(ctx, min_severity=Severity.INFO)
 
-    # In raw mode, finding is NOT suppressed even though is_in_os_directory=True
     assert len(results) == 1
     assert results[0][0].is_in_os_directory is True
 
 
 def test_run_all_checks_allow_rule_suppression(tmp_path: Path) -> None:
-    """Plugin allow rules suppress matching findings (non-raw mode)."""
-    from pyrsistencesniper.models.finding import FilterRule
+    """Full allow-rule match classifies as INFO (suppressed at default severity)."""
 
     ctx = _make_context(tmp_path)
 
@@ -200,10 +198,10 @@ def test_run_all_checks_allow_rule_suppression(tmp_path: Path) -> None:
 
     with (
         patch(
-            "pyrsistencesniper.plugins._PLUGIN_REGISTRY",
+            "pyrsistencesniper.core.pipeline._PLUGIN_REGISTRY",
             {"stub_allow": _StubWithAllow},
         ),
-        patch("pyrsistencesniper.plugins._discover_plugins"),
+        patch("pyrsistencesniper.core.pipeline._discover_plugins"),
         patch(_RESOLVER_CLS) as mock_resolver_cls,
         patch(
             _RUN_ENRICHMENTS,
@@ -212,15 +210,146 @@ def test_run_all_checks_allow_rule_suppression(tmp_path: Path) -> None:
     ):
         mock_resolver_cls.return_value.resolve.side_effect = _resolve_with_signer
 
+        # Default min_severity=MEDIUM should suppress INFO findings
         results = run_all_checks(ctx)
-
-    # MS-signed non-LOLBin should be suppressed by plugin allow rule
     assert len(results) == 0
 
+    # With min_severity=INFO, the finding should appear with severity=INFO
+    with (
+        patch(
+            "pyrsistencesniper.core.pipeline._PLUGIN_REGISTRY",
+            {"stub_allow": _StubWithAllow},
+        ),
+        patch("pyrsistencesniper.core.pipeline._discover_plugins"),
+        patch(_RESOLVER_CLS) as mock_resolver_cls,
+        patch(
+            _RUN_ENRICHMENTS,
+            side_effect=lambda f, **kw: [(x, []) for x in f],
+        ),
+    ):
+        mock_resolver_cls.return_value.resolve.side_effect = _resolve_with_signer
+        results = run_all_checks(ctx, min_severity=Severity.INFO)
 
-def test_run_all_checks_lolbin_not_suppressed(tmp_path: Path) -> None:
-    """LOLBin findings bypass not_lolbin allow rules."""
-    from pyrsistencesniper.models.finding import FilterRule
+    assert len(results) == 1
+    assert results[0][0].severity is Severity.INFO
+
+
+def test_run_all_checks_partial_allow_match_low(tmp_path: Path) -> None:
+    """Partial allow-rule match (core passes, signer fails) classifies as LOW."""
+
+    ctx = _make_context(tmp_path)
+
+    class _StubPartial(PersistencePlugin):
+        definition: ClassVar[CheckDefinition] = CheckDefinition(
+            id="stub_partial",
+            technique="Stub Partial",
+            mitre_id="T0000",
+            allow=(FilterRule(signer="unknown_signer", path_matches=r"stub"),),
+        )
+
+        def run(self) -> list[Finding]:
+            return [Finding(path="stub_path", check_id="stub_partial")]
+
+    def _resolve_with_signer(f: Finding) -> Finding:
+        return dataclasses.replace(f, signer="Microsoft Windows")
+
+    with (
+        patch(
+            "pyrsistencesniper.core.pipeline._PLUGIN_REGISTRY",
+            {"stub_partial": _StubPartial},
+        ),
+        patch("pyrsistencesniper.core.pipeline._discover_plugins"),
+        patch(_RESOLVER_CLS) as mock_resolver_cls,
+        patch(
+            _RUN_ENRICHMENTS,
+            side_effect=lambda f, **kw: [(x, []) for x in f],
+        ),
+    ):
+        mock_resolver_cls.return_value.resolve.side_effect = _resolve_with_signer
+
+        # Default min_severity=MEDIUM excludes LOW
+        results = run_all_checks(ctx)
+    assert len(results) == 0
+
+    with (
+        patch(
+            "pyrsistencesniper.core.pipeline._PLUGIN_REGISTRY",
+            {"stub_partial": _StubPartial},
+        ),
+        patch("pyrsistencesniper.core.pipeline._discover_plugins"),
+        patch(_RESOLVER_CLS) as mock_resolver_cls,
+        patch(
+            _RUN_ENRICHMENTS,
+            side_effect=lambda f, **kw: [(x, []) for x in f],
+        ),
+    ):
+        mock_resolver_cls.return_value.resolve.side_effect = _resolve_with_signer
+        results = run_all_checks(ctx, min_severity=Severity.LOW)
+
+    assert len(results) == 1
+    assert results[0][0].severity is Severity.LOW
+
+
+def test_run_all_checks_block_rule_high(tmp_path: Path) -> None:
+    """Block-rule match classifies as HIGH."""
+
+    ctx = _make_context(tmp_path)
+
+    class _StubBlocked(PersistencePlugin):
+        definition: ClassVar[CheckDefinition] = CheckDefinition(
+            id="stub_block",
+            technique="Stub Block",
+            mitre_id="T0000",
+            block=(FilterRule(value_matches=r"evil"),),
+        )
+
+        def run(self) -> list[Finding]:
+            return [Finding(path="stub_path", value="evil.exe", check_id="stub_block")]
+
+    with (
+        patch(
+            "pyrsistencesniper.core.pipeline._PLUGIN_REGISTRY",
+            {"stub_block": _StubBlocked},
+        ),
+        patch("pyrsistencesniper.core.pipeline._discover_plugins"),
+        patch(_RESOLVER_CLS) as mock_resolver_cls,
+        patch(
+            _RUN_ENRICHMENTS,
+            side_effect=lambda f, **kw: [(x, []) for x in f],
+        ),
+    ):
+        mock_resolver_cls.return_value.resolve.side_effect = lambda f: f
+        results = run_all_checks(ctx)
+
+    assert len(results) == 1
+    assert results[0][0].severity is Severity.HIGH
+
+
+def test_run_all_checks_no_rules_medium(tmp_path: Path) -> None:
+    """No allow/block rules match → severity MEDIUM."""
+    ctx = _make_context(tmp_path)
+
+    with (
+        patch(
+            "pyrsistencesniper.core.pipeline._PLUGIN_REGISTRY",
+            {"stub_a": _StubPluginA},
+        ),
+        patch("pyrsistencesniper.core.pipeline._discover_plugins"),
+        patch(_RESOLVER_CLS) as mock_resolver_cls,
+        patch(
+            _RUN_ENRICHMENTS,
+            side_effect=lambda f, **kw: [(x, []) for x in f],
+        ),
+    ):
+        mock_resolver_cls.return_value.resolve.side_effect = lambda f: f
+        results = run_all_checks(ctx)
+
+    assert len(results) == 1
+    assert results[0][0].severity is Severity.MEDIUM
+
+
+def test_run_all_checks_lolbin_partial_allow(tmp_path: Path) -> None:
+    """LOLBin with signer+not_lolbin rule: not_lolbin is core and fails → MEDIUM."""
 
     ctx = _make_context(tmp_path)
 
@@ -240,10 +369,10 @@ def test_run_all_checks_lolbin_not_suppressed(tmp_path: Path) -> None:
 
     with (
         patch(
-            "pyrsistencesniper.plugins._PLUGIN_REGISTRY",
+            "pyrsistencesniper.core.pipeline._PLUGIN_REGISTRY",
             {"stub_allow": _StubWithAllow},
         ),
-        patch("pyrsistencesniper.plugins._discover_plugins"),
+        patch("pyrsistencesniper.core.pipeline._discover_plugins"),
         patch(_RESOLVER_CLS) as mock_resolver_cls,
         patch(
             _RUN_ENRICHMENTS,
@@ -252,8 +381,10 @@ def test_run_all_checks_lolbin_not_suppressed(tmp_path: Path) -> None:
     ):
         mock_resolver_cls.return_value.resolve.side_effect = _resolve_lolbin
 
+        # LOLBin shows at default min_severity=MEDIUM
+        # (core condition fails -> NONE -> MEDIUM)
         results = run_all_checks(ctx)
 
-    # LOLBin should NOT be suppressed even with signer allow rule
     assert len(results) == 1
     assert results[0][0].is_lolbin is True
+    assert results[0][0].severity is Severity.MEDIUM

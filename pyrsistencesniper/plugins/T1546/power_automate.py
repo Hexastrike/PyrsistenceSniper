@@ -2,14 +2,10 @@ from __future__ import annotations
 
 import logging
 from pathlib import PureWindowsPath
-from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.models.finding import AccessLevel, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 logger = logging.getLogger(__name__)
 
@@ -55,18 +51,16 @@ class PowerAutomate(PersistencePlugin):
                 )
                 continue
 
-            for entry in entries:
-                if entry.is_dir():
-                    findings.append(
-                        self._make_finding(
-                            path=str(
-                                PureWindowsPath(
-                                    entry.relative_to(self.filesystem.image_root)
-                                )
-                            ),
-                            value=entry.name,
-                            access=AccessLevel.USER,
-                        )
-                    )
+            findings.extend(
+                self._make_finding(
+                    path=str(
+                        PureWindowsPath(entry.relative_to(self.filesystem.image_root))
+                    ),
+                    value=entry.name,
+                    access=AccessLevel.USER,
+                )
+                for entry in entries
+                if entry.is_dir()
+            )
 
         return findings

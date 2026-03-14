@@ -33,6 +33,7 @@ class ConsoleOutput(OutputBase):
                 out.write(f"Value: {d['value']}\n")
                 out.write(f"Description: {d['description']}\n")
                 out.write(f"Access: {d['access_gained']}\n")
+                out.write(f"Severity: {d['severity']}\n")
                 out.write(f"Check ID: {d['check_id']}\n")
                 if d["sha256"]:
                     out.write(f"SHA256: {d['sha256']}\n")

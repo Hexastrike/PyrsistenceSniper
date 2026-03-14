@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule
+from pyrsistencesniper.models.finding import AccessLevel, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import (
     CheckDefinition,
@@ -10,9 +8,6 @@ from pyrsistencesniper.plugins.base import (
     PersistencePlugin,
     RegistryTarget,
 )
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 
 @register_plugin
@@ -53,7 +48,6 @@ class ExplorerBrowserHelperObjects(PersistencePlugin):
             "persistent in-process code execution."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
-        allow=(FilterRule(signer="microsoft", not_lolbin=True),),
     )
 
     def run(self) -> list[Finding]:

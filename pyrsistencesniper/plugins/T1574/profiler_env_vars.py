@@ -1,13 +1,16 @@
+"""T1574.012 CLR profiler environment-variable persistence plugins.
+
+Detects COR_PROFILER and CORECLR_PROFILER environment variables set in
+HKLM (system-wide) or HKU (per-user) Environment keys.  These variables
+cause the .NET runtime to load an attacker-specified profiling DLL into
+every managed process.
+"""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.models.finding import AccessLevel, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 _PROFILER_VARS: tuple[str, ...] = (
     "COR_PROFILER",

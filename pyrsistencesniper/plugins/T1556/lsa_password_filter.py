@@ -1,3 +1,10 @@
+"""Detect LSA password filter DLL persistence (T1556.002).
+
+LSA Notification Packages are loaded by LSASS on every password change.
+A non-default package beyond 'scecli' may intercept plaintext passwords
+before they are hashed, providing credential-access persistence.
+"""
+
 from __future__ import annotations
 
 from pyrsistencesniper.models.finding import FilterRule
@@ -12,6 +19,8 @@ from pyrsistencesniper.plugins.base import (
 
 @register_plugin
 class LsaPasswordFilter(PersistencePlugin):
+    """Check for non-default LSA Notification Packages in the SYSTEM hive."""
+
     definition = CheckDefinition(
         id="lsa_password_filter",
         technique="LSA Password Filter",
@@ -33,7 +42,7 @@ class LsaPasswordFilter(PersistencePlugin):
         allow=(
             FilterRule(
                 reason="Default Windows Security Configuration Engine",
-                value_contains="scecli",
+                value_matches=r"^scecli$",
             ),
         ),
     )

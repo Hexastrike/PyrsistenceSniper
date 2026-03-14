@@ -2,15 +2,11 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import TYPE_CHECKING
 
-from pyrsistencesniper.core.normalize import normalize_windows_path
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.models.finding import AccessLevel, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
+from pyrsistencesniper.resolution.normalize import normalize_windows_path
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +53,7 @@ class WindowsTerminal(PersistencePlugin):
                 cmdline = p.get("commandline", "")
                 if not cmdline:
                     continue
-                if not self._raw:
+                if not self._include_defaults:
                     cl = normalize_windows_path(cmdline).lower()
                     if cl in (
                         "cmd.exe",

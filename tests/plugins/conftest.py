@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, PropertyMock
 
 from pyrsistencesniper.core.context import AnalysisContext
 from pyrsistencesniper.core.profile import DetectionProfile
 from pyrsistencesniper.forensics.filesystem import FilesystemHelper
 from pyrsistencesniper.forensics.registry import RegistryHelper, RegistryNode
-from pyrsistencesniper.models.finding import UserProfile
+
+if TYPE_CHECKING:
+    from pyrsistencesniper.models.finding import UserProfile
 
 
 def make_node(

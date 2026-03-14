@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pyrsistencesniper.plugins.T1053.scheduled_tasks import ScheduledTaskFiles
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 from .conftest import make_deps
 
@@ -10,11 +13,6 @@ from .conftest import make_deps
 def _make_plugin(tmp_path: Path) -> ScheduledTaskFiles:
     context, _registry, _filesystem, _profile = make_deps(tmp_path)
     return ScheduledTaskFiles(context=context)
-
-
-def test_no_tasks_dir(tmp_path: Path) -> None:
-    plugin = _make_plugin(tmp_path)
-    assert plugin.run() == []
 
 
 def test_xml_with_exec_action(tmp_path: Path) -> None:

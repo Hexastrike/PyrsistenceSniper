@@ -26,7 +26,7 @@ build-backend = "poetry.core.masonry.api"
 pyrsistencesniper = "pyrsistencesniper.cli:main"
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py310"
 line-length = 88
 src = ["pyrsistencesniper", "tests"]
 
@@ -42,7 +42,26 @@ select = [
     "SIM",  # flake8-simplify
     "ANN",  # flake8-annotations
     "RUF",  # ruff-specific rules
+    "N",    # pep8-naming
+    "S",    # flake8-bandit (security)
+    "PT",   # flake8-pytest-style
+    "ARG",  # flake8-unused-arguments
+    "ERA",  # eradicate (commented-out code)
+    "PL",   # pylint
+    "PERF", # perflint
+    "RET",  # flake8-return
+    "FA",   # flake8-future-annotations
+    "T20",  # flake8-print
+    "PTH",  # flake8-use-pathlib
 ]
+ignore = [
+    "PLR0913",  # too many arguments -- legitimate for AnalysisContext, plugin constructors
+    "PLC0415",  # import-outside-toplevel -- inline imports kept only for circular-import avoidance
+    "S101",     # assert used for internal invariants
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "ANN", "ARG", "PLR2004", "PT019", "N999"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -54,6 +73,8 @@ strict = true
 warn_return_any = true
 warn_unused_configs = true
 show_error_codes = true
+warn_unreachable = true
+enable_error_code = ["ignore-without-code", "redundant-cast", "truthy-bool"]
 
 [[tool.mypy.overrides]]
 module = "signify.*"
@@ -69,6 +90,21 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = ["--strict-markers", "--strict-config", "-ra"]
+filterwarnings = ["error"]
+
+[tool.coverage.run]
+source = ["pyrsistencesniper"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "@overload",
+]
+show_missing = true
+fail_under = 0
 
 [dependency-groups]
 dev = [

@@ -1,13 +1,15 @@
+"""Detect Office add-in persistence via HKLM and per-user NTUSER hives.
+
+Checks Manifest, FileName, and Path values under per-application Addins
+keys across all Office applications.  Also detects AI add-in hijacking
+through ClickToRun registry paths.
+"""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.models.finding import AccessLevel, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 _OFFICE_APPS: tuple[str, ...] = (
     "Word",

@@ -1,13 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 _AMSI_PATH = r"Microsoft\AMSI\Providers"
 
@@ -26,10 +21,9 @@ class AmsiProviders(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1546/015/",),
         allow=(
-            FilterRule(signer="microsoft", not_lolbin=True),
             FilterRule(
                 reason="Windows Defender AMSI provider",
-                value_contains="MpOav.dll",
+                value_matches=r"MpOav\.dll",
                 signer="microsoft",
             ),
         ),

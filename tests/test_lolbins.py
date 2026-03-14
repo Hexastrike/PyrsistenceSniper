@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import patch
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 from pyrsistencesniper.resolution.lolbins import (
     _load_bundled,

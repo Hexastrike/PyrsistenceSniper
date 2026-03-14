@@ -35,6 +35,7 @@ class CsvOutput(OutputBase):
             "mitre_id",
             "description",
             "access_gained",
+            "severity",
             "is_lolbin",
             "exists",
             "sha256",

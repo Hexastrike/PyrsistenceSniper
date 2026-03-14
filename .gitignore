@@ -219,5 +219,5 @@ __marimo__/
 dev/
 *.dev
 .claude
-.planning
+.planning/
 CLAUDE.md

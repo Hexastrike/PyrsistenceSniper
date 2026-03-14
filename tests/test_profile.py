@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from pathlib import Path
 from pyrsistencesniper.core.profile import DetectionProfile
 from pyrsistencesniper.models.finding import Finding
 
@@ -28,13 +31,13 @@ def test_load_global_allow(tmp_path: Path) -> None:
     yaml_content = """\
 allow:
   - reason: "Known good"
-    value_equals: "explorer.exe"
+    value_matches: "^explorer\\\\.exe$"
 """
     p = tmp_path / "profile.yaml"
     p.write_text(yaml_content, encoding="utf-8")
     profile = DetectionProfile.load(p)
     assert len(profile.allow) == 1
-    assert profile.allow[0].value_equals == "explorer.exe"
+    assert profile.allow[0].value_matches == "^explorer\\.exe$"
     assert profile.allow[0].reason == "Known good"
 
 
@@ -42,13 +45,13 @@ def test_load_global_block(tmp_path: Path) -> None:
     yaml_content = """\
 block:
   - reason: "Suspicious"
-    path_contains: "Temp"
+    path_matches: "Temp"
 """
     p = tmp_path / "profile.yaml"
     p.write_text(yaml_content, encoding="utf-8")
     profile = DetectionProfile.load(p)
     assert len(profile.block) == 1
-    assert profile.block[0].path_contains == "Temp"
+    assert profile.block[0].path_matches == "Temp"
 
 
 def test_load_check_override_disabled(tmp_path: Path) -> None:
@@ -69,7 +72,7 @@ def test_load_check_override_with_allow(tmp_path: Path) -> None:
 checks:
   my_check:
     allow:
-      - value_contains: "safe"
+      - value_matches: "safe"
 """
     p = tmp_path / "profile.yaml"
     p.write_text(yaml_content, encoding="utf-8")
@@ -95,7 +98,7 @@ def test_load_nonexistent_returns_default(tmp_path: Path) -> None:
 def test_matches_allow_global_rule(tmp_path: Path) -> None:
     yaml_content = """\
 allow:
-  - value_equals: "explorer.exe"
+  - value_matches: "^explorer\\\\.exe$"
 """
     p = tmp_path / "profile.yaml"
     p.write_text(yaml_content, encoding="utf-8")
@@ -110,7 +113,7 @@ def test_matches_allow_per_check_rule(tmp_path: Path) -> None:
 checks:
   my_check:
     allow:
-      - value_contains: "safe"
+      - value_matches: "safe"
 """
     p = tmp_path / "profile.yaml"
     p.write_text(yaml_content, encoding="utf-8")
@@ -127,7 +130,7 @@ checks:
 def test_matches_block_global_rule(tmp_path: Path) -> None:
     yaml_content = """\
 block:
-  - path_contains: "Temp"
+  - path_matches: "Temp"
 """
     p = tmp_path / "profile.yaml"
     p.write_text(yaml_content, encoding="utf-8")
@@ -140,7 +143,7 @@ block:
 def test_matches_block_no_match(tmp_path: Path) -> None:
     yaml_content = """\
 block:
-  - path_contains: "Temp"
+  - path_matches: "Temp"
 """
     p = tmp_path / "profile.yaml"
     p.write_text(yaml_content, encoding="utf-8")
@@ -192,7 +195,7 @@ def test_load_no_trusted_signers_uses_defaults(tmp_path: Path) -> None:
     yaml_content = """\
 allow:
   - reason: "test"
-    value_equals: "test"
+    value_matches: "test"
 """
     p = tmp_path / "profile.yaml"
     p.write_text(yaml_content, encoding="utf-8")

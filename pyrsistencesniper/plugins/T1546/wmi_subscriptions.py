@@ -4,14 +4,10 @@ import logging
 import re
 from pathlib import Path as _Path
 from pathlib import PureWindowsPath
-from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.models.finding import AccessLevel, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 logger = logging.getLogger(__name__)
 

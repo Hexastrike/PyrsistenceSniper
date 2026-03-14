@@ -1,13 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 _APP_PATHS = r"Microsoft\Windows\CurrentVersion\App Paths"
 
@@ -26,7 +21,8 @@ class AppPaths(PersistencePlugin):
         references=("https://attack.mitre.org/techniques/T1546/",),
         allow=(
             FilterRule(
-                reason="Microsoft-signed application",
+                reason="Built-in OS application",
+                value_matches=r"\\system32\\",
                 signer="microsoft",
                 not_lolbin=True,
             ),

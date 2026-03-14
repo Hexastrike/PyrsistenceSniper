@@ -61,7 +61,7 @@ docker run --rm -v /path/to/triage:/evidence:ro pyrsistencesniper /evidence
 docker run --rm -v /path/to/triage:/evidence:ro pyrsistencesniper /evidence --format csv --output /evidence/results.csv
 
 # Full HTML report with no filtering
-docker run --rm -v /path/to/triage:/evidence:ro pyrsistencesniper /evidence --raw --format html --output /evidence/report.html
+docker run --rm -v /path/to/triage:/evidence:ro pyrsistencesniper /evidence --min-severity info --format html --output /evidence/report.html
 ```
 
 ---
@@ -74,7 +74,8 @@ The `paths` argument is the root of your forensic collection — wherever the `W
 pyrsistencesniper [-h] [--hostname HOSTNAME] [--format {console,csv,html}]
                   [--output OUTPUT] [--profile PROFILE]
                   [--technique TECHNIQUE ...] [--list-checks]
-                  [--update-lolbins] [--raw] [-v] [paths ...]
+                  [--update-lolbins] [--min-severity {info,low,medium,high}]
+                  [-v] [paths ...]
 ```
 
 | Flag | Description |
@@ -86,7 +87,7 @@ pyrsistencesniper [-h] [--hostname HOSTNAME] [--format {console,csv,html}]
 | `--hostname NAME` | Override hostname (otherwise read from SYSTEM hive) |
 | `--list-checks` | List all available checks and exit |
 | `--update-lolbins` | Download the latest LOLBin list from the LOLBAS project |
-| `--raw` | Disable all suppression (OS filters and allow rules) |
+| `--min-severity {info,low,medium,high}` | Minimum severity to include (default: `medium`). Use `info` to show everything |
 | `-v, --verbose` | Enable debug logging to stderr |
 
 ### Examples
@@ -102,7 +103,7 @@ pyrsistencesniper /mnt/case042/C --format csv --output host1.csv
 pyrsistencesniper /mnt/case042/C --format html --output report.html
 
 # Show everything, including OS defaults
-pyrsistencesniper /mnt/case042/C --raw
+pyrsistencesniper /mnt/case042/C --min-severity info
 
 # Only check specific MITRE ATT&CK techniques
 pyrsistencesniper /mnt/case042/C --technique T1547 T1546
@@ -147,7 +148,7 @@ PyrsistenceSniper runs each finding through a multi-stage pipeline:
 
 1. **Plugin execution** — Each check scans registry hives, filesystem artifacts, scheduled task XMLs, or WMI repositories for persistence indicators.
 2. **Resolution** — Findings are enriched with file existence, SHA-256 hash, Authenticode signer, LOLBin classification, and OS directory detection.
-3. **Filtering** — Two levels: plugins reject invalid data (empty values, non-executable flags) unconditionally, then allow/block rules suppress known-good entries. `--raw` bypasses the rules but not the data-quality filters. In most environments this cuts output by 80–90%.
+3. **Severity classification** — Each finding is classified as `HIGH` (block rule match), `MEDIUM` (no rules match), `LOW` (partial allow match), or `INFO` (full allow match). The `--min-severity` flag controls the threshold (default: `medium`). Use `--min-severity info` to show everything. Plugins also reject invalid data (empty values, non-executable flags) unconditionally. In most environments this cuts output by 80–90%.
 4. **Enrichment** — Optional enrichment plugins can attach additional metadata before output.
 5. **Output** — Findings are rendered in the requested format (console, CSV, or HTML).
 
@@ -160,6 +161,7 @@ Each finding carries:
 | `technique` | Human-readable technique name |
 | `mitre_id` | MITRE ATT&CK technique ID |
 | `access_gained` | `USER` or `SYSTEM` |
+| `severity` | `INFO`, `LOW`, `MEDIUM`, or `HIGH` |
 | `sha256` | SHA-256 hash of the referenced binary |
 | `signer` | Authenticode signer name |
 | `is_lolbin` | Whether the binary is a known LOLBin |
@@ -192,30 +194,25 @@ Console output groups findings by MITRE technique and flags anomalies. CSV outpu
 Detection profiles let you suppress known-good findings or flag specific values. Rules are defined in YAML and can be applied globally or per-check.
 
 ```yaml
-# Trusted signers (suppress signed Microsoft binaries by default)
-trusted_signers:
-  - "microsoft windows"
-  - "microsoft corporation"
-
 # Global allow rules — applied to all checks
 allow:
   - signer: "microsoft"
     not_lolbin: true
     reason: "Microsoft-signed, not a LOLBin"
 
-  - path_contains: "\\Contoso\\"
+  - path_matches: "\\\\Contoso\\\\"
     reason: "Known enterprise software"
 
 # Global block rules — force-flag regardless of other rules
 block:
-  - value_contains: "suspicious.exe"
+  - value_matches: "suspicious\\.exe"
     reason: "Known malicious binary"
 
 # Per-check overrides
 checks:
   run_keys:
     allow:
-      - value_contains: "SecurityHealthSystray"
+      - value_matches: "SecurityHealthSystray"
         reason: "Built-in Windows Security tray icon"
 
   ghost_task:
@@ -229,10 +226,8 @@ All fields are optional. When multiple fields are present, **all** must match (A
 | Field | Match Type | Description |
 |-------|-----------|-------------|
 | `signer` | substring | Authenticode signer name |
-| `path_equals` | exact | Full registry or file path |
-| `path_contains` | substring | Partial path match |
-| `value_equals` | exact | Registry value or command |
-| `value_contains` | substring | Partial value match |
+| `path_matches` | regex | Registry key or file path (case-insensitive) |
+| `value_matches` | regex | Registry value or command line (case-insensitive) |
 | `hash` | exact | SHA-256 hash of the referenced file |
 | `not_lolbin` | boolean | Only match if the binary is **not** a LOLBin |
 | `reason` | — | Human-readable justification (shown in verbose output) |
@@ -258,7 +253,9 @@ make cov                          # Tests with coverage report
 ```
 pyrsistencesniper/
   cli.py              # Entry point and argument parsing
+  config/             # Default detection profile
   core/               # Analysis context, pipeline orchestration, detection profiles, logging
+  data/               # Bundled data files (LOLBin list)
   forensics/          # Offline artifact I/O — registry hive parsing, filesystem access,
                       #   Authenticode signature extraction
   resolution/         # Post-detection enrichment — path normalization, metadata resolution,

@@ -22,7 +22,7 @@ class AuthenticationPackages(PersistencePlugin):
             "credentials or provide boot-level persistence."
         ),
         references=("https://attack.mitre.org/techniques/T1547/002/",),
-        allow=(FilterRule(reason="Default auth package", value_contains="msv1_0"),),
+        allow=(FilterRule(reason="Default auth package", value_matches=r"^msv1_0$"),),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\Lsa",
@@ -46,13 +46,10 @@ class SecurityPackages(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1547/005/",),
         allow=(
-            FilterRule(reason="Default Windows SSP", value_contains="kerberos"),
-            FilterRule(reason="Default Windows SSP", value_contains="msv1_0"),
-            FilterRule(reason="Default Windows SSP", value_contains="schannel"),
-            FilterRule(reason="Default Windows SSP", value_contains="wdigest"),
-            FilterRule(reason="Default Windows SSP", value_contains="tspkg"),
-            FilterRule(reason="Default Windows SSP", value_contains="pku2u"),
-            FilterRule(reason="Default Windows SSP", value_contains="cloudap"),
+            FilterRule(
+                reason="Default Windows SSP",
+                value_matches=r"^(kerberos|msv1_0|schannel|wdigest|tspkg|pku2u|cloudap)$",
+            ),
         ),
         targets=(
             RegistryTarget(

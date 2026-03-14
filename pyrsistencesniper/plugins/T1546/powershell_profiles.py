@@ -1,13 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.models.finding import AccessLevel, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 _SYSTEM_PS_PROFILES: tuple[str, ...] = (
     r"Windows\System32\WindowsPowerShell\v1.0\profile.ps1",
@@ -43,15 +38,15 @@ class PowerShellProfiles(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        for ps_path in _SYSTEM_PS_PROFILES:
-            if self.filesystem.exists(ps_path):
-                findings.append(
-                    self._make_finding(
-                        path=ps_path,
-                        value=ps_path,
-                        access=AccessLevel.SYSTEM,
-                    )
-                )
+        findings.extend(
+            self._make_finding(
+                path=ps_path,
+                value=ps_path,
+                access=AccessLevel.SYSTEM,
+            )
+            for ps_path in _SYSTEM_PS_PROFILES
+            if self.filesystem.exists(ps_path)
+        )
 
         for profile in self.context.user_profiles:
             for ps_rel in _USER_PS_PROFILES:

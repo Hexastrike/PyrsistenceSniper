@@ -1,15 +1,13 @@
+"""Detect ghost scheduled tasks -- registry entries with no corresponding XML file."""
+
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-from pyrsistencesniper.core.registry import RegistryNode
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule
+from pyrsistencesniper.forensics.registry import RegistryNode
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 _TASK_CACHE_TREE = r"Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree"
 _TASK_CACHE_TASKS = r"Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tasks"
@@ -32,11 +30,8 @@ class GhostTask(PersistencePlugin):
         allow=(
             FilterRule(
                 reason="Standard Windows task",
-                path_contains="Microsoft\\Windows\\",
-            ),
-            FilterRule(
-                reason="Standard Windows task",
-                path_contains="Microsoft\\OneCore\\",
+                path_matches=r"Microsoft\\(Windows|OneCore)\\",
+                not_lolbin=True,
             ),
         ),
     )

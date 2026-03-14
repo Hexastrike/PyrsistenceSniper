@@ -1,15 +1,80 @@
+"""Discovery and classification helpers for forensic artifacts."""
+
 from __future__ import annotations
 
+import enum
 import logging
 from pathlib import Path
 
-from pyrsistencesniper.core.context import AnalysisContext
-from pyrsistencesniper.core.profile import DetectionProfile
-from pyrsistencesniper.forensics.filesystem import FilesystemHelper
-from pyrsistencesniper.forensics.registry import RegistryHelper
 from pyrsistencesniper.models.finding import UserProfile
 
 logger = logging.getLogger(__name__)
+
+
+class ArtifactKind(enum.Enum):
+    IMAGE_ROOT = "image_root"
+    HIVE_FILE = "hive_file"
+    EVTX_FILE = "evtx_file"
+
+
+_KNOWN_HIVE_NAMES: frozenset[str] = frozenset(
+    {
+        "software",
+        "system",
+        "sam",
+        "security",
+        "ntuser.dat",
+        "usrclass.dat",
+        "default",
+        "amcache.hve",
+    }
+)
+
+
+def _classify_input(resolved: Path) -> ArtifactKind:
+    """Classify a resolved path as an image root, hive file, or evtx file."""
+    if not resolved.is_file():
+        return ArtifactKind.IMAGE_ROOT
+    name = resolved.name.lower()
+    if name in _KNOWN_HIVE_NAMES:
+        return ArtifactKind.HIVE_FILE
+    if name.endswith(".evtx"):
+        return ArtifactKind.EVTX_FILE
+    return ArtifactKind.IMAGE_ROOT
+
+
+def is_known_artifact(filename: str) -> bool:
+    """Return True if the filename matches a known standalone artifact name."""
+    name = filename.lower()
+    return name in _KNOWN_HIVE_NAMES or name.endswith(".evtx")
+
+
+def _build_hive_context(
+    resolved: Path,
+) -> tuple[Path, dict[str, Path], list[UserProfile]]:
+    """Set up root, hives, and profiles for a standalone hive file."""
+    root = resolved.parent
+    name = resolved.name.lower()
+    if name in ("ntuser.dat", "usrclass.dat"):
+        hives: dict[str, Path] = {}
+        profiles = [
+            UserProfile(
+                "standalone_user",
+                root,
+                resolved if name == "ntuser.dat" else None,
+            )
+        ]
+    else:
+        hives = {name: resolved}
+        profiles = []
+    return root, hives, profiles
+
+
+def _build_evtx_context(
+    resolved: Path,
+) -> tuple[Path, dict[str, Path], list[UserProfile]]:
+    """Set up root, hives, and profiles for a standalone evtx file."""
+    return resolved.parent, {}, []
 
 
 def _discover_hives(root: Path) -> dict[str, Path]:
@@ -29,7 +94,7 @@ def _discover_hives(root: Path) -> dict[str, Path]:
             if (
                 entry.is_file()
                 and entry.name.lower() not in hives
-                and AnalysisContext.is_standalone_artifact(entry.name)
+                and entry.name.lower() in _KNOWN_HIVE_NAMES
             ):
                 hives[entry.name.lower()] = entry
     except PermissionError:
@@ -60,48 +125,3 @@ def _discover_profiles(root: Path) -> list[UserProfile]:
             )
         )
     return profiles
-
-
-def build_context(
-    path: Path,
-    *,
-    hostname: str = "",
-    profile: DetectionProfile | None = None,
-) -> AnalysisContext:
-    """Build an AnalysisContext from a directory or standalone artifact file."""
-    resolved = path.resolve()
-
-    if resolved.is_file() and AnalysisContext.is_standalone_artifact(resolved.name):
-        # Standalone mode: single file, no discovery
-        root = resolved.parent
-        name = resolved.name.lower()
-        if name in ("ntuser.dat", "usrclass.dat"):
-            hives: dict[str, Path] = {}
-            profiles = [
-                UserProfile(
-                    "standalone_user",
-                    root,
-                    resolved if name == "ntuser.dat" else None,
-                )
-            ]
-        else:
-            hives = {name: resolved}
-            profiles = []
-        standalone = True
-    else:
-        # Image root mode: full discovery
-        root = resolved
-        hives = _discover_hives(root)
-        profiles = _discover_profiles(root)
-        standalone = False
-
-    return AnalysisContext(
-        root=root,
-        hives=hives,
-        user_profiles=profiles,
-        registry=RegistryHelper(),
-        filesystem=FilesystemHelper(image_root=root),
-        profile=profile or DetectionProfile.default(),
-        hostname_override=hostname,
-        standalone=standalone,
-    )

@@ -1,3 +1,5 @@
+"""Offline registry hive parsing with caching, built on pyregf."""
+
 from __future__ import annotations
 
 import logging
@@ -7,30 +9,35 @@ from typing import Any
 
 import pyregf
 
+from pyrsistencesniper.models.check import HiveProtocol
+
 logger = logging.getLogger(__name__)
 
 
-def _pyregf_extract_data(val: Any) -> object:  # noqa: ANN401
+def _pyregf_extract_data(pyregf_value: Any) -> object:  # noqa: ANN401
     """Convert a pyregf value to a native Python type (str, int, list, or bytes)."""
-    vtype = val.get_type()
+    value_type = pyregf_value.get_type()
     try:
-        if vtype in (pyregf.value_types.STRING, pyregf.value_types.EXPANDABLE_STRING):
-            return val.get_data_as_string()
-        if vtype in (
+        if value_type in (
+            pyregf.value_types.STRING,
+            pyregf.value_types.EXPANDABLE_STRING,
+        ):
+            return pyregf_value.get_data_as_string()
+        if value_type in (
             pyregf.value_types.INTEGER_32BIT_LITTLE_ENDIAN,
             pyregf.value_types.INTEGER_64BIT_LITTLE_ENDIAN,
             pyregf.value_types.INTEGER_32BIT_BIG_ENDIAN,
         ):
-            return val.get_data_as_integer()
-        if vtype == pyregf.value_types.MULTI_VALUE_STRING:
-            return list(val.get_data_as_multi_string())
+            return pyregf_value.get_data_as_integer()
+        if value_type == pyregf.value_types.MULTI_VALUE_STRING:
+            return list(pyregf_value.get_data_as_multi_string())
     except Exception:
         logger.debug(
             "Failed to extract typed data for value type %s",
-            vtype,
+            value_type,
             exc_info=True,
         )
-    data = val.get_data()
+    data = pyregf_value.get_data()
     return data if data is not None else b""
 
 
@@ -75,10 +82,10 @@ class RegistryHelper:
     """Offline registry hive parser built on pyregf with caching."""
 
     def __init__(self) -> None:
-        self._hive_cache: dict[str, object | None] = {}
+        self._hive_cache: dict[str, HiveProtocol | None] = {}
         self._subtree_cache: dict[tuple[int, str], RegistryNode | None] = {}
 
-    def open_hive(self, path: Path) -> object | None:
+    def open_hive(self, path: Path) -> HiveProtocol | None:
         """Open a registry hive file, caching by resolved path."""
         key = str(path.resolve())
         if key in self._hive_cache:
@@ -86,7 +93,7 @@ class RegistryHelper:
         try:
             reg_file = pyregf.file()
             reg_file.open(str(path))
-            hive: object | None = reg_file
+            hive: HiveProtocol | None = reg_file
         except Exception:
             logger.warning("Failed to open hive: %s", path)
             logger.debug("Hive open error details:", exc_info=True)
@@ -99,7 +106,7 @@ class RegistryHelper:
         """Strip leading backslash for pyregf compatibility."""
         return key_path.lstrip("\\")
 
-    def load_subtree(self, hive: object, key_path: str) -> RegistryNode | None:
+    def load_subtree(self, hive: HiveProtocol, key_path: str) -> RegistryNode | None:
         """Build and cache a RegistryNode tree for the given key path via DFS."""
         norm = self._normalize_key_path(key_path)
         cache_key = (id(hive), norm.lower())
@@ -116,11 +123,11 @@ class RegistryHelper:
         return node
 
     @staticmethod
-    def _resolve_key(hive: object, key_path: str) -> object | None:
+    def _resolve_key(hive: HiveProtocol, key_path: str) -> object | None:
         """Resolve a key path to a pyregf key object, or None."""
         try:
             norm = RegistryHelper._normalize_key_path(key_path)
-            return hive.get_key_by_path(norm)  # type: ignore[attr-defined, no-any-return]
+            return hive.get_key_by_path(norm)
         except Exception:
             logger.debug("Could not resolve key %s", key_path, exc_info=True)
             return None
@@ -132,14 +139,17 @@ def _materialize(key: Any) -> RegistryNode:  # noqa: ANN401
 
     values: dict[str, tuple[str, object]] = {}
     for i in range(key.get_number_of_values()):
-        val = key.get_value(i)
-        val_name: str = val.get_name() or ""
-        values[val_name.lower()] = (val_name, _pyregf_extract_data(val))
+        registry_value = key.get_value(i)
+        value_name: str = registry_value.get_name() or ""
+        values[value_name.lower()] = (
+            value_name,
+            _pyregf_extract_data(registry_value),
+        )
 
     children: dict[str, RegistryNode] = {}
     for i in range(key.get_number_of_sub_keys()):
-        sk = key.get_sub_key(i)
-        child_node = _materialize(sk)
+        sub_key = key.get_sub_key(i)
+        child_node = _materialize(sub_key)
         children[child_node.name.lower()] = child_node
 
     return RegistryNode(name, values, children)

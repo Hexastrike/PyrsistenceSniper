@@ -106,18 +106,18 @@ def test_none_is_lolbin_not_suppressed() -> None:
 
 
 def test_value_and_signer_both_match() -> None:
-    rule = FilterRule(value_contains="explorer.exe", signer="microsoft")
+    rule = FilterRule(value_matches=r"explorer\.exe", signer="microsoft")
     finding = Finding(value="explorer.exe", signer="Microsoft Windows")
     assert rule.matches(finding) is True
 
 
 def test_value_match_but_unsigned_no_match() -> None:
-    rule = FilterRule(value_contains="explorer.exe", signer="microsoft")
+    rule = FilterRule(value_matches=r"explorer\.exe", signer="microsoft")
     finding = Finding(value="explorer.exe", signer="")
     assert rule.matches(finding) is False
 
 
 def test_value_match_but_wrong_signer_no_match() -> None:
-    rule = FilterRule(value_contains="explorer.exe", signer="microsoft")
+    rule = FilterRule(value_matches=r"explorer\.exe", signer="microsoft")
     finding = Finding(value="explorer.exe", signer="Evil Corp")
     assert rule.matches(finding) is False

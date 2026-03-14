@@ -1,14 +1,10 @@
 from __future__ import annotations
 
 from pathlib import PureWindowsPath
-from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.models.finding import AccessLevel, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 _AT_KEY = r"Microsoft\Windows NT\CurrentVersion\Accessibility\ATs"
 _AT_KEY_WOW64 = r"Wow6432Node\Microsoft\Windows NT\CurrentVersion\Accessibility\ATs"
@@ -99,7 +95,7 @@ class AssistiveTechnology(PersistencePlugin):
             if params is not None and isinstance(params, str) and params.strip():
                 value_str = f"{value_str} {params.strip()}"
 
-            if not self._raw:
+            if not self._include_defaults:
                 exe_name = PureWindowsPath(value_str.split()[0]).name.lower()
                 if exe_name in _KNOWN_AT_EXES:
                     continue
@@ -127,12 +123,12 @@ class AssistiveTechnology(PersistencePlugin):
             if not value_str:
                 continue
 
-            for at_name in value_str.split(","):
-                at_name = at_name.strip()
+            for raw_at_name in value_str.split(","):
+                at_name = raw_at_name.strip()
                 if not at_name:
                     continue
 
-                if not self._raw and at_name.lower() in _KNOWN_AT_NAMES:
+                if not self._include_defaults and at_name.lower() in _KNOWN_AT_NAMES:
                     continue
 
                 findings.append(

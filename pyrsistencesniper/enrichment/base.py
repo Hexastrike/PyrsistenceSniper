@@ -1,3 +1,5 @@
+"""Abstract base class for enrichment plugins."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

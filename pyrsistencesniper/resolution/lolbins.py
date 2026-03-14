@@ -1,3 +1,5 @@
+"""LOLBin name loading from bundled data, user cache, and the LOLBAS API."""
+
 from __future__ import annotations
 
 import importlib.resources
@@ -22,6 +24,10 @@ _MAX_ATTEMPTS = 4
 _BACKOFF_BASE_S = 0.5
 _BACKOFF_CAP_S = 8.0
 _JITTER_S = 0.25
+
+_HTTP_TOO_MANY_REQUESTS = 429
+_HTTP_SERVER_ERROR_MIN = 500
+_HTTP_SERVER_ERROR_MAX = 600
 
 
 def _load_bundled() -> frozenset[str]:
@@ -53,7 +59,10 @@ def download_lolbins() -> set[str]:
     for attempt in range(1, _MAX_ATTEMPTS + 1):
         try:
             resp = httpx.get(LOLBAS_URL, timeout=_TIMEOUT_S, follow_redirects=True)
-            if resp.status_code == 429 or 500 <= resp.status_code < 600:
+            if (
+                resp.status_code == _HTTP_TOO_MANY_REQUESTS
+                or _HTTP_SERVER_ERROR_MIN <= resp.status_code < _HTTP_SERVER_ERROR_MAX
+            ):
                 raise httpx.HTTPStatusError(
                     "transient", request=resp.request, response=resp
                 )
@@ -69,7 +78,7 @@ def download_lolbins() -> set[str]:
             if attempt == _MAX_ATTEMPTS:
                 raise
             backoff = min(_BACKOFF_CAP_S, _BACKOFF_BASE_S * (2 ** (attempt - 1)))
-            sleep_s = backoff + random.uniform(0.0, _JITTER_S)
+            sleep_s = backoff + random.uniform(0.0, _JITTER_S)  # noqa: S311
             logger.warning(
                 "LOLBAS fetch failed (attempt %d/%d); retrying in %.2fs",
                 attempt,

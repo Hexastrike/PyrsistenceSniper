@@ -1,8 +1,10 @@
+"""Enrichment runner: apply enrichment plugins to findings and collect results."""
+
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 
-from pyrsistencesniper.core import ProgressFn
 from pyrsistencesniper.enrichment.base import EnrichmentPlugin
 from pyrsistencesniper.models.finding import AnnotatedResult, Enrichment, Finding
 
@@ -19,10 +21,27 @@ def register_enrichment(
     return cls
 
 
+def _try_enrich(
+    plugin_cls: type[EnrichmentPlugin], finding: Finding
+) -> Enrichment | None:
+    """Run a single enrichment plugin, returning None on failure."""
+    try:
+        plugin = plugin_cls()
+        return plugin.enrich(finding)
+    except Exception as exc:
+        logger.warning(
+            "Enrichment plugin %s failed: %s",
+            plugin_cls.__name__,
+            exc,
+        )
+        logger.debug("Enrichment plugin error details:", exc_info=True)
+        return None
+
+
 def run_enrichments(
     findings: list[Finding],
     *,
-    progress: ProgressFn | None = None,
+    progress: Callable[[str, int, int], None] | None = None,
 ) -> list[AnnotatedResult]:
     """Run all enrichment plugins and return annotated results."""
     results: list[AnnotatedResult] = []
@@ -32,17 +51,8 @@ def run_enrichments(
             progress("Enriching results", i + 1, total)
         enrichments: list[Enrichment] = []
         for plugin_cls in _ENRICHMENT_REGISTRY:
-            try:
-                plugin = plugin_cls()
-                enrichment = plugin.enrich(finding)
-                if enrichment is not None:
-                    enrichments.append(enrichment)
-            except Exception as exc:
-                logger.warning(
-                    "Enrichment plugin %s failed: %s",
-                    plugin_cls.__name__,
-                    exc,
-                )
-                logger.debug("Enrichment plugin error details:", exc_info=True)
+            enrichment = _try_enrich(plugin_cls, finding)
+            if enrichment is not None:
+                enrichments.append(enrichment)
         results.append((finding, tuple(enrichments)))
     return results

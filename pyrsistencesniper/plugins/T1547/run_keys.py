@@ -58,11 +58,8 @@ class RunKeys(PersistencePlugin):
         ),
         allow=(
             FilterRule(
-                reason="Windows Security Health tray is a built-in autorun",
-                value_contains="SecurityHealthSystray",
-            ),
-            FilterRule(
-                reason="Microsoft-signed autorun", signer="microsoft", not_lolbin=True
+                reason="Windows Security Health tray",
+                value_matches=r"SecurityHealthSystray",
             ),
         ),
     )

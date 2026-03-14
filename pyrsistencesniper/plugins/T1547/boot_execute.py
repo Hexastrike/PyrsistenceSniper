@@ -33,7 +33,7 @@ class BootExecute(PersistencePlugin):
         allow=(
             FilterRule(
                 reason="Default Windows boot-time disk check",
-                value_contains="autocheck autochk",
+                value_matches=r"^autocheck\s+autochk",
             ),
         ),
     )

@@ -1,13 +1,15 @@
+"""Detect VBA monitor DLL hijack persistence.
+
+The VBE7 monitor CLSID InprocServer32 value specifies a DLL loaded whenever
+VBA executes.  Hijacking this COM registration provides persistence across
+all Office macro execution.
+"""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.models.finding import AccessLevel, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 
 @register_plugin

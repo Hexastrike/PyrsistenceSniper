@@ -1,8 +1,14 @@
+"""T1574 DLL hijacking persistence plugins.
+
+Detects DLL search-order hijacking and side-loading via registry keys that
+specify loadable DLL paths.  Covers 16 declarative checks for known DLL
+override locations and 3 custom-scan plugins that walk subtrees for
+GP extensions, Winsock providers, and minidump auxiliary DLLs.
+"""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import (
     CheckDefinition,
@@ -10,9 +16,6 @@ from pyrsistencesniper.plugins.base import (
     PersistencePlugin,
     RegistryTarget,
 )
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 
 @register_plugin
@@ -72,10 +75,9 @@ class HhctrlOcx(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         allow=(
-            FilterRule(signer="microsoft", not_lolbin=True),
             FilterRule(
                 reason="Default HTML Help control",
-                value_contains="hhctrl.ocx",
+                value_matches=r"hhctrl\.ocx$",
                 signer="microsoft",
             ),
         ),
@@ -102,10 +104,9 @@ class AutodialDll(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         allow=(
-            FilterRule(signer="microsoft", not_lolbin=True),
             FilterRule(
                 reason="Default autodial DLL",
-                value_contains="rasadhlp.dll",
+                value_matches=r"rasadhlp\.dll$",
                 signer="microsoft",
             ),
         ),
@@ -132,7 +133,7 @@ class LsaExtensions(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         allow=(
-            FilterRule(reason="Default LSA extension", value_contains="lsasrv.dll"),
+            FilterRule(reason="Default LSA extension", value_matches=r"^lsasrv\.dll$"),
         ),
         targets=(
             RegistryTarget(
@@ -223,8 +224,9 @@ class MsdtcXaDll(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         allow=(
-            FilterRule(reason="Default MSDTC XA DLL", value_contains="xa80.dll"),
-            FilterRule(reason="Default MSDTC OCI DLL", value_contains="oci.dll"),
+            FilterRule(
+                reason="Default MSDTC XA/OCI DLL", value_matches=r"^(xa80|oci)\.dll$"
+            ),
         ),
         targets=(
             RegistryTarget(
@@ -254,10 +256,9 @@ class DiagTrackDll(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         allow=(
-            FilterRule(signer="microsoft", not_lolbin=True),
             FilterRule(
                 reason="Default DiagTrack service",
-                value_contains="svchost.exe",
+                value_matches=r"svchost\.exe",
                 signer="microsoft",
             ),
         ),
@@ -284,10 +285,9 @@ class DiagTrackListenerDll(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         allow=(
-            FilterRule(signer="microsoft", not_lolbin=True),
             FilterRule(
                 reason="Default DiagTrack listener",
-                value_contains="Diagtrack-Listener.etl",
+                value_matches=r"Diagtrack-Listener\.etl",
                 signer="microsoft",
             ),
         ),
@@ -358,10 +358,9 @@ class WuServiceStartupDll(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         allow=(
-            FilterRule(signer="microsoft", not_lolbin=True),
             FilterRule(
                 reason="Default Windows Update DLL",
-                value_contains="wuaueng.dll",
+                value_matches=r"wuaueng\.dll$",
                 signer="microsoft",
             ),
         ),
@@ -410,30 +409,9 @@ class MiniDumpAuxiliaryDlls(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         allow=(
-            FilterRule(signer="microsoft", not_lolbin=True),
             FilterRule(
-                reason="Default .NET MiniDump DLL",
-                value_contains="clr.dll",
-                signer="microsoft",
-            ),
-            FilterRule(
-                reason="Default .NET MiniDump DLL",
-                value_contains="mscorwks.dll",
-                signer="microsoft",
-            ),
-            FilterRule(
-                reason="Default JavaScript engine",
-                value_contains="Chakra.dll",
-                signer="microsoft",
-            ),
-            FilterRule(
-                reason="Default JavaScript engine",
-                value_contains="jscript9.dll",
-                signer="microsoft",
-            ),
-            FilterRule(
-                reason="Default .NET runtime",
-                value_contains="mrt100.dll",
+                reason="Default minidump auxiliary DLL",
+                value_matches=r"(clr|mscorwks|Chakra|jscript9|mrt100)\.dll$",
                 signer="microsoft",
             ),
         ),
@@ -504,9 +482,19 @@ class GpExtensionDlls(PersistencePlugin):
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         allow=(
             FilterRule(
-                reason="Microsoft-signed GP extension",
+                reason="Built-in GP extension",
+                value_matches=r"\\system32\\",
                 signer="microsoft",
                 not_lolbin=True,
+            ),
+            FilterRule(
+                reason="Built-in GP extension DLL",
+                value_matches=(
+                    r"^(gptext|scecli|appmgmts|fdeploy|auditcse"
+                    r"|dmenrollengine|pwlauncher|dggpext|dot3gpclnt"
+                    r"|wlgpclnt|AppManagementConfiguration"
+                    r"|WorkFoldersGPExt)\.dll$"
+                ),
             ),
         ),
     )
@@ -547,30 +535,9 @@ class WinsockAutoProxy(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         allow=(
-            FilterRule(signer="microsoft", not_lolbin=True),
             FilterRule(
                 reason="Default Winsock provider",
-                value_contains="mswsock.dll",
-                signer="microsoft",
-            ),
-            FilterRule(
-                reason="Default Winsock provider",
-                value_contains="napinsp.dll",
-                signer="microsoft",
-            ),
-            FilterRule(
-                reason="Default Winsock provider",
-                value_contains="nlansp_c.dll",
-                signer="microsoft",
-            ),
-            FilterRule(
-                reason="Default Winsock provider",
-                value_contains="winrnr.dll",
-                signer="microsoft",
-            ),
-            FilterRule(
-                reason="Default Winsock provider",
-                value_contains="wshbth.dll",
+                value_matches=r"(mswsock|napinsp|nlansp_c|winrnr|wshbth)\.dll$",
                 signer="microsoft",
             ),
         ),

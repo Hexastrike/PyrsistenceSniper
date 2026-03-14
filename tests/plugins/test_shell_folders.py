@@ -74,9 +74,17 @@ def test_files_in_startup_folder_reported(tmp_path: Path) -> None:
     assert ini_findings == []
 
 
-def test_no_hive_returns_empty(tmp_path: Path) -> None:
+def test_env_var_path_redirected(tmp_path: Path) -> None:
+    """Registry value with environment variable pointing to non-default path."""
+    evil_path = r"%SYSTEMDRIVE%\evil\startup"
+    node = make_node(name="ShellFolders", values={"Common Startup": evil_path})
+
     plugin = _make_plugin(tmp_path)
-    plugin.context.hive_path.return_value = None  # type: ignore[union-attr]
+    plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")  # type: ignore[union-attr]
+    plugin.registry.open_hive.return_value = MagicMock()  # type: ignore[union-attr]
+    plugin.registry.load_subtree.return_value = node  # type: ignore[union-attr]
     type(plugin.context).user_profiles = PropertyMock(return_value=[])  # type: ignore[union-attr]
 
-    assert plugin.run() == []
+    findings = plugin.run()
+    redirect_findings = [f for f in findings if "redirected" in f.description.lower()]
+    assert len(redirect_findings) >= 1

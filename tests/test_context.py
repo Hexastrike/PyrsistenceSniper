@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
-from pyrsistencesniper.core.context import AnalysisContext
-from pyrsistencesniper.core.discovery import build_context
+if TYPE_CHECKING:
+    from pathlib import Path
+
+from pyrsistencesniper.core.context import AnalysisContext, build_context
+from pyrsistencesniper.core.discovery import is_known_artifact
 
 
 def _make_context(root: Path, *, hostname: str = "") -> AnalysisContext:
@@ -99,23 +102,28 @@ def test_hostname_override(tmp_path: Path) -> None:
     assert ctx.hostname == "MY-HOST"
 
 
-# -- is_standalone_artifact ---------------------------------------------------
+# -- is_known_artifact --------------------------------------------------------
 
 
-def test_is_standalone_artifact_software() -> None:
-    assert AnalysisContext.is_standalone_artifact("SOFTWARE") is True
+def test_is_known_artifact_software() -> None:
+    assert is_known_artifact("SOFTWARE") is True
 
 
-def test_is_standalone_artifact_ntuser() -> None:
-    assert AnalysisContext.is_standalone_artifact("NTUSER.DAT") is True
+def test_is_known_artifact_ntuser() -> None:
+    assert is_known_artifact("NTUSER.DAT") is True
 
 
-def test_is_standalone_artifact_case_insensitive() -> None:
-    assert AnalysisContext.is_standalone_artifact("system") is True
+def test_is_known_artifact_case_insensitive() -> None:
+    assert is_known_artifact("system") is True
 
 
-def test_is_standalone_artifact_random_file() -> None:
-    assert AnalysisContext.is_standalone_artifact("readme.txt") is False
+def test_is_known_artifact_random_file() -> None:
+    assert is_known_artifact("readme.txt") is False
+
+
+def test_is_known_artifact_evtx() -> None:
+    assert is_known_artifact("Security.evtx") is True
+    assert is_known_artifact("Application.EVTX") is True
 
 
 # -- hive_path UsrClass.dat ---------------------------------------------------
@@ -175,3 +183,13 @@ def test_build_context_standalone_ntuser(tmp_path: Path) -> None:
     assert len(ctx.user_profiles) == 1
     assert ctx.user_profiles[0].username == "standalone_user"
     assert ctx.user_profiles[0].ntuser_path == hive_file
+
+
+def test_build_context_standalone_evtx(tmp_path: Path) -> None:
+    """build_context with an .evtx file should enter standalone mode."""
+    evtx_file = tmp_path / "Security.evtx"
+    evtx_file.write_bytes(b"\x00" * 16)
+    ctx = build_context(evtx_file)
+    assert ctx.root == tmp_path
+    assert ctx.user_profiles == []
+    assert ctx.hive_path("SOFTWARE") is None

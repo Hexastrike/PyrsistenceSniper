@@ -1,13 +1,15 @@
+"""T1574.012 .NET startup-hook persistence plugin.
+
+Detects the DOTNET_STARTUP_HOOKS environment variable set system-wide
+(HKLM) or per-user (HKU), which injects assemblies into every .NET 5+
+application before the Main entry point.
+"""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.models.finding import AccessLevel, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 _ENV_PATH = r"Environment"
 _SYSTEM_ENV_PATH_TEMPLATE = r"{controlset}\Control\Session Manager\Environment"

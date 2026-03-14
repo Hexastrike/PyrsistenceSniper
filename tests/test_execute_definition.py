@@ -45,8 +45,7 @@ def _make_plugin(
     context.filesystem = MagicMock()
     context.profile = MagicMock()
 
-    plugin = _Stub(context=context)
-    return plugin
+    return _Stub(context=context)
 
 
 # -- HKLM scope ---------------------------------------------------------------

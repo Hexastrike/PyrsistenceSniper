@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.models.finding import AccessLevel, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
 
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
+_DSRM_NETWORK_LOGON = 2
 
 
 @register_plugin
@@ -33,7 +30,7 @@ class DsrmBackdoor(PersistencePlugin):
             if tree is None:
                 continue
             val = tree.get("DsrmAdminLogonBehavior")
-            if isinstance(val, int) and val == 2:
+            if isinstance(val, int) and val == _DSRM_NETWORK_LOGON:
                 findings.append(
                     self._make_finding(
                         path=f"HKLM\\SYSTEM\\{full_path}\\DsrmAdminLogonBehavior",

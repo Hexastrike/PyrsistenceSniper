@@ -1,13 +1,15 @@
+"""Detect Office internal DLL override persistence.
+
+WwlibtDll (Word) and PPCoreTDLL (PowerPoint) registry values can be
+overridden to load a malicious DLL at application startup.  All installed
+Office versions are enumerated.
+"""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.models.finding import AccessLevel, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 _OVERRIDE_VALUES: tuple[str, ...] = (
     "WwlibtDll",

@@ -25,7 +25,7 @@ class WinlogonShell(PersistencePlugin):
         allow=(
             FilterRule(
                 reason="Default Windows shell",
-                value_contains="explorer.exe",
+                value_matches=r"^explorer\.exe$",
                 signer="microsoft",
             ),
         ),
@@ -54,7 +54,7 @@ class WinlogonUserinit(PersistencePlugin):
         allow=(
             FilterRule(
                 reason="Default Windows userinit",
-                value_contains="userinit.exe",
+                value_matches=r"userinit\.exe",
                 signer="microsoft",
             ),
         ),
@@ -103,7 +103,9 @@ class WinlogonNotifyPackages(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1547/004/",),
         allow=(
-            FilterRule(reason="Default notification package", value_contains="scecli"),
+            FilterRule(
+                reason="Default notification package", value_matches=r"^scecli$"
+            ),
         ),
         targets=(
             RegistryTarget(

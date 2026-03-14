@@ -2,15 +2,12 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path, PureWindowsPath
-from typing import TYPE_CHECKING
 
-from pyrsistencesniper.core.normalize import expand_env_vars
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule
+from pyrsistencesniper.models.check import HiveProtocol
+from pyrsistencesniper.models.finding import AccessLevel, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
+from pyrsistencesniper.resolution.normalize import expand_env_vars
 
 logger = logging.getLogger(__name__)
 
@@ -38,13 +35,6 @@ class StartupFolder(PersistencePlugin):
             "simple file-drop persistence."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
-        allow=(
-            FilterRule(
-                reason="Microsoft-signed startup item",
-                signer="microsoft",
-                not_lolbin=True,
-            ),
-        ),
     )
 
     def run(self) -> list[Finding]:
@@ -74,7 +64,7 @@ class StartupFolder(PersistencePlugin):
         hive_name: str,
         value_name: str,
         default: str,
-        hive_override: object | None = None,
+        hive_override: HiveProtocol | None = None,
         username: str = "",
     ) -> Path:
         """Resolve the Startup folder path from the registry."""

@@ -1,3 +1,5 @@
+"""Windows path and registry path normalization for offline resolution."""
+
 from __future__ import annotations
 
 import re
@@ -72,6 +74,52 @@ def expand_env_vars(value: str, username: str = "") -> str:
     return _ENV_PATTERN.sub(_replace, value)
 
 
+_MIN_PARTS_FOR_ARG = 2
+
+
+def _extract_cmd_target(parts: list[str]) -> str:
+    """Extract the target executable from a cmd /c or /k invocation."""
+    if len(parts) <= 1:
+        return parts[0].strip('"') if parts else ""
+    flag = parts[1].lower()
+    if flag in ("/c", "/k") and len(parts) > _MIN_PARTS_FOR_ARG:
+        return parts[_MIN_PARTS_FOR_ARG].strip('"')
+    return parts[1].strip('"')
+
+
+def _extract_rundll_target(parts: list[str]) -> str:
+    """Extract the DLL path from a rundll32 invocation."""
+    dll_part = parts[1].strip('"')
+    comma_idx = dll_part.find(",")
+    return dll_part[:comma_idx] if comma_idx != -1 else dll_part
+
+
+def _extract_powershell_target(parts: list[str]) -> str:
+    """Extract the first non-flag argument from a PowerShell invocation."""
+    for part in parts[1:]:
+        if not part.lower().startswith("-"):
+            return part.strip('"')
+    return parts[0]
+
+
+def _extract_launcher_target(first_name: str, parts: list[str]) -> str | None:
+    """Resolve the real executable behind a launcher prefix, or None."""
+    if first_name in ("cmd", "cmd.exe") and len(parts) > 1:
+        return _extract_cmd_target(parts)
+    if first_name in ("rundll32", "rundll32.exe") and len(parts) > 1:
+        return _extract_rundll_target(parts)
+    if first_name in (
+        "powershell",
+        "powershell.exe",
+        "pwsh",
+        "pwsh.exe",
+    ):
+        return _extract_powershell_target(parts)
+    if len(parts) > 1:
+        return parts[1].strip('"')
+    return None
+
+
 def extract_executable_from_cmdline(cmdline: str) -> str:
     """Extract the executable path from a command line."""
     stripped = cmdline.strip().strip('"')
@@ -90,27 +138,9 @@ def extract_executable_from_cmdline(cmdline: str) -> str:
     first_name = PureWindowsPath(first).name.lower()
 
     if first_name in _LAUNCHER_PREFIXES:
-        if first_name in ("cmd", "cmd.exe") and len(parts) > 1:
-            flag = parts[1].lower()
-            if flag in ("/c", "/k") and len(parts) > 2:
-                return parts[2].strip('"')
-            if len(parts) > 1:
-                return parts[1].strip('"')
-        if first_name in ("rundll32", "rundll32.exe") and len(parts) > 1:
-            dll_part = parts[1].strip('"')
-            comma_idx = dll_part.find(",")
-            if comma_idx != -1:
-                return dll_part[:comma_idx]
-            return dll_part
-        if first_name in ("powershell", "powershell.exe", "pwsh", "pwsh.exe"):
-            for _i, part in enumerate(parts[1:], start=1):
-                low = part.lower()
-                if low.startswith("-"):
-                    continue
-                return part.strip('"')
-            return parts[0]
-        if len(parts) > 1:
-            return parts[1].strip('"')
+        result = _extract_launcher_target(first_name, parts)
+        if result is not None:
+            return result
 
     return parts[0].strip('"')
 
@@ -125,33 +155,32 @@ _DEVICE_PREFIX_RE = re.compile(r"^(?:\\\\[?.]\\|\\[?][?]\\)")
 
 def canonicalize_windows_path(path: str) -> str:
     """Normalize a Windows path for offline resolution."""
-    p = path.strip().strip("'\"")
-    if not p:
+    path_string = path.strip().strip("'\"")
+    if not path_string:
         return ""
 
-    p = p.replace("/", "\\")
-    p = _DEVICE_PREFIX_RE.sub("", p)
+    path_string = path_string.replace("/", "\\")
+    path_string = _DEVICE_PREFIX_RE.sub("", path_string)
 
-    if p.startswith("\\\\"):
+    if path_string.startswith("\\\\"):
         return ""
 
-    if len(p) >= 2 and p[1] == ":":
-        p = p[2:]
+    _drive_prefix_len = 2
+    if len(path_string) >= _drive_prefix_len and path_string[1] == ":":
+        path_string = path_string[2:]
 
     # Translate \SystemRoot\ to Windows\
-    stripped = p.lstrip("\\")
+    stripped = path_string.lstrip("\\")
     if stripped.lower().startswith("systemroot\\"):
-        p = "Windows\\" + stripped.split("\\", 1)[1]
+        path_string = "Windows\\" + stripped.split("\\", 1)[1]
 
     # Prefix bare System32\ or SysWOW64\ with Windows\
-    stripped = p.lstrip("\\")
+    stripped = path_string.lstrip("\\")
     lower = stripped.lower()
     if lower.startswith("system32\\") or lower.startswith("syswow64\\"):
-        p = "Windows\\" + stripped
+        path_string = "Windows\\" + stripped
 
-    p = p.lstrip("\\")
-
-    return p
+    return path_string.lstrip("\\")
 
 
 def canonicalize_registry_path(path: str) -> str:

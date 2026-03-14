@@ -1,3 +1,5 @@
+"""Filesystem helpers for resolving Windows paths and inspecting files."""
+
 from __future__ import annotations
 
 import hashlib
@@ -39,11 +41,11 @@ class FilesystemHelper:
         """Return the hex SHA-256 digest of the file, or empty string on error."""
         resolved = self.resolve(windows_path)
         try:
-            h = hashlib.sha256()
-            with resolved.open("rb") as f:
-                for chunk in iter(lambda: f.read(65536), b""):
-                    h.update(chunk)
-            return h.hexdigest()
+            hasher = hashlib.sha256()
+            with resolved.open("rb") as file_handle:
+                for chunk in iter(lambda: file_handle.read(65536), b""):
+                    hasher.update(chunk)
+            return hasher.hexdigest()
         except OSError:
             logger.debug("SHA-256 failed for %s", resolved, exc_info=True)
             return ""

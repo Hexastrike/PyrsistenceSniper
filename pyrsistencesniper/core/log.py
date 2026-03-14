@@ -1,3 +1,5 @@
+"""Logging configuration for the pyrsistencesniper package."""
+
 from __future__ import annotations
 
 import logging
@@ -11,7 +13,7 @@ def setup_logging(
     level: int = logging.WARNING,
     fmt: str | None = None,
 ) -> None:
-    """Configure a stderr handler on the pyrsistencesniper logger. Idempotent."""
+    """Configure a stderr handler on the pyrsistencesniper logger."""
     logger = logging.getLogger("pyrsistencesniper")
     logger.setLevel(level)
 

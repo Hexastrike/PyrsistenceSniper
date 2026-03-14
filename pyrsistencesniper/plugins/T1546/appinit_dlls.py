@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.forensics.registry import RegistryNode
+from pyrsistencesniper.models.finding import AccessLevel, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 _KEY_PATHS: tuple[str, str] = (
     r"Microsoft\Windows NT\CurrentVersion\Windows",
@@ -53,8 +50,8 @@ class AppInitDlls(PersistencePlugin):
 
             context = self._read_context(node)
 
-            for dll_path in _SPLIT_RE.split(value_str):
-                dll_path = dll_path.strip()
+            for raw_dll in _SPLIT_RE.split(value_str):
+                dll_path = raw_dll.strip()
                 if not dll_path:
                     continue
 
@@ -72,8 +69,6 @@ class AppInitDlls(PersistencePlugin):
 
     @staticmethod
     def _read_context(node: object) -> str:
-        from pyrsistencesniper.core.registry import RegistryNode
-
         assert isinstance(node, RegistryNode)
         parts: list[str] = []
         load = node.get("LoadAppInit_DLLs")

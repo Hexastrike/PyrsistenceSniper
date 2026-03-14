@@ -1,3 +1,5 @@
+"""YAML-driven detection profiles with global and per-check allow/block rules."""
+
 from __future__ import annotations
 
 import logging
@@ -44,8 +46,8 @@ class DetectionProfile:
     def load(cls, path: Path) -> DetectionProfile:
         """Parse a YAML profile file into a DetectionProfile."""
         try:
-            with path.open("r", encoding="utf-8") as f:
-                data = yaml.safe_load(f)
+            with path.open("r", encoding="utf-8") as profile_file:
+                data = yaml.safe_load(profile_file)
         except FileNotFoundError:
             logger.warning("Profile not found: %s, using defaults", path)
             return cls.default()
@@ -75,7 +77,9 @@ class DetectionProfile:
         trusted_signers_raw = data.get("trusted_signers")
         if isinstance(trusted_signers_raw, list):
             trusted_signers = frozenset(
-                str(s).lower() for s in trusted_signers_raw if s
+                str(signer_name).lower()
+                for signer_name in trusted_signers_raw
+                if signer_name
             )
         else:
             trusted_signers = _DEFAULT_TRUSTED_SIGNERS
@@ -107,6 +111,13 @@ class DetectionProfile:
         """Return True if any block rule matches the finding."""
         return self._any_rule_matches(check_id, finding, self.block, "block")
 
+    def allow_rules_for(self, check_id: str) -> tuple[FilterRule, ...]:
+        """Return combined global + check-specific allow rules."""
+        override = self.checks.get(check_id)
+        if override:
+            return self.allow + override.allow
+        return self.allow
+
     def _any_rule_matches(
         self,
         check_id: str,
@@ -137,10 +148,8 @@ def _parse_rules(raw: object) -> tuple[FilterRule, ...]:
         rules.append(
             FilterRule(
                 reason=item.get("reason", ""),
-                value_equals=item.get("value_equals", ""),
-                value_contains=item.get("value_contains", ""),
-                path_equals=item.get("path_equals", ""),
-                path_contains=item.get("path_contains", ""),
+                value_matches=item.get("value_matches", ""),
+                path_matches=item.get("path_matches", ""),
                 signer=item.get("signer", ""),
                 hash=item.get("hash", ""),
                 not_lolbin=bool(item.get("not_lolbin", False)),

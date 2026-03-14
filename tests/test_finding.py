@@ -1,6 +1,13 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
+import pytest
+from pyrsistencesniper.models.finding import (
+    AccessLevel,
+    FilterRule,
+    Finding,
+    MatchResult,
+    Severity,
+)
 
 # -- Finding defaults ---------------------------------------------------------
 
@@ -18,11 +25,10 @@ def test_finding_defaults() -> None:
     assert f.signer == ""
     assert f.hostname == ""
     assert f.check_id == ""
+    assert f.severity is Severity.MEDIUM
 
 
 def test_finding_is_frozen() -> None:
-    import pytest
-
     f = Finding(path="HKLM\\Software\\Run")
     with pytest.raises(AttributeError):
         f.path = "something"  # type: ignore[misc]
@@ -38,27 +44,27 @@ def test_allow_rule_empty_matches_nothing() -> None:
 
 
 def test_allow_rule_value_equals() -> None:
-    rule = FilterRule(value_equals="explorer.exe")
+    rule = FilterRule(value_matches=r"^explorer\.exe$")
     assert rule.matches(Finding(value="explorer.exe")) is True
     assert rule.matches(Finding(value="EXPLORER.EXE")) is True
     assert rule.matches(Finding(value="notepad.exe")) is False
 
 
 def test_allow_rule_value_contains() -> None:
-    rule = FilterRule(value_contains="system32")
+    rule = FilterRule(value_matches=r"system32")
     assert rule.matches(Finding(value="C:\\Windows\\system32\\foo.exe")) is True
     assert rule.matches(Finding(value="C:\\Windows\\SysWOW64\\foo.exe")) is False
 
 
 def test_allow_rule_path_equals() -> None:
-    rule = FilterRule(path_equals="HKLM\\Software\\Run")
+    rule = FilterRule(path_matches=r"^HKLM\\Software\\Run$")
     assert rule.matches(Finding(path="HKLM\\Software\\Run")) is True
     assert rule.matches(Finding(path="hklm\\software\\run")) is True
     assert rule.matches(Finding(path="HKLM\\Software\\RunOnce")) is False
 
 
 def test_allow_rule_path_contains() -> None:
-    rule = FilterRule(path_contains="Run")
+    rule = FilterRule(path_matches=r"Run")
     assert rule.matches(Finding(path="HKLM\\Software\\Run")) is True
     assert rule.matches(Finding(path="HKLM\\Software\\RunOnce")) is True
     assert rule.matches(Finding(path="HKLM\\Software\\Services")) is False
@@ -83,8 +89,8 @@ def test_allow_rule_hash_match() -> None:
 
 def test_allow_rule_and_logic_all_must_match() -> None:
     rule = FilterRule(
-        value_equals="explorer.exe",
-        path_contains="Winlogon",
+        value_matches=r"^explorer\.exe$",
+        path_matches=r"Winlogon",
     )
     both = Finding(value="explorer.exe", path="HKLM\\Winlogon")
     assert rule.matches(both) is True
@@ -94,3 +100,54 @@ def test_allow_rule_and_logic_all_must_match() -> None:
 
     wrong_path = Finding(value="explorer.exe", path="HKLM\\Run")
     assert rule.matches(wrong_path) is False
+
+
+# -- FilterRule.match_result ---------------------------------------------------
+
+
+def test_match_result_full_when_all_conditions_match() -> None:
+    rule = FilterRule(value_matches=r"^explorer\.exe$", path_matches=r"Winlogon")
+    f = Finding(value="explorer.exe", path="HKLM\\Winlogon")
+    assert rule.match_result(f) == MatchResult.FULL
+
+
+def test_match_result_partial_when_core_passes_signer_fails() -> None:
+    rule = FilterRule(value_matches=r"^explorer\.exe$", signer="unknown")
+    f = Finding(value="explorer.exe", signer="")
+    assert rule.match_result(f) == MatchResult.PARTIAL
+
+
+def test_match_result_none_when_core_fails() -> None:
+    rule = FilterRule(value_matches=r"^explorer\.exe$", path_matches=r"Winlogon")
+    f = Finding(value="explorer.exe", path="HKLM\\Run")
+    assert rule.match_result(f) == MatchResult.NONE
+
+
+def test_match_result_none_when_no_conditions_match() -> None:
+    rule = FilterRule(value_matches=r"^explorer\.exe$", path_matches=r"Winlogon")
+    f = Finding(value="notepad.exe", path="HKLM\\Run")
+    assert rule.match_result(f) == MatchResult.NONE
+
+
+def test_match_result_none_for_empty_rule() -> None:
+    rule = FilterRule()
+    f = Finding(value="anything", path="anywhere")
+    assert rule.match_result(f) == MatchResult.NONE
+
+
+def test_match_result_none_when_core_fails_signer_matches() -> None:
+    rule = FilterRule(path_matches=r"Winlogon", signer="microsoft")
+    f = Finding(path="HKLM\\Run", signer="Microsoft Windows")
+    assert rule.match_result(f) == MatchResult.NONE
+
+
+def test_match_result_none_when_only_signer_fails() -> None:
+    rule = FilterRule(signer="unknown")
+    f = Finding(signer="Microsoft Windows")
+    assert rule.match_result(f) == MatchResult.NONE
+
+
+def test_match_result_full_when_only_signer_matches() -> None:
+    rule = FilterRule(signer="microsoft")
+    f = Finding(signer="Microsoft Windows")
+    assert rule.match_result(f) == MatchResult.FULL

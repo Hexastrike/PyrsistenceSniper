@@ -51,6 +51,7 @@ class OutputBase(ABC):
             "signer": finding.signer,
             "hostname": finding.hostname,
             "check_id": finding.check_id,
+            "severity": finding.severity.value,
             "references": " | ".join(finding.references),
         }
         for enrichment in enrichments:

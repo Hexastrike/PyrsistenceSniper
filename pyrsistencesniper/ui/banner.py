@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import sys
 
+from rich.console import Console
+
 from pyrsistencesniper import __version__
 
 _BANNER = r"""
@@ -31,7 +33,5 @@ def print_banner() -> None:
     """Print the ASCII art banner to stderr if running in a terminal."""
     if not sys.stderr.isatty():
         return
-    from rich.console import Console
-
     console = Console(stderr=True)
     console.print(_BANNER.replace("{version}", __version__), highlight=False)

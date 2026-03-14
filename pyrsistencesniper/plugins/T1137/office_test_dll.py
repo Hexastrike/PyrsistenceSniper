@@ -1,3 +1,10 @@
+"""Detect Office Test DLL persistence (T1137.002).
+
+The undocumented ``Office Test\\Special\\Perf`` registry key specifies a DLL
+loaded by Office applications at startup.  Any value present indicates
+persistence as this key has no legitimate use.
+"""
+
 from __future__ import annotations
 
 from pyrsistencesniper.plugins import register_plugin

@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule
+from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import (
     CheckDefinition,
@@ -10,9 +8,6 @@ from pyrsistencesniper.plugins.base import (
     PersistencePlugin,
     RegistryTarget,
 )
-
-if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import Finding
 
 
 @register_plugin
@@ -37,9 +32,8 @@ class AeDebug(PersistencePlugin):
         ),
         allow=(
             FilterRule(
-                reason="Visual Studio JIT debugger", value_contains="vsjitdebugger"
+                reason="Known JIT debugger", value_matches=r"(vsjitdebugger|drwtsn32)"
             ),
-            FilterRule(reason="Dr. Watson debugger", value_contains="drwtsn32"),
         ),
     )
 
@@ -145,30 +139,9 @@ class WerRuntimeExceptionHelperModules(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
         allow=(
-            FilterRule(signer="microsoft", not_lolbin=True),
             FilterRule(
-                reason="Default .NET WER helper",
-                value_contains="mscordacwks.dll",
-                signer="microsoft",
-            ),
-            FilterRule(
-                reason="Default IE WER helper",
-                value_contains="iertutil.dll",
-                signer="microsoft",
-            ),
-            FilterRule(
-                reason="Default MSI WER helper",
-                value_contains="msiwer.dll",
-                signer="microsoft",
-            ),
-            FilterRule(
-                reason="Default biometric WER helper",
-                value_contains="wbiosrvc.dll",
-                signer="microsoft",
-            ),
-            FilterRule(
-                reason="Edge WER helper",
-                value_contains="msedge_wer.dll",
+                reason="Known WER helper module",
+                value_matches=r"(mscordacwks|iertutil|msiwer|wbiosrvc|msedge_wer)\.dll",
                 signer="microsoft",
             ),
         ),

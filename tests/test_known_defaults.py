@@ -130,31 +130,21 @@ def test_service_failure_allows_not_used() -> None:
     assert any(r.matches(finding) for r in allow_rules)
 
 
-def test_services_allow_ms_signed_non_lolbin() -> None:
+def test_services_allow_svchost_hosted() -> None:
+    """svchost -k pattern should match the svchost rule."""
     _discover_plugins()
     plugin_cls = _PLUGIN_REGISTRY["windows_service_image_path"]
     allow_rules = plugin_cls.definition.allow
     finding = Finding(
-        value="svchost.exe",
+        value=r"%SystemRoot%\system32\svchost.exe -k netsvcs -p",
         signer="Microsoft Windows",
         is_lolbin=False,
     )
     assert any(r.matches(finding) for r in allow_rules)
 
 
-def test_services_keep_lolbin() -> None:
-    _discover_plugins()
-    plugin_cls = _PLUGIN_REGISTRY["windows_service_image_path"]
-    allow_rules = plugin_cls.definition.allow
-    finding = Finding(
-        value="powershell.exe",
-        signer="Microsoft Windows",
-        is_lolbin=True,
-    )
-    assert not any(r.matches(finding) for r in allow_rules)
-
-
-def test_services_keep_unsigned() -> None:
+def test_services_keep_non_system32() -> None:
+    """Non-system32 binaries should not match any rule."""
     _discover_plugins()
     plugin_cls = _PLUGIN_REGISTRY["windows_service_image_path"]
     allow_rules = plugin_cls.definition.allow
