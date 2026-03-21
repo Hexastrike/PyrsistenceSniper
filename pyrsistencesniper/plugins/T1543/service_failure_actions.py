@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    FilterRule,
+    Finding,
+)
+from pyrsistencesniper.core.registry import registry_value_to_str
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _SERVICES_PATH_TEMPLATE = r"{controlset}\Services"
 
@@ -25,6 +31,11 @@ class ServiceFailureCommand(PersistencePlugin):
             FilterRule(
                 reason="No failure command configured", value_matches=r"^not used$"
             ),
+            FilterRule(
+                reason="NVIDIA display container service recovery",
+                value_matches=r"NVIDIA Corporation\\.*\\NvContainerRecovery\.bat",
+                signer="nvidia",
+            ),
         ),
     )
 
@@ -35,12 +46,12 @@ class ServiceFailureCommand(PersistencePlugin):
         services_path = _SERVICES_PATH_TEMPLATE.replace(
             "{controlset}", self.context.active_controlset
         )
-        tree = self._load_subtree("SYSTEM", services_path)
+        tree = self.hive_ops.load_subtree("SYSTEM", services_path)
         if tree is None:
             return findings
 
         for svc_name, node in tree.children():
-            value_str = self._to_str(node.get("FailureCommand"))
+            value_str = registry_value_to_str(node.get("FailureCommand"))
             if value_str is None:
                 continue
 

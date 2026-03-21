@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import TYPE_CHECKING
-from unittest.mock import MagicMock, PropertyMock
+from unittest.mock import MagicMock, PropertyMock, create_autospec
 
 from pyrsistencesniper.core.context import AnalysisContext
+from pyrsistencesniper.core.filesystem import FilesystemHelper
 from pyrsistencesniper.core.profile import DetectionProfile
-from pyrsistencesniper.forensics.filesystem import FilesystemHelper
-from pyrsistencesniper.forensics.registry import RegistryHelper, RegistryNode
+from pyrsistencesniper.core.registry import RegistryHelper, RegistryNode
 
 if TYPE_CHECKING:
-    from pyrsistencesniper.models.finding import UserProfile
+    from pyrsistencesniper.core.models import UserProfile
 
 
 def make_node(
@@ -38,11 +38,11 @@ def make_deps(
     user_profiles: list[UserProfile] | None = None,
 ) -> tuple[MagicMock, MagicMock, FilesystemHelper, DetectionProfile]:
     """Create a mock AnalysisContext and its dependencies for plugin testing."""
-    registry = MagicMock(spec=RegistryHelper)
+    registry = create_autospec(RegistryHelper, instance=True)
     filesystem = FilesystemHelper(image_root=tmp_path)
-    profile = DetectionProfile.default()
+    profile = DetectionProfile()
 
-    context = MagicMock(spec=AnalysisContext)
+    context = create_autospec(AnalysisContext, instance=True)
     type(context).hostname = PropertyMock(return_value="TESTHOST")
     type(context).active_controlset = PropertyMock(return_value="ControlSet001")
     type(context).user_profiles = PropertyMock(return_value=user_profiles or [])
@@ -77,3 +77,26 @@ def setup_hklm(
     plugin.context.hive_path.return_value = Path(hive_path)  # type: ignore[union-attr]
     plugin.registry.open_hive.return_value = MagicMock()  # type: ignore[union-attr]
     plugin.registry.load_subtree.return_value = tree_node  # type: ignore[union-attr]
+
+
+def setup_filesystem(
+    plugin: object,
+    files: dict[str, bytes | str],
+) -> None:
+    """Create test files under the plugin's filesystem image_root.
+
+    Counterpart to setup_hklm for filesystem-based plugins.
+
+    Args:
+        plugin: Plugin instance created by make_plugin (has .filesystem attribute
+                via .context.filesystem which is a real FilesystemHelper).
+        files: Mapping of relative paths (from image_root) to file content.
+    """
+    root = plugin.filesystem.image_root  # type: ignore[union-attr]
+    for rel_path, content in files.items():
+        target = root / rel_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if isinstance(content, bytes):
+            target.write_bytes(content)
+        else:
+            target.write_text(content)

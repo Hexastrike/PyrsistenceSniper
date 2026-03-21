@@ -1,19 +1,10 @@
 from __future__ import annotations
 
 from pyrsistencesniper.output.base import OutputBase
-from pyrsistencesniper.output.console import ConsoleOutput
+from pyrsistencesniper.output.console_output import ConsoleOutput
 from pyrsistencesniper.output.csv_output import CsvOutput
 from pyrsistencesniper.output.html_output import HtmlOutput
 from pyrsistencesniper.output.xlsx_output import XlsxOutput
-
-__all__ = [
-    "ConsoleOutput",
-    "CsvOutput",
-    "HtmlOutput",
-    "OutputBase",
-    "XlsxOutput",
-    "get_renderer",
-]
 
 _RENDERERS: dict[str, type[OutputBase]] = {
     "console": ConsoleOutput,

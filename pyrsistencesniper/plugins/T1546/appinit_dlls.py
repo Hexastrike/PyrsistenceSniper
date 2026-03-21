@@ -2,10 +2,14 @@ from __future__ import annotations
 
 import re
 
-from pyrsistencesniper.forensics.registry import RegistryNode
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    Finding,
+)
+from pyrsistencesniper.core.registry import RegistryNode
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _KEY_PATHS: tuple[str, str] = (
     r"Microsoft\Windows NT\CurrentVersion\Windows",
@@ -33,7 +37,7 @@ class AppInitDlls(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        hive = self._open_hive("SOFTWARE")
+        hive = self.hive_ops.open_hive("SOFTWARE")
         if hive is None:
             return findings
 

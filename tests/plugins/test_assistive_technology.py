@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from pyrsistencesniper.models.finding import AccessLevel, UserProfile
+from pyrsistencesniper.core.models import AccessLevel, UserProfile
 from pyrsistencesniper.plugins.T1546.assistive_technology import AssistiveTechnology
 
 from .conftest import make_node, make_plugin, setup_hklm

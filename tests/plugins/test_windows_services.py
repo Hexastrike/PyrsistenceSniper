@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding, MatchResult
+from pyrsistencesniper.core.models import AccessLevel, Finding, MatchResult
 from pyrsistencesniper.plugins.T1543.windows_services import (
     WindowsServiceDll,
     WindowsServiceImagePath,

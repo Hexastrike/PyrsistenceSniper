@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding
-from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import (
+from pyrsistencesniper.core.models import (
+    AccessLevel,
     CheckDefinition,
+    FilterRule,
+    Finding,
     HiveScope,
-    PersistencePlugin,
     RegistryTarget,
 )
+from pyrsistencesniper.plugins import register_plugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 
 @register_plugin
@@ -48,12 +50,19 @@ class ExplorerBrowserHelperObjects(PersistencePlugin):
             "persistent in-process code execution."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
+        allow=(
+            FilterRule(
+                reason="Microsoft Edge IE-to-Edge redirection BHO",
+                value_matches=r"ie_to_edge_bho(_64)?\.dll",
+                signer="microsoft",
+            ),
+        ),
     )
 
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        hive = self._open_hive("SOFTWARE")
+        hive = self.hive_ops.open_hive("SOFTWARE")
         if hive is None:
             return findings
 
@@ -63,7 +72,7 @@ class ExplorerBrowserHelperObjects(PersistencePlugin):
 
         for clsid, _node in tree.children():
             inproc_path = f"Classes\\CLSID\\{clsid}\\InprocServer32"
-            dll_path = self._resolve_clsid_default(hive, inproc_path)
+            dll_path = self.hive_ops.resolve_clsid_default(hive, inproc_path)
 
             display = dll_path or clsid
 
@@ -99,7 +108,7 @@ class ExplorerAppKey(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        tree = self._load_subtree(
+        tree = self.hive_ops.load_subtree(
             "SOFTWARE",
             r"Microsoft\Windows\CurrentVersion\Explorer\AppKey",
         )

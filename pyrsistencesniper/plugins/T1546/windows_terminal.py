@@ -3,10 +3,15 @@ from __future__ import annotations
 import json
 import logging
 
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    FilterRule,
+    Finding,
+)
+from pyrsistencesniper.core.winutil import normalize_windows_path
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-from pyrsistencesniper.resolution.normalize import normalize_windows_path
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -27,14 +32,17 @@ class WindowsTerminal(PersistencePlugin):
             FilterRule(
                 reason="Default Windows shell",
                 value_matches=r"(?i)^(%SystemRoot%\\System32\\)?cmd\.exe$",
+                signer="microsoft",
             ),
             FilterRule(
                 reason="Default PowerShell",
                 value_matches=r"(?i)^(%SystemRoot%\\System32\\WindowsPowerShell\\v1\.0\\)?powershell\.exe$",
+                signer="microsoft",
             ),
             FilterRule(
                 reason="Default PowerShell 7+",
                 value_matches=r"(?i)^pwsh\.exe$",
+                signer="microsoft",
             ),
         ),
     )

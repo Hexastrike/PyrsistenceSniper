@@ -7,7 +7,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
 
-from pyrsistencesniper.models.finding import AnnotatedResult
+from pyrsistencesniper.core.models import AnnotatedResult, Finding
 from pyrsistencesniper.output.base import OutputBase
 
 _HEADER_FONT = Font(bold=True)
@@ -34,7 +34,8 @@ class XlsxOutput(OutputBase):
 
         # Header row
         for col_idx, name in enumerate(fieldnames, start=1):
-            cell = ws.cell(row=1, column=col_idx, value=name)
+            label = Finding.FIELDS.get(name, name)
+            cell = ws.cell(row=1, column=col_idx, value=label)
             cell.font = _HEADER_FONT
             cell.fill = _HEADER_FILL
 
@@ -45,7 +46,7 @@ class XlsxOutput(OutputBase):
 
         # Auto-fit column widths (approximate)
         for col_idx, name in enumerate(fieldnames, start=1):
-            max_len = len(name)
+            max_len = len(Finding.FIELDS.get(name, name))
             for row_idx in range(2, len(rows) + 2):
                 val = ws.cell(row=row_idx, column=col_idx).value
                 if val is not None:

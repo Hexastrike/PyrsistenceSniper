@@ -8,9 +8,13 @@ every managed process.
 
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    Finding,
+)
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _PROFILER_VARS: tuple[str, ...] = (
     "COR_PROFILER",
@@ -73,7 +77,7 @@ def _scan_env_vars(
     system_env_path = _SYSTEM_ENV_PATH_TEMPLATE.replace(
         "{controlset}", plugin.context.active_controlset
     )
-    node = plugin._load_subtree("SYSTEM", system_env_path)
+    node = plugin.hive_ops.load_subtree("SYSTEM", system_env_path)
     if node is not None:
         for var in var_names:
             val = node.get(var)

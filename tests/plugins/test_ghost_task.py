@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.core.models import AccessLevel
 from pyrsistencesniper.plugins.T1053.ghost_task import GhostTask
 
 from .conftest import make_deps, make_node

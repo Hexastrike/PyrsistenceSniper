@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import Finding, MatchResult
+from pyrsistencesniper.core.models import Finding, MatchResult
 from pyrsistencesniper.plugins.T1053.scheduled_tasks import ScheduledTaskFiles
 
 if TYPE_CHECKING:

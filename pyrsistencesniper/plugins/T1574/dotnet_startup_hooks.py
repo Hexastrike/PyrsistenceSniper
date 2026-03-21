@@ -7,9 +7,13 @@ application before the Main entry point.
 
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    Finding,
+)
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _ENV_PATH = r"Environment"
 _SYSTEM_ENV_PATH_TEMPLATE = r"{controlset}\Control\Session Manager\Environment"
@@ -36,7 +40,7 @@ class DotNetStartupHooks(PersistencePlugin):
             "{controlset}", self.context.active_controlset
         )
 
-        hive = self._open_hive("SYSTEM")
+        hive = self.hive_ops.open_hive("SYSTEM")
         if hive is not None:
             node = self.registry.load_subtree(hive, system_env_path)
             if node is not None:
@@ -50,7 +54,7 @@ class DotNetStartupHooks(PersistencePlugin):
                         )
                     )
 
-        for profile, hive in self._iter_user_hives():
+        for profile, hive in self.hive_ops.iter_user_hives():
             node = self.registry.load_subtree(hive, _ENV_PATH)
             if node is None:
                 continue

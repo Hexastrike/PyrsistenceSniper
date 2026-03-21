@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
-from pyrsistencesniper.models.finding import AccessLevel, UserProfile
+from pyrsistencesniper.core.models import AccessLevel, UserProfile
 from pyrsistencesniper.plugins.T1546.typelib_hijack import TypeLibHijack
 
 from .conftest import make_node, make_plugin

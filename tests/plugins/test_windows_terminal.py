@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from pyrsistencesniper.models.finding import AccessLevel, UserProfile
+from pyrsistencesniper.core.models import AccessLevel, UserProfile
 from pyrsistencesniper.plugins.T1546.windows_terminal import WindowsTerminal
 
 from .conftest import make_plugin

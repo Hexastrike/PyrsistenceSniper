@@ -2,9 +2,14 @@ from __future__ import annotations
 
 from pathlib import PureWindowsPath
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    FilterRule,
+    Finding,
+)
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _AT_KEY = r"Microsoft\Windows NT\CurrentVersion\Accessibility\ATs"
 _AT_KEY_WOW64 = r"Wow6432Node\Microsoft\Windows NT\CurrentVersion\Accessibility\ATs"
@@ -55,6 +60,17 @@ class AssistiveTechnology(PersistencePlugin):
             "https://attack.mitre.org/techniques/T1546/008/",
             "https://www.hexacorn.com/blog/2016/07/22/beyond-good-ol-run-key-part-42/",
         ),
+        allow=(
+            FilterRule(
+                reason="Default Windows accessibility tool",
+                value_matches=(
+                    r"(?i)(EoAExperiences|LiveCaptions|Magnify|Narrator"
+                    r"|osk|sapisvr|VoiceAccess)\.exe"
+                ),
+                signer="microsoft",
+                not_lolbin=True,
+            ),
+        ),
     )
 
     def run(self) -> list[Finding]:
@@ -73,7 +89,7 @@ class AssistiveTechnology(PersistencePlugin):
     ) -> list[Finding]:
         findings: list[Finding] = []
 
-        tree = self._load_subtree(hive_name, at_key)
+        tree = self.hive_ops.load_subtree(hive_name, at_key)
         if tree is None:
             return findings
 
@@ -113,7 +129,7 @@ class AssistiveTechnology(PersistencePlugin):
     def _scan_user_configuration(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        for profile, hive in self._iter_user_hives():
+        for profile, hive in self.hive_ops.iter_user_hives():
             node = self.registry.load_subtree(hive, _CONFIG_KEY)
             config_val = node.get("Configuration") if node else None
             if config_val is None:

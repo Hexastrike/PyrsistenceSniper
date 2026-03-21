@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.core.models import AccessLevel
 
 if TYPE_CHECKING:
     from pathlib import Path

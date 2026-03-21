@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    FilterRule,
+    Finding,
+)
+from pyrsistencesniper.core.registry import registry_value_to_str
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _SERVICES_PATH_TEMPLATE = r"{controlset}\Services"
 
@@ -49,6 +55,36 @@ class WindowsServiceImagePath(PersistencePlugin):
                 value_matches=r"msiexec\.exe",
                 signer="microsoft",
             ),
+            FilterRule(
+                reason="Microsoft Edge / Edge Update service",
+                value_matches=r"Microsoft\\(EdgeUpdate\\MicrosoftEdgeUpdate|Edge\\.*\\elevation_service)\.exe",
+                signer="microsoft",
+                not_lolbin=True,
+            ),
+            FilterRule(
+                reason="Google Chrome / Update service",
+                value_matches=r"Google\\(GoogleUpdater\\.*\\updater|Chrome\\.*\\elevation_service)\.exe",
+                signer="google",
+                not_lolbin=True,
+            ),
+            FilterRule(
+                reason="Windows TrustedInstaller",
+                value_matches=r"TrustedInstaller\.exe",
+                signer="microsoft",
+                not_lolbin=True,
+            ),
+            FilterRule(
+                reason="Windows Subsystem for Linux service",
+                value_matches=r"WSL\\wslservice\.exe",
+                signer="microsoft",
+                not_lolbin=True,
+            ),
+            FilterRule(
+                reason=".NET Framework shared hosting",
+                value_matches=r"Microsoft\.NET\\.*\\SMSvcHost\.exe",
+                signer="microsoft",
+                not_lolbin=True,
+            ),
         ),
     )
 
@@ -59,12 +95,12 @@ class WindowsServiceImagePath(PersistencePlugin):
         services_path = _SERVICES_PATH_TEMPLATE.replace(
             "{controlset}", self.context.active_controlset
         )
-        tree = self._load_subtree("SYSTEM", services_path)
+        tree = self.hive_ops.load_subtree("SYSTEM", services_path)
         if tree is None:
             return findings
 
         for svc_name, node in tree.children():
-            value_str = self._to_str(node.get("ImagePath"))
+            value_str = registry_value_to_str(node.get("ImagePath"))
             if value_str is None:
                 continue
 
@@ -110,7 +146,7 @@ class WindowsServiceDll(PersistencePlugin):
         services_path = _SERVICES_PATH_TEMPLATE.replace(
             "{controlset}", self.context.active_controlset
         )
-        tree = self._load_subtree("SYSTEM", services_path)
+        tree = self.hive_ops.load_subtree("SYSTEM", services_path)
         if tree is None:
             return findings
 
@@ -118,7 +154,7 @@ class WindowsServiceDll(PersistencePlugin):
             params = node.child("Parameters")
             if params is None:
                 continue
-            value_str = self._to_str(params.get("ServiceDll"))
+            value_str = registry_value_to_str(params.get("ServiceDll"))
             if value_str is None:
                 continue
 

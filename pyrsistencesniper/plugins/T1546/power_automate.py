@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import logging
-from pathlib import PureWindowsPath
+from pathlib import Path, PureWindowsPath
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    Finding,
+)
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -17,9 +21,9 @@ class PowerAutomate(PersistencePlugin):
         technique="Power Automate Desktop Flows",
         mitre_id="T1546",
         description=(
-            "Power Automate Desktop stores flow definitions as directories "
-            "under the user's AppData. The presence of custom flows may "
-            "indicate automation-based persistence or lateral movement."
+            "Power Automate Desktop stores flow definitions and scripts "
+            "under the user's AppData. Both the Flows and Scripts "
+            "directories are checked for automation-based persistence."
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
     )
@@ -28,7 +32,7 @@ class PowerAutomate(PersistencePlugin):
         findings: list[Finding] = []
 
         for profile in self.context.user_profiles:
-            flows_dir = (
+            pa_base = (
                 self.filesystem.image_root
                 / "Users"
                 / profile.username
@@ -36,21 +40,17 @@ class PowerAutomate(PersistencePlugin):
                 / "Local"
                 / "Microsoft"
                 / "Power Automate Desktop"
-                / "Flows"
             )
-            if not flows_dir.is_dir():
-                continue
 
-            try:
-                entries = list(flows_dir.iterdir())
-            except PermissionError:
-                logger.debug(
-                    "Permission denied reading flows directory: %s",
-                    flows_dir,
-                    exc_info=True,
-                )
-                continue
+            self._scan_directory(pa_base / "Flows", findings)
+            self._scan_directory(pa_base / "Scripts", findings)
 
+        return findings
+
+    def _scan_directory(self, directory: Path, findings: list[Finding]) -> None:
+        if not directory.is_dir():
+            return
+        try:
             findings.extend(
                 self._make_finding(
                     path=str(
@@ -59,8 +59,12 @@ class PowerAutomate(PersistencePlugin):
                     value=entry.name,
                     access=AccessLevel.USER,
                 )
-                for entry in entries
+                for entry in directory.iterdir()
                 if entry.is_dir()
             )
-
-        return findings
+        except PermissionError:
+            logger.debug(
+                "Permission denied reading directory: %s",
+                directory,
+                exc_info=True,
+            )

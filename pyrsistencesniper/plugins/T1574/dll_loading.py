@@ -8,14 +8,16 @@ GP extensions, Winsock providers, and minidump auxiliary DLLs.
 
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
-from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import (
+from pyrsistencesniper.core.models import (
+    AccessLevel,
     CheckDefinition,
+    FilterRule,
+    Finding,
     HiveScope,
-    PersistencePlugin,
     RegistryTarget,
 )
+from pyrsistencesniper.plugins import register_plugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 
 @register_plugin
@@ -133,7 +135,11 @@ class LsaExtensions(PersistencePlugin):
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         allow=(
-            FilterRule(reason="Default LSA extension", value_matches=r"^lsasrv\.dll$"),
+            FilterRule(
+                reason="Default LSA extension",
+                value_matches=r"^lsasrv\.dll$",
+                signer="microsoft",
+            ),
         ),
         targets=(
             RegistryTarget(
@@ -425,7 +431,7 @@ class MiniDumpAuxiliaryDlls(PersistencePlugin):
             r"Microsoft\Windows NT"
             r"\CurrentVersion\MiniDumpAuxiliaryDlls"
         )
-        tree = self._load_subtree("SOFTWARE", key_path)
+        tree = self.hive_ops.load_subtree("SOFTWARE", key_path)
         if tree is None:
             return findings
 
@@ -492,6 +498,7 @@ class GpExtensionDlls(PersistencePlugin):
                     r"|wlgpclnt|AppManagementConfiguration"
                     r"|WorkFoldersGPExt)\.dll$"
                 ),
+                signer="microsoft",
             ),
         ),
         targets=(

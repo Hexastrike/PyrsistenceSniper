@@ -1,8 +1,14 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    FilterRule,
+    Finding,
+)
+from pyrsistencesniper.core.registry import registry_value_to_str
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _ACTIVE_SETUP_PATH = r"Microsoft\Active Setup\Installed Components"
 
@@ -38,6 +44,19 @@ class ActiveSetup(PersistencePlugin):
             FilterRule(
                 reason="Built-in media/IE setup",
                 value_matches=r"(unregmp2|ie4uinit)\.exe",
+                signer="microsoft",
+            ),
+            FilterRule(
+                reason="Google Chrome per-user setup",
+                value_matches=r"Google\\Chrome\\Application\\.*\\Installer\\chrmstp\.exe",
+                signer="google",
+                not_lolbin=True,
+            ),
+            FilterRule(
+                reason="Microsoft Edge per-user setup",
+                value_matches=r"Microsoft\\Edge\\Application\\.*\\Installer\\setup\.exe",
+                signer="microsoft",
+                not_lolbin=True,
             ),
         ),
     )
@@ -45,12 +64,12 @@ class ActiveSetup(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        tree = self._load_subtree("SOFTWARE", _ACTIVE_SETUP_PATH)
+        tree = self.hive_ops.load_subtree("SOFTWARE", _ACTIVE_SETUP_PATH)
         if tree is None:
             return findings
 
         for component, node in tree.children():
-            value_str = self._to_str(node.get("StubPath"))
+            value_str = registry_value_to_str(node.get("StubPath"))
             if value_str is None or value_str in _STUB_FLAGS:
                 continue
 

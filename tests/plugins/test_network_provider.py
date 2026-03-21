@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding, MatchResult
+from pyrsistencesniper.core.models import AccessLevel, Finding, MatchResult
 from pyrsistencesniper.plugins.T1556.network_provider import NetworkProviderDll
 
 from .conftest import make_node, make_plugin, setup_hklm

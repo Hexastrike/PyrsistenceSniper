@@ -1,8 +1,13 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    FilterRule,
+    Finding,
+)
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _AMSI_PATH = r"Microsoft\AMSI\Providers"
 
@@ -32,16 +37,16 @@ class AmsiProviders(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        hive = self._open_hive("SOFTWARE")
+        hive = self.hive_ops.open_hive("SOFTWARE")
         if hive is None:
             return findings
 
-        tree = self._load_subtree("SOFTWARE", _AMSI_PATH)
+        tree = self.hive_ops.load_subtree("SOFTWARE", _AMSI_PATH)
         if tree is None:
             return findings
 
         for clsid, _node in tree.children():
-            dll_path = self._resolve_clsid_inproc(hive, clsid)
+            dll_path = self.hive_ops.resolve_clsid_inproc(hive, clsid)
             if not dll_path:
                 continue
 

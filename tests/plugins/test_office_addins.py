@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, PropertyMock
 
-from pyrsistencesniper.models.finding import AccessLevel, UserProfile
+from pyrsistencesniper.core.models import AccessLevel, UserProfile
 from pyrsistencesniper.plugins.T1137.office_addins import OfficeAddins, OfficeAiHijack
 
 from .conftest import make_node, make_plugin, setup_hklm
@@ -24,8 +24,8 @@ class TestOfficeAddins:
         plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")
         hive = MagicMock()
         plugin.registry.open_hive.return_value = hive
-        # side_effect: Word=tree, Excel=None, PowerPoint=None, Outlook=None, Access=None
-        plugin.registry.load_subtree.side_effect = [word_tree, None, None, None, None]
+        # 5 apps x 4 versions = 20 calls; Word/no-version returns tree, rest None
+        plugin.registry.load_subtree.side_effect = [word_tree] + [None] * 19
 
         findings = plugin.run()
 
@@ -43,8 +43,8 @@ class TestOfficeAddins:
         plugin.context.hive_path.return_value = Path("/fake/SOFTWARE")
         hive = MagicMock()
         plugin.registry.open_hive.return_value = hive
-        # All 5 apps return same empty-values tree
-        plugin.registry.load_subtree.side_effect = [tree, None, None, None, None]
+        # 5 apps x 4 versions = 20 calls; first returns tree, rest None
+        plugin.registry.load_subtree.side_effect = [tree] + [None] * 19
 
         findings = plugin.run()
         assert findings == []
@@ -66,10 +66,10 @@ class TestOfficeAddins:
         plugin = make_plugin(OfficeAddins, tmp_path, user_profiles=[user])
         # HKLM returns no hive
         plugin.context.hive_path.return_value = None
-        # HKU: open_hive returns hive, load_subtree returns tree for Word, None for rest
+        # HKU: open_hive returns hive, load_subtree: 5 apps x 4 versions = 20 calls
         hive = MagicMock()
         plugin.registry.open_hive.return_value = hive
-        plugin.registry.load_subtree.side_effect = [user_tree, None, None, None, None]
+        plugin.registry.load_subtree.side_effect = [user_tree] + [None] * 19
         type(plugin.context).user_profiles = PropertyMock(return_value=[user])
 
         findings = plugin.run()

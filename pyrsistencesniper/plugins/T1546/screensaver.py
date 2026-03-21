@@ -1,8 +1,12 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    Finding,
+)
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 
 @register_plugin
@@ -22,7 +26,7 @@ class Screensaver(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        for profile, hive in self._iter_user_hives():
+        for profile, hive in self.hive_ops.iter_user_hives():
             node = self.registry.load_subtree(hive, r"Control Panel\Desktop")
             scr_val = node.get("SCRNSAVE.EXE") if node else None
             if scr_val is None:

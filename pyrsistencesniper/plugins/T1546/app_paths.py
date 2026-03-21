@@ -1,8 +1,14 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    FilterRule,
+    Finding,
+)
+from pyrsistencesniper.core.registry import registry_value_to_str
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _APP_PATHS = r"Microsoft\Windows\CurrentVersion\App Paths"
 
@@ -26,18 +32,30 @@ class AppPaths(PersistencePlugin):
                 signer="microsoft",
                 not_lolbin=True,
             ),
+            FilterRule(
+                reason="Microsoft application in Program Files",
+                value_matches=r"(?i)\\Program Files( \(x86\))?\\",
+                signer="microsoft",
+                not_lolbin=True,
+            ),
+            FilterRule(
+                reason="Google Chrome application path",
+                value_matches=r"Google\\Chrome\\Application\\chrome\.exe",
+                signer="google",
+                not_lolbin=True,
+            ),
         ),
     )
 
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        tree = self._load_subtree("SOFTWARE", _APP_PATHS)
+        tree = self.hive_ops.load_subtree("SOFTWARE", _APP_PATHS)
         if tree is None:
             return findings
 
         for app_name, node in tree.children():
-            value_str = self._to_str(node.get("(Default)"))
+            value_str = registry_value_to_str(node.get("(Default)"))
             if value_str is None:
                 continue
             findings.append(

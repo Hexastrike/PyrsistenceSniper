@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pyrsistencesniper.models.finding import AccessLevel, UserProfile
+from pyrsistencesniper.core.models import AccessLevel, UserProfile
 from pyrsistencesniper.plugins.T1137.office_templates import OfficeTemplates
 
 from .conftest import make_plugin

@@ -7,12 +7,12 @@ from pathlib import Path
 
 from pyrsistencesniper.core.context import build_context
 from pyrsistencesniper.core.log import setup_logging
+from pyrsistencesniper.core.lolbins import download_lolbins
+from pyrsistencesniper.core.models import Severity
 from pyrsistencesniper.core.pipeline import run_all_checks
 from pyrsistencesniper.core.profile import DetectionProfile
-from pyrsistencesniper.models.finding import Severity
 from pyrsistencesniper.output import get_renderer
 from pyrsistencesniper.plugins import _PLUGIN_REGISTRY, _discover_plugins
-from pyrsistencesniper.resolution.lolbins import download_lolbins
 from pyrsistencesniper.ui.banner import print_banner
 from pyrsistencesniper.ui.progress import make_progress_bar
 
@@ -127,11 +127,7 @@ def _run_scan(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     try:
-        profile = (
-            DetectionProfile.load(args.profile)
-            if args.profile
-            else DetectionProfile.default()
-        )
+        profile = DetectionProfile.load(args.profile)
         ctx = build_context(args.path, hostname=args.hostname, profile=profile)
 
         progress_bar, on_progress = make_progress_bar()

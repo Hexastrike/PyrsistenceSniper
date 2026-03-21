@@ -3,7 +3,7 @@ from __future__ import annotations
 import csv
 from typing import IO, Any
 
-from pyrsistencesniper.models.finding import AnnotatedResult
+from pyrsistencesniper.core.models import AnnotatedResult, Finding
 from pyrsistencesniper.output.base import OutputBase
 
 _FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r", "\n")
@@ -11,11 +11,11 @@ _FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r", "\n")
 
 def _sanitize_cell(value: object) -> str:
     """Escape formula-trigger prefixes to prevent injection."""
-    s = str(value)
-    stripped = s.lstrip()
+    text = str(value)
+    stripped = text.lstrip()
     if stripped and stripped[0] in _FORMULA_PREFIXES:
-        return f"'{s}"
-    return s
+        return f"'{text}"
+    return text
 
 
 class CsvOutput(OutputBase):
@@ -29,8 +29,9 @@ class CsvOutput(OutputBase):
             return
 
         rows, fieldnames = self._flatten_results(results)
+        labels = [Finding.FIELDS.get(f, f) for f in fieldnames]
         sanitized = [{k: _sanitize_cell(v) for k, v in row.items()} for row in rows]
-        writer = csv.DictWriter(out, fieldnames=fieldnames, extrasaction="ignore")
-        writer.writeheader()
+        writer = csv.writer(out)
+        writer.writerow(labels)
         for row in sanitized:
-            writer.writerow(row)
+            writer.writerow([row.get(f, "") for f in fieldnames])

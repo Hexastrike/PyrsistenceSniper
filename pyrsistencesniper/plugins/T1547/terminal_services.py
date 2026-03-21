@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
-from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import (
+from pyrsistencesniper.core.models import (
+    AccessLevel,
     CheckDefinition,
+    FilterRule,
+    Finding,
     HiveScope,
-    PersistencePlugin,
     RegistryTarget,
 )
+from pyrsistencesniper.plugins import register_plugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 
 @register_plugin
@@ -129,17 +131,26 @@ class RdpVirtualChannel(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
         addins_path = r"Microsoft\Terminal Server Client\Default\AddIns"
-        tree = self._load_subtree("SOFTWARE", addins_path)
+        tree = self.hive_ops.load_subtree("SOFTWARE", addins_path)
         if tree is None:
             return findings
         for subkey_name, node in tree.children():
             for val_name, val in node.values():
-                if not val or (isinstance(val, str) and not val.strip()):
+                if isinstance(val, bytes):
+                    stripped = val.strip(b"\x00")
+                    if not stripped:
+                        continue
+                    decoded = stripped.decode("utf-16-le", errors="replace").strip(
+                        "\x00"
+                    )
+                else:
+                    decoded = str(val)
+                if not decoded or (isinstance(decoded, str) and not decoded.strip()):
                     continue
                 findings.append(
                     self._make_finding(
                         path=f"HKLM\\SOFTWARE\\{addins_path}\\{subkey_name}\\{val_name}",
-                        value=str(val),
+                        value=str(decoded),
                         access=AccessLevel.SYSTEM,
                     )
                 )

@@ -1,8 +1,13 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    FilterRule,
+    Finding,
+)
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _VOLUME_CACHES_PATH = r"Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches"
 
@@ -38,11 +43,11 @@ class DiskCleanupHandler(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        tree = self._load_subtree("SOFTWARE", _VOLUME_CACHES_PATH)
+        tree = self.hive_ops.load_subtree("SOFTWARE", _VOLUME_CACHES_PATH)
         if tree is None:
             return findings
 
-        hive = self._open_hive("SOFTWARE")
+        hive = self.hive_ops.open_hive("SOFTWARE")
         if hive is None:
             return findings
 
@@ -54,7 +59,7 @@ class DiskCleanupHandler(PersistencePlugin):
                 continue
 
             inproc_path = f"Classes\\CLSID\\{clsid}\\InprocServer32"
-            dll_path = self._resolve_clsid_default(hive, inproc_path)
+            dll_path = self.hive_ops.resolve_clsid_default(hive, inproc_path)
 
             if not dll_path:
                 continue

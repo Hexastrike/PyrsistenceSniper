@@ -5,8 +5,8 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 
+from pyrsistencesniper.core.models import AnnotatedResult, Enrichment, Finding
 from pyrsistencesniper.enrichment.base import EnrichmentPlugin
-from pyrsistencesniper.models.finding import AnnotatedResult, Enrichment, Finding
 
 logger = logging.getLogger(__name__)
 

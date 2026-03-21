@@ -7,9 +7,13 @@ that triggers every time the application opens.
 
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    Finding,
+)
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _TEMPLATE_FILES: tuple[str, ...] = (
     r"AppData\Roaming\Microsoft\Templates\Normal.dotm",

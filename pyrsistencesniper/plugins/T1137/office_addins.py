@@ -7,9 +7,14 @@ through ClickToRun registry paths.
 
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    Finding,
+    HiveProtocol,
+)
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _OFFICE_APPS: tuple[str, ...] = (
     "Word",
@@ -18,6 +23,8 @@ _OFFICE_APPS: tuple[str, ...] = (
     "Outlook",
     "Access",
 )
+
+_OFFICE_VERSIONS: tuple[str, ...] = ("", "14.0", "15.0", "16.0")
 
 
 @register_plugin
@@ -38,10 +45,39 @@ class OfficeAddins(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        hive = self._open_hive("SOFTWARE")
+        hive = self.hive_ops.open_hive("SOFTWARE")
         if hive is not None:
-            for app in _OFFICE_APPS:
-                addins_path = f"Microsoft\\Office\\{app}\\Addins"
+            self._scan_addins_hive(
+                hive,
+                "Microsoft\\Office",
+                "HKLM\\SOFTWARE",
+                AccessLevel.SYSTEM,
+                findings,
+            )
+
+        for profile, uhive in self.hive_ops.iter_user_hives():
+            self._scan_addins_hive(
+                uhive,
+                "Software\\Microsoft\\Office",
+                f"HKU\\{profile.username}",
+                AccessLevel.USER,
+                findings,
+            )
+
+        return findings
+
+    def _scan_addins_hive(
+        self,
+        hive: HiveProtocol,
+        base_path: str,
+        path_prefix: str,
+        access: AccessLevel,
+        findings: list[Finding],
+    ) -> None:
+        for app in _OFFICE_APPS:
+            for version in _OFFICE_VERSIONS:
+                ver_seg = f"{version}\\" if version else ""
+                addins_path = f"{base_path}\\{ver_seg}{app}\\Addins"
                 tree = self.registry.load_subtree(hive, addins_path)
                 if tree is None:
                     continue
@@ -51,31 +87,11 @@ class OfficeAddins(PersistencePlugin):
                         if val is not None:
                             findings.append(
                                 self._make_finding(
-                                    path=f"HKLM\\SOFTWARE\\{addins_path}\\{addin}\\{val_name}",
+                                    path=f"{path_prefix}\\{addins_path}\\{addin}\\{val_name}",
                                     value=str(val),
-                                    access=AccessLevel.SYSTEM,
+                                    access=access,
                                 )
                             )
-
-        for profile, uhive in self._iter_user_hives():
-            for app in _OFFICE_APPS:
-                addins_path = f"Software\\Microsoft\\Office\\{app}\\Addins"
-                tree = self.registry.load_subtree(uhive, addins_path)
-                if tree is None:
-                    continue
-                for addin, node in tree.children():
-                    for val_name in ("Manifest", "FileName", "Path"):
-                        val = node.get(val_name)
-                        if val is not None:
-                            findings.append(
-                                self._make_finding(
-                                    path=f"HKU\\{profile.username}\\{addins_path}\\{addin}\\{val_name}",
-                                    value=str(val),
-                                    access=AccessLevel.USER,
-                                )
-                            )
-
-        return findings
 
 
 @register_plugin
@@ -99,7 +115,7 @@ class OfficeAiHijack(PersistencePlugin):
             r"Microsoft\Office\ClickToRun\REGISTRY\MACHINE"
             r"\Software\Microsoft\Office\16.0\Common\AI"
         )
-        tree = self._load_subtree("SOFTWARE", ai_path)
+        tree = self.hive_ops.load_subtree("SOFTWARE", ai_path)
         if tree is None:
             return findings
 

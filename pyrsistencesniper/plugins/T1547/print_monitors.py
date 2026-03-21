@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import FilterRule
-from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import (
+from pyrsistencesniper.core.models import (
     CheckDefinition,
+    FilterRule,
     HiveScope,
-    PersistencePlugin,
     RegistryTarget,
 )
+from pyrsistencesniper.plugins import register_plugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 
 @register_plugin
@@ -27,7 +27,7 @@ class PrintMonitors(PersistencePlugin):
             FilterRule(
                 reason="Default Windows print monitor",
                 value_matches=(
-                    r"^(localspl|tcpmon|usbmon|WSDMon|APMon|FXSMON"
+                    r"^(localspl|tcpmon|usbmon|WSDMon|APMon|AppMon|FXSMON"
                     r"|msonppmon)\.dll$"
                 ),
                 signer="microsoft",

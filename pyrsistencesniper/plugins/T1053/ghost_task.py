@@ -4,10 +4,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pyrsistencesniper.forensics.registry import RegistryNode
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    FilterRule,
+    Finding,
+)
+from pyrsistencesniper.core.registry import RegistryNode
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _TASK_CACHE_TREE = r"Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree"
 _TASK_CACHE_TASKS = r"Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tasks"
@@ -39,11 +44,11 @@ class GhostTask(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        tree = self._load_subtree("SOFTWARE", _TASK_CACHE_TREE)
+        tree = self.hive_ops.load_subtree("SOFTWARE", _TASK_CACHE_TREE)
         if tree is None:
             return findings
 
-        tasks_tree = self._load_subtree("SOFTWARE", _TASK_CACHE_TASKS)
+        tasks_tree = self.hive_ops.load_subtree("SOFTWARE", _TASK_CACHE_TASKS)
         tasks_root = self.filesystem.image_root / "Windows" / "System32" / "Tasks"
         if not tasks_root.is_dir():
             return findings

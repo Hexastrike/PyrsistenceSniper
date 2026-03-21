@@ -1,8 +1,14 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    FilterRule,
+    Finding,
+)
+from pyrsistencesniper.core.registry import registry_value_to_str
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _CTX_MENU_PATHS: tuple[str, ...] = (
     r"SOFTWARE\Classes\Directory\shellex\ContextMenuHandlers",
@@ -42,7 +48,7 @@ class ExplorerContextMenu(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        hive = self._open_hive("SOFTWARE")
+        hive = self.hive_ops.open_hive("SOFTWARE")
         if hive is None:
             return findings
 
@@ -53,11 +59,11 @@ class ExplorerContextMenu(PersistencePlugin):
                 continue
 
             for handler, node in tree.children():
-                value_str = self._to_str(node.get("(Default)"))
+                value_str = registry_value_to_str(node.get("(Default)"))
                 if value_str is None:
                     continue
 
-                dll_path = self._resolve_clsid_inproc(hive, value_str)
+                dll_path = self.hive_ops.resolve_clsid_inproc(hive, value_str)
                 if dll_path:
                     value_str = dll_path
                 elif "\\" not in value_str and not value_str.startswith("{"):

@@ -1,30 +1,14 @@
 from __future__ import annotations
 
+import enum
 import sys
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import IO, Any
 
-from pyrsistencesniper.models.finding import AnnotatedResult
+from pyrsistencesniper.core.models import AnnotatedResult, Finding
 
-CORE_FIELDS: tuple[str, ...] = (
-    "path",
-    "value",
-    "technique",
-    "mitre_id",
-    "description",
-    "access_gained",
-    "severity",
-    "is_lolbin",
-    "exists",
-    "sha256",
-    "is_builtin",
-    "is_in_os_directory",
-    "signer",
-    "hostname",
-    "check_id",
-    "references",
-)
+CORE_FIELDS: tuple[str, ...] = tuple(Finding.FIELDS.keys())
 
 
 class OutputBase(ABC):
@@ -55,28 +39,21 @@ class OutputBase(ABC):
     def result_to_dict(result: AnnotatedResult) -> dict[str, Any]:
         """Flatten an AnnotatedResult into a dict suitable for output rendering."""
         finding, enrichments = result
-        d: dict[str, Any] = {
-            "path": finding.path,
-            "value": finding.value,
-            "technique": finding.technique,
-            "mitre_id": finding.mitre_id,
-            "description": finding.description,
-            "access_gained": finding.access_gained.value,
-            "is_lolbin": finding.is_lolbin or False,
-            "exists": finding.exists or False,
-            "sha256": finding.sha256,
-            "is_builtin": finding.is_builtin or False,
-            "is_in_os_directory": finding.is_in_os_directory or False,
-            "signer": finding.signer,
-            "hostname": finding.hostname,
-            "check_id": finding.check_id,
-            "severity": finding.severity.value,
-            "references": " | ".join(finding.references),
-        }
+        row: dict[str, Any] = {}
+        for name in Finding.FIELDS:
+            raw = getattr(finding, name)
+            if isinstance(raw, enum.Enum):
+                row[name] = raw.value
+            elif isinstance(raw, tuple):
+                row[name] = " | ".join(raw)
+            elif raw is None:
+                row[name] = False
+            else:
+                row[name] = raw
         for enrichment in enrichments:
             for key, value in enrichment.data.items():
-                d[f"enrichment.{enrichment.provider}.{key}"] = value
-        return d
+                row[f"enrichment.{enrichment.provider}.{key}"] = value
+        return row
 
     @staticmethod
     def _flatten_results(
@@ -86,23 +63,23 @@ class OutputBase(ABC):
         rows: list[dict[str, Any]] = []
         enrichment_keys: set[str] = set()
         for result in results:
-            d = OutputBase.result_to_dict(result)
-            rows.append(d)
-            for key in d:
+            row = OutputBase.result_to_dict(result)
+            rows.append(row)
+            for key in row:
                 if key.startswith("enrichment."):
                     enrichment_keys.add(key)
         return rows, [*CORE_FIELDS, *sorted(enrichment_keys)]
 
     @staticmethod
-    def build_flags(d: dict[str, Any]) -> str:
+    def build_flags(row: dict[str, Any]) -> str:
         """Produce a comma-separated string of boolean flags from a result dict."""
         flags: list[str] = []
-        if d["is_lolbin"]:
+        if row["is_lolbin"]:
             flags.append("LOLBin")
-        if d["is_builtin"]:
+        if row["is_builtin"]:
             flags.append("Builtin")
-        if d["is_in_os_directory"]:
+        if row["is_in_os_directory"]:
             flags.append("OS_DIR")
-        if not d["exists"]:
+        if not row["exists"]:
             flags.append("NOT_FOUND")
         return ", ".join(flags)

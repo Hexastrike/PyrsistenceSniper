@@ -1,11 +1,33 @@
 from __future__ import annotations
 
-import re
+from pathlib import PureWindowsPath
 
-from pyrsistencesniper.models.check import HiveProtocol
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    FilterRule,
+    Finding,
+    HiveProtocol,
+)
+from pyrsistencesniper.core.registry import registry_value_to_str
+from pyrsistencesniper.core.winutil import SCRIPT_LAUNCHERS, is_lolbin
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
+
+
+def _is_suspicious_handler(cmdline: str) -> bool:
+    """Return True if the handler command invokes a LOLBin or interpreter."""
+    s = cmdline.strip()
+    if s.startswith('"'):
+        end = s.find('"', 1)
+        exe = s[1:end] if end != -1 else s[1:]
+    else:
+        exe = s.split()[0] if s else ""
+    if not exe:
+        return False
+    name = PureWindowsPath(exe).name.lower()
+    return name.removesuffix(".exe") in SCRIPT_LAUNCHERS or is_lolbin(exe)
+
 
 _HIGH_RISK_EXTENSIONS: tuple[str, ...] = (
     ".txt",
@@ -23,12 +45,6 @@ _HIGH_RISK_EXTENSIONS: tuple[str, ...] = (
     ".ps1",
 )
 
-_SCRIPT_INTERPRETER_RE = re.compile(
-    r"(cmd\.exe|powershell\.exe|pwsh\.exe|mshta\.exe"
-    r"|wscript\.exe|cscript\.exe|rundll32\.exe)",
-    re.IGNORECASE,
-)
-
 
 @register_plugin
 class FileAssociationHijack(PersistencePlugin):
@@ -39,8 +55,8 @@ class FileAssociationHijack(PersistencePlugin):
         description=(
             "Per-user and system-wide file association command handlers "
             "for high-risk extensions (.txt, .pdf, .doc, .js, .exe, etc.) "
-            "are checked for suspicious values. Handlers pointing to "
-            "script interpreters or temp directories are flagged."
+            "are checked. Both direct extension handlers and progid-"
+            "redirected handlers are examined."
         ),
         references=("https://attack.mitre.org/techniques/T1546/001/",),
         allow=(
@@ -55,13 +71,13 @@ class FileAssociationHijack(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        hive = self._open_hive("SOFTWARE")
+        hive = self.hive_ops.open_hive("SOFTWARE")
         if hive is not None:
             self._check_hive(
                 hive, "Classes", "HKLM\\SOFTWARE", AccessLevel.SYSTEM, findings
             )
 
-        for profile, uhive in self._iter_user_hives():
+        for profile, uhive in self.hive_ops.iter_usrclass_hives():
             self._check_hive(
                 uhive,
                 "Software\\Classes",
@@ -81,19 +97,37 @@ class FileAssociationHijack(PersistencePlugin):
         findings: list[Finding],
     ) -> None:
         for ext in _HIGH_RISK_EXTENSIONS:
+            # Direct extension handler
             cmd_path = f"{classes_prefix}\\{ext}\\shell\\open\\command"
             node = self.registry.load_subtree(hive, cmd_path)
-            if node is None:
+            if node is not None:
+                default_val = registry_value_to_str(node.get("(Default)"))
+                if default_val is not None and _is_suspicious_handler(default_val):
+                    findings.append(
+                        self._make_finding(
+                            path=f"{path_prefix}\\{cmd_path}",
+                            value=default_val,
+                            access=access,
+                        )
+                    )
+
+            # Progid indirection: .ext -> progid -> progid\shell\open\command
+            ext_node = self.registry.load_subtree(hive, f"{classes_prefix}\\{ext}")
+            if ext_node is None:
                 continue
-            default_val = self._to_str(node.get("(Default)"))
-            if default_val is None:
+            progid = registry_value_to_str(ext_node.get("(Default)"))
+            if progid is None or "\\" in progid or progid.startswith('"'):
                 continue
-            if not _SCRIPT_INTERPRETER_RE.search(default_val):
+            progid_cmd = f"{classes_prefix}\\{progid}\\shell\\open\\command"
+            progid_node = self.registry.load_subtree(hive, progid_cmd)
+            if progid_node is None:
                 continue
-            findings.append(
-                self._make_finding(
-                    path=f"{path_prefix}\\{cmd_path}",
-                    value=default_val,
-                    access=access,
+            progid_val = registry_value_to_str(progid_node.get("(Default)"))
+            if progid_val is not None and _is_suspicious_handler(progid_val):
+                findings.append(
+                    self._make_finding(
+                        path=f"{path_prefix}\\{progid_cmd}",
+                        value=progid_val,
+                        access=access,
+                    )
                 )
-            )

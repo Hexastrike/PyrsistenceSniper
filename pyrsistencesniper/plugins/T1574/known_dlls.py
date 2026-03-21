@@ -1,8 +1,13 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    FilterRule,
+    Finding,
+)
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _KNOWN_DLLS_PATH_TEMPLATE = r"{controlset}\Control\Session Manager\KnownDLLs"
 
@@ -50,7 +55,7 @@ class KnownDlls(PersistencePlugin):
         kd_path = _KNOWN_DLLS_PATH_TEMPLATE.replace(
             "{controlset}", self.context.active_controlset
         )
-        tree = self._load_subtree("SYSTEM", kd_path)
+        tree = self.hive_ops.load_subtree("SYSTEM", kd_path)
         if tree is None:
             return findings
 

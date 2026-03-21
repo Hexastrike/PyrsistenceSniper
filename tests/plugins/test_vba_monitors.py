@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.core.models import AccessLevel
 from pyrsistencesniper.plugins.T1137.vba_monitors import VbaMonitors
 
 from .conftest import make_node, make_plugin
@@ -22,11 +22,13 @@ def test_inprocserver32_value_produces_finding(tmp_path: Path) -> None:
 
     findings = plugin.run()
 
-    assert len(findings) == 1
-    f = findings[0]
-    assert "evil_vba.dll" in f.value
-    assert f.access_gained == AccessLevel.SYSTEM
-    assert "InprocServer32" in f.path
+    assert len(findings) == 2
+    for f in findings:
+        assert "evil_vba.dll" in f.value
+        assert f.access_gained == AccessLevel.SYSTEM
+        assert "InprocServer32" in f.path
+    clsids = {f.path for f in findings}
+    assert len(clsids) == 2
 
 
 def test_clsid_exists_no_inproc_value_returns_empty(tmp_path: Path) -> None:

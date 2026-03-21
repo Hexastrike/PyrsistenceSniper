@@ -1,8 +1,13 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    Finding,
+)
+from pyrsistencesniper.core.registry import registry_value_to_str
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _OFFICE_VERSIONS: tuple[str, ...] = ("14.0", "15.0", "16.0")
 _OUTLOOK_FOLDERS: tuple[str, ...] = (
@@ -37,7 +42,7 @@ class OutlookHomePage(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        for profile, hive in self._iter_user_hives():
+        for profile, hive in self.hive_ops.iter_user_hives():
             for version in _OFFICE_VERSIONS:
                 for folder in _OUTLOOK_FOLDERS:
                     webview_path = (
@@ -47,7 +52,7 @@ class OutlookHomePage(PersistencePlugin):
                     node = self.registry.load_subtree(hive, webview_path)
                     if node is None:
                         continue
-                    url_val = self._to_str(node.get("URL"))
+                    url_val = registry_value_to_str(node.get("URL"))
                     if url_val is None:
                         continue
                     findings.append(

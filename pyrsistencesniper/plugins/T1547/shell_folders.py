@@ -3,14 +3,15 @@ from __future__ import annotations
 import logging
 from pathlib import Path, PureWindowsPath
 
-from pyrsistencesniper.models.check import HiveProtocol
-from pyrsistencesniper.models.finding import AccessLevel, Finding
-from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-from pyrsistencesniper.resolution.normalize import (
-    canonicalize_windows_path,
-    expand_env_vars,
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    Finding,
+    HiveProtocol,
 )
+from pyrsistencesniper.core.winutil import canonicalize_windows_path, expand_env_vars
+from pyrsistencesniper.plugins import register_plugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -48,26 +49,25 @@ class ShellFoldersStartup(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        hive = self._open_hive("SOFTWARE")
+        hive = self.hive_ops.open_hive("SOFTWARE")
         if hive is not None:
-            for key_suffix in (_SHELL_FOLDERS_KEY, _USER_SHELL_FOLDERS_KEY):
-                self._check_startup_value(
-                    hive=hive,
-                    key_path=key_suffix,
-                    value_name="Common Startup",
-                    canonical_prefix=r"HKLM\SOFTWARE",
-                    expected_default=_DEFAULT_COMMON_STARTUP,
-                    username="",
-                    access=AccessLevel.SYSTEM,
-                    findings=findings,
-                )
+            self._check_startup_value(
+                hive=hive,
+                key_path=_USER_SHELL_FOLDERS_KEY,
+                value_name="Common Startup",
+                canonical_prefix=r"HKLM\SOFTWARE",
+                expected_default=_DEFAULT_COMMON_STARTUP,
+                username="",
+                access=AccessLevel.SYSTEM,
+                findings=findings,
+            )
 
-        for profile, hive in self._iter_user_hives():
+        for profile, hive in self.hive_ops.iter_user_hives():
             expected = _DEFAULT_USER_STARTUP.replace("{username}", profile.username)
             for key_suffix in (_SHELL_FOLDERS_KEY, _USER_SHELL_FOLDERS_KEY):
                 self._check_startup_value(
                     hive=hive,
-                    key_path=key_suffix,
+                    key_path=f"Software\\{key_suffix}",
                     value_name="Startup",
                     canonical_prefix=f"HKU\\{profile.username}",
                     expected_default=expected,

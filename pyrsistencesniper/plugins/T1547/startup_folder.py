@@ -3,11 +3,15 @@ from __future__ import annotations
 import logging
 from pathlib import Path, PureWindowsPath
 
-from pyrsistencesniper.models.check import HiveProtocol
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    Finding,
+    HiveProtocol,
+)
+from pyrsistencesniper.core.winutil import expand_env_vars
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
-from pyrsistencesniper.resolution.normalize import expand_env_vars
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +51,7 @@ class StartupFolder(PersistencePlugin):
         )
         self._scan_folder(system_startup, AccessLevel.SYSTEM, findings)
 
-        for profile, hive in self._iter_user_hives():
+        for profile, hive in self.hive_ops.iter_user_hives():
             user_startup = self._resolve_startup_path(
                 hive_name="",
                 value_name="Startup",
@@ -68,10 +72,11 @@ class StartupFolder(PersistencePlugin):
         username: str = "",
     ) -> Path:
         """Resolve the Startup folder path from the registry."""
-        hive = hive_override or self._open_hive(hive_name)
+        hive = hive_override or self.hive_ops.open_hive(hive_name)
         if hive is not None:
             for key in (_USER_SHELL_FOLDERS_KEY, _SHELL_FOLDERS_KEY):
-                node = self.registry.load_subtree(hive, key)
+                lookup_key = f"Software\\{key}" if hive_override is not None else key
+                node = self.registry.load_subtree(hive, lookup_key)
                 if node is None:
                     continue
                 val = node.get(value_name)

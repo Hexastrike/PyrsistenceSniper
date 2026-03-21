@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from pyrsistencesniper.models.finding import Enrichment, Finding
+from pyrsistencesniper.core.models import Enrichment, Finding
 
 
 class EnrichmentPlugin(ABC):

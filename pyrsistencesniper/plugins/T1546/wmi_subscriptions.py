@@ -5,9 +5,13 @@ import re
 from pathlib import Path as _Path
 from pathlib import PureWindowsPath
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    Finding,
+)
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -19,28 +23,28 @@ _CIM_PATHS: tuple[_Path, ...] = (
 _CMDLINE_PATTERN = re.compile(
     rb"C\x00o\x00m\x00m\x00a\x00n\x00d\x00L\x00i\x00n\x00e\x00"
     rb"T\x00e\x00m\x00p\x00l\x00a\x00t\x00e\x00"
-    rb"[\x00-\x20]{0,20}"
+    rb"[\x00-\xff]{0,64}?"
     rb"((?:[^\x00]\x00){5,250})",
     re.IGNORECASE,
 )
 
 _SCRIPT_PATTERN = re.compile(
     rb"S\x00c\x00r\x00i\x00p\x00t\x00T\x00e\x00x\x00t\x00"
-    rb"[\x00-\x20]{0,20}"
+    rb"[\x00-\xff]{0,64}?"
     rb"((?:[^\x00]\x00){5,500})",
     re.IGNORECASE,
 )
 
 _CMDLINE_PATTERN_ASCII = re.compile(
     rb"CommandLineTemplate"
-    rb"[\x00-\x20]{1,20}"
+    rb"[\x00-\xff]{1,64}?"
     rb"([\x20-\x7e]{5,250})",
     re.IGNORECASE,
 )
 
 _SCRIPT_PATTERN_ASCII = re.compile(
     rb"ScriptText"
-    rb"[\x00-\x20]{1,20}"
+    rb"[\x00-\xff]{1,64}?"
     rb"([\x20-\x7e]{5,500})",
     re.IGNORECASE,
 )
@@ -50,6 +54,15 @@ _PATTERNS: tuple[tuple[re.Pattern[bytes], str, str, int], ...] = (
     (_SCRIPT_PATTERN, "utf-16-le", "ActiveScriptEventConsumer", 200),
     (_CMDLINE_PATTERN_ASCII, "ascii", "CommandLineEventConsumer", 0),
     (_SCRIPT_PATTERN_ASCII, "ascii", "ActiveScriptEventConsumer", 200),
+)
+
+# Secondary pattern: detect consumer class names as UTF-16LE evidence
+_CONSUMER_PROXIMITY_THRESHOLD = 512
+
+_CONSUMER_CLASS_PATTERN = re.compile(
+    rb"C\x00o\x00m\x00m\x00a\x00n\x00d\x00L\x00i\x00n\x00e\x00"
+    rb"E\x00v\x00e\x00n\x00t\x00C\x00o\x00n\x00s\x00u\x00m\x00e\x00r\x00",
+    re.IGNORECASE,
 )
 
 
@@ -87,10 +100,26 @@ class WmiEventSubscription(PersistencePlugin):
                 )
                 continue
 
+            matched_offsets: set[int] = set()
             for pattern, encoding, consumer_type, truncate in _PATTERNS:
-                findings.extend(
-                    self._scan_pattern(
-                        data, pattern, encoding, consumer_type, truncate, cim_rel
+                for finding, offset in self._scan_pattern(
+                    data, pattern, encoding, consumer_type, truncate, cim_rel
+                ):
+                    matched_offsets.add(offset)
+                    findings.append(finding)
+
+            # Secondary scan: consumer class name presence
+            for match in _CONSUMER_CLASS_PATTERN.finditer(data):
+                if any(
+                    abs(match.start() - o) < _CONSUMER_PROXIMITY_THRESHOLD
+                    for o in matched_offsets
+                ):
+                    continue
+                findings.append(
+                    self._make_finding(
+                        path=str(PureWindowsPath(cim_rel)),
+                        value="CommandLineEventConsumer (class reference)",
+                        access=AccessLevel.SYSTEM,
                     )
                 )
 
@@ -104,8 +133,8 @@ class WmiEventSubscription(PersistencePlugin):
         consumer_type: str,
         truncate: int,
         cim_rel: _Path,
-    ) -> list[Finding]:
-        findings: list[Finding] = []
+    ) -> list[tuple[Finding, int]]:
+        results: list[tuple[Finding, int]] = []
         for match in pattern.finditer(data):
             try:
                 text = match.group(1).decode(encoding, errors="replace")
@@ -120,11 +149,14 @@ class WmiEventSubscription(PersistencePlugin):
                     display = text[:truncate] + "..."
                 else:
                     display = text
-                findings.append(
-                    self._make_finding(
-                        path=str(PureWindowsPath(cim_rel)),
-                        value=f"{consumer_type}: {display}",
-                        access=AccessLevel.SYSTEM,
+                results.append(
+                    (
+                        self._make_finding(
+                            path=str(PureWindowsPath(cim_rel)),
+                            value=f"{consumer_type}: {display}",
+                            access=AccessLevel.SYSTEM,
+                        ),
+                        match.start(),
                     )
                 )
-        return findings
+        return results

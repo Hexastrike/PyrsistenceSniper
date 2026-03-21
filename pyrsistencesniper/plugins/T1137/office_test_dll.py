@@ -7,13 +7,13 @@ persistence as this key has no legitimate use.
 
 from __future__ import annotations
 
-from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import (
+from pyrsistencesniper.core.models import (
     CheckDefinition,
     HiveScope,
-    PersistencePlugin,
     RegistryTarget,
 )
+from pyrsistencesniper.plugins import register_plugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 
 @register_plugin

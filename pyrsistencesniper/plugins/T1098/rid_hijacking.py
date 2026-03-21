@@ -13,10 +13,14 @@ from __future__ import annotations
 import logging
 import struct
 
-from pyrsistencesniper.forensics.registry import RegistryNode
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    Finding,
+)
+from pyrsistencesniper.core.registry import RegistryNode
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +82,7 @@ class RidHijacking(PersistencePlugin):
         """Scan SAM user subkeys for RID mismatches."""
         findings: list[Finding] = []
 
-        users_tree = self._load_subtree("SAM", _USERS_PATH)
+        users_tree = self.hive_ops.load_subtree("SAM", _USERS_PATH)
         if users_tree is None:
             return findings
 
@@ -127,7 +131,7 @@ class RidSuborner(PersistencePlugin):
         """Scan SAM user subkeys for hidden admin (RID 500) accounts."""
         findings: list[Finding] = []
 
-        users_tree = self._load_subtree("SAM", _USERS_PATH)
+        users_tree = self.hive_ops.load_subtree("SAM", _USERS_PATH)
         if users_tree is None:
             return findings
 

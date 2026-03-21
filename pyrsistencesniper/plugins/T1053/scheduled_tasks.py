@@ -7,9 +7,14 @@ from pathlib import Path, PureWindowsPath
 
 import defusedxml.ElementTree as DefusedET
 
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    FilterRule,
+    Finding,
+)
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +52,30 @@ class ScheduledTaskFiles(PersistencePlugin):
                 reason="Built-in Windows service control task",
                 value_matches=r"sc\.exe\s+(start|config)\s+\w+",
                 signer="microsoft",
+            ),
+            FilterRule(
+                reason="Built-in Windows task with absolute system path",
+                value_matches=r"(?i)^C:\\Windows\\",
+                signer="microsoft",
+                not_lolbin=True,
+            ),
+            FilterRule(
+                reason="Built-in Microsoft task under Windows task folder",
+                path_matches=r"\\Microsoft\\Windows\\",
+                signer="microsoft",
+                not_lolbin=True,
+            ),
+            FilterRule(
+                reason="Microsoft OneDrive scheduled task",
+                value_matches=r"Microsoft\\OneDrive\\",
+                signer="microsoft",
+                not_lolbin=True,
+            ),
+            FilterRule(
+                reason="Microsoft Edge Update scheduled task",
+                value_matches=r"Microsoft\\EdgeUpdate\\MicrosoftEdgeUpdate\.exe",
+                signer="microsoft",
+                not_lolbin=True,
             ),
         ),
     )

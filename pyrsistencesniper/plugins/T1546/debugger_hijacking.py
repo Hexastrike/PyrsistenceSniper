@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
-from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import (
+from pyrsistencesniper.core.models import (
+    AccessLevel,
     CheckDefinition,
+    FilterRule,
+    Finding,
     HiveScope,
-    PersistencePlugin,
     RegistryTarget,
 )
+from pyrsistencesniper.plugins import register_plugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 
 @register_plugin
@@ -144,6 +146,11 @@ class WerRuntimeExceptionHelperModules(PersistencePlugin):
                 value_matches=r"(mscordacwks|iertutil|msiwer|wbiosrvc|msedge_wer)\.dll",
                 signer="microsoft",
             ),
+            FilterRule(
+                reason="Google Chrome WER helper",
+                value_matches=r"chrome_wer\.dll",
+                signer="google",
+            ),
         ),
     )
 
@@ -156,7 +163,7 @@ class WerRuntimeExceptionHelperModules(PersistencePlugin):
             r"\Windows Error Reporting"
             r"\RuntimeExceptionHelperModules"
         )
-        tree = self._load_subtree("SOFTWARE", key_path)
+        tree = self.hive_ops.load_subtree("SOFTWARE", key_path)
         if tree is None:
             return findings
 

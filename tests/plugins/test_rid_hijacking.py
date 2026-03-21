@@ -5,7 +5,7 @@ from __future__ import annotations
 import struct
 from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.core.models import AccessLevel
 from pyrsistencesniper.plugins.T1098.rid_hijacking import RidHijacking, RidSuborner
 
 from .conftest import make_node, make_plugin, setup_hklm

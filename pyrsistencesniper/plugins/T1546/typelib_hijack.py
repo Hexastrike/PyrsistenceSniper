@@ -2,9 +2,15 @@ from __future__ import annotations
 
 import re
 
-from pyrsistencesniper.models.finding import AccessLevel, FilterRule, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    FilterRule,
+    Finding,
+)
+from pyrsistencesniper.core.registry import registry_value_to_str
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _SCRIPT_MONIKER_RE = re.compile(r"^script:", re.IGNORECASE)
 _SAFE_PATH_RE = re.compile(
@@ -39,7 +45,7 @@ class TypeLibHijack(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        for profile, hive in self._iter_user_hives():
+        for profile, hive in self.hive_ops.iter_usrclass_hives():
             typelib_tree = self.registry.load_subtree(hive, r"Software\Classes\TypeLib")
             if typelib_tree is None:
                 continue
@@ -53,7 +59,7 @@ class TypeLibHijack(PersistencePlugin):
                         plat_node = zero_node.child(platform)
                         if plat_node is None:
                             continue
-                        path_val = self._to_str(plat_node.get("(Default)"))
+                        path_val = registry_value_to_str(plat_node.get("(Default)"))
                         if path_val is None:
                             continue
                         if _SCRIPT_MONIKER_RE.match(

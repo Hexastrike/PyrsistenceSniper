@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
-from pyrsistencesniper.models.finding import Finding, MatchResult, UserProfile
+from pyrsistencesniper.core.models import Finding, MatchResult, UserProfile
 from pyrsistencesniper.plugins.T1546.protocol_handlers import (
     ProtocolHandlerHijack,
     SearchProtocolHandler,

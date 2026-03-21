@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, PropertyMock
 
-from pyrsistencesniper.models.finding import AccessLevel, UserProfile
+from pyrsistencesniper.core.models import AccessLevel, UserProfile
 from pyrsistencesniper.plugins.T1547.startup_folder import StartupFolder
 
 from .conftest import make_deps, make_node
@@ -78,6 +78,53 @@ def test_user_startup_files_detected(tmp_path: Path) -> None:
     assert len(findings) == 1
     assert findings[0].value == "payload.exe"
     assert findings[0].access_gained == AccessLevel.USER
+
+
+def test_user_hive_uses_software_prefix(tmp_path: Path) -> None:
+    """User hive queries prepend Software\\ to the registry key path."""
+    user_startup = (
+        tmp_path
+        / "Users"
+        / "victim"
+        / "AppData"
+        / "Roaming"
+        / "Microsoft"
+        / "Windows"
+        / "Start Menu"
+        / "Programs"
+        / "Startup"
+    )
+    user_startup.mkdir(parents=True)
+
+    profiles = [
+        UserProfile(
+            username="victim",
+            profile_path=tmp_path / "Users" / "victim",
+            ntuser_path=tmp_path / "Users" / "victim" / "NTUSER.DAT",
+        ),
+    ]
+    context, registry, _filesystem, _profile = make_deps(
+        tmp_path, user_profiles=profiles
+    )
+    context.registry = registry
+
+    plugin = StartupFolder(context=context)
+    plugin.context.hive_path.return_value = None  # type: ignore[union-attr]
+
+    ntuser_hive = MagicMock()
+    plugin.registry.open_hive.return_value = ntuser_hive  # type: ignore[union-attr]
+    plugin.registry.load_subtree.return_value = None  # type: ignore[union-attr]
+
+    plugin.run()
+
+    key_paths = [
+        call.args[1]
+        for call in plugin.registry.load_subtree.call_args_list  # type: ignore[union-attr]
+    ]
+    for key_path in key_paths:
+        assert key_path.startswith("Software\\"), (
+            f"User hive key missing Software\\ prefix: {key_path}"
+        )
 
 
 def test_multiple_startup_files_detected(tmp_path: Path) -> None:

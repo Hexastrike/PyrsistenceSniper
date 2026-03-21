@@ -8,7 +8,7 @@ from pathlib import Path
 
 import yaml
 
-from pyrsistencesniper.models.finding import FilterRule, Finding
+from pyrsistencesniper.core.models import FilterRule
 
 logger = logging.getLogger(__name__)
 
@@ -22,15 +22,6 @@ class CheckOverride:
     block: tuple[FilterRule, ...] = field(default_factory=tuple)
 
 
-_DEFAULT_TRUSTED_SIGNERS: frozenset[str] = frozenset(
-    {
-        "microsoft windows",
-        "microsoft corporation",
-        "microsoft windows publisher",
-    }
-)
-
-
 @dataclass(frozen=True, slots=True)
 class DetectionProfile:
     """YAML-driven detection profile with global and per-check allow/block rules."""
@@ -38,103 +29,73 @@ class DetectionProfile:
     allow: tuple[FilterRule, ...] = field(default_factory=tuple)
     block: tuple[FilterRule, ...] = field(default_factory=tuple)
     checks: dict[str, CheckOverride] = field(default_factory=dict)
-    trusted_signers: frozenset[str] = field(
-        default_factory=lambda: _DEFAULT_TRUSTED_SIGNERS
-    )
 
     @classmethod
-    def load(cls, path: Path) -> DetectionProfile:
-        """Parse a YAML profile file into a DetectionProfile."""
-        try:
-            with path.open("r", encoding="utf-8") as profile_file:
-                data = yaml.safe_load(profile_file)
-        except FileNotFoundError:
-            logger.warning("Profile not found: %s, using defaults", path)
-            return cls.default()
-        except (yaml.YAMLError, OSError) as exc:
-            raise ValueError(f"Failed to parse detection profile {path}") from exc
+    def load(cls, path: Path | None) -> DetectionProfile:
+        """Parse a YAML profile file into a DetectionProfile.
 
-        if not isinstance(data, dict):
-            raise TypeError(
-                f"Detection profile {path} must be a YAML mapping,"
-                f" got {type(data).__name__}"
-            )
-
-        global_allow = _parse_rules(data.get("allow", []))
-        global_block = _parse_rules(data.get("block", []))
-        checks: dict[str, CheckOverride] = {}
-        checks_raw = data.get("checks", {})
-        if not isinstance(checks_raw, dict):
-            checks_raw = {}
-        for check_id, check_data in checks_raw.items():
-            if not isinstance(check_data, dict):
-                continue
-            checks[check_id] = CheckOverride(
-                enabled=check_data.get("enabled", True),
-                allow=_parse_rules(check_data.get("allow", [])),
-                block=_parse_rules(check_data.get("block", [])),
-            )
-        trusted_signers_raw = data.get("trusted_signers")
-        if isinstance(trusted_signers_raw, list):
-            trusted_signers = frozenset(
-                str(signer_name).lower()
-                for signer_name in trusted_signers_raw
-                if signer_name
-            )
-        else:
-            trusted_signers = _DEFAULT_TRUSTED_SIGNERS
-
+        Returns an empty profile when *path* is None.
+        """
+        if path is None:
+            return cls()
+        data = _read_yaml(path)
+        if data is None:
+            return cls()
         return cls(
-            allow=global_allow,
-            block=global_block,
-            checks=checks,
-            trusted_signers=trusted_signers,
+            allow=_parse_rules(data.get("allow", [])),
+            block=_parse_rules(data.get("block", [])),
+            checks=_parse_checks(data.get("checks", {})),
         )
 
-    @classmethod
-    def default(cls) -> DetectionProfile:
-        """Return a profile with no rules and default trusted signers."""
-        return cls()
-
-    def is_enabled(self, check_id: str) -> bool:
-        """Return True if the check is enabled (default) or not explicitly disabled."""
+    def effective_rules(self, check_id: str) -> CheckOverride:
+        """Return rules for a check (global + check-specific, merged)."""
         override = self.checks.get(check_id)
-        if override is not None:
-            return override.enabled
-        return True
+        if override is None:
+            return CheckOverride(allow=self.allow, block=self.block)
+        return CheckOverride(
+            enabled=override.enabled,
+            allow=(*self.allow, *override.allow),
+            block=(*self.block, *override.block),
+        )
 
-    def matches_allow(self, check_id: str, finding: Finding) -> bool:
-        """Return True if any allow rule matches the finding."""
-        return self._any_rule_matches(check_id, finding, self.allow, "allow")
 
-    def matches_block(self, check_id: str, finding: Finding) -> bool:
-        """Return True if any block rule matches the finding."""
-        return self._any_rule_matches(check_id, finding, self.block, "block")
+def _read_yaml(path: Path) -> dict[str, object] | None:
+    """Read and validate a YAML profile file.
 
-    def allow_rules_for(self, check_id: str) -> tuple[FilterRule, ...]:
-        """Return combined global + check-specific allow rules."""
-        override = self.checks.get(check_id)
-        if override:
-            return self.allow + override.allow
-        return self.allow
+    Returns the parsed dict, or None if the file does not exist.
+    Raises ValueError on parse errors and TypeError on invalid structure.
+    """
+    try:
+        with path.open("r", encoding="utf-8") as profile_file:
+            data = yaml.safe_load(profile_file)
+    except FileNotFoundError:
+        logger.warning("Profile not found: %s, using defaults", path)
+        return None
+    except (yaml.YAMLError, OSError) as exc:
+        raise ValueError(f"Failed to parse detection profile {path}") from exc
 
-    def _any_rule_matches(
-        self,
-        check_id: str,
-        finding: Finding,
-        global_rules: tuple[FilterRule, ...],
-        override_attr: str,
-    ) -> bool:
-        """Test global rules then check-specific rules for a match."""
-        for rule in global_rules:
-            if rule.matches(finding):
-                return True
-        override = self.checks.get(check_id)
-        if override:
-            for rule in getattr(override, override_attr):
-                if rule.matches(finding):
-                    return True
-        return False
+    if not isinstance(data, dict):
+        raise TypeError(
+            f"Detection profile {path} must be a YAML mapping,"
+            f" got {type(data).__name__}"
+        )
+    return data
+
+
+def _parse_checks(raw: object) -> dict[str, CheckOverride]:
+    """Convert a raw checks mapping into a dict of CheckOverride instances."""
+    if not isinstance(raw, dict):
+        return {}
+    checks: dict[str, CheckOverride] = {}
+    for check_id, check_data in raw.items():
+        if not isinstance(check_data, dict):
+            continue
+        checks[check_id] = CheckOverride(
+            enabled=check_data.get("enabled", True),
+            allow=_parse_rules(check_data.get("allow", [])),
+            block=_parse_rules(check_data.get("block", [])),
+        )
+    return checks
 
 
 def _parse_rules(raw: object) -> tuple[FilterRule, ...]:

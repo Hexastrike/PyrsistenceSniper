@@ -7,9 +7,13 @@ Office versions are enumerated.
 
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    Finding,
+)
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _OVERRIDE_VALUES: tuple[str, ...] = (
     "WwlibtDll",
@@ -35,7 +39,7 @@ class OfficeDllOverride(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        office_tree = self._load_subtree("SOFTWARE", r"Microsoft\Office")
+        office_tree = self.hive_ops.load_subtree("SOFTWARE", r"Microsoft\Office")
         if office_tree is None:
             return findings
 

@@ -1,42 +1,20 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    Finding,
+)
+from pyrsistencesniper.core.registry import registry_value_to_str
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _IFEO_PATH = r"Microsoft\Windows NT\CurrentVersion\Image File Execution Options"
 _SPE_PATH = r"Microsoft\Windows NT\CurrentVersion\SilentProcessExit"
 
 
-class _IfeoMixin:
-    """Mixin providing IFEO subkey enumeration for debugger-style persistence checks."""
-
-    def _scan_ifeo(self: PersistencePlugin, value_name: str) -> list[Finding]:  # type: ignore[misc]  # mixin
-        """Return findings for any IFEO subkey containing the given value name."""
-        findings: list[Finding] = []
-
-        tree = self._load_subtree("SOFTWARE", _IFEO_PATH)
-        if tree is None:
-            return findings
-
-        for subkey_name, node in tree.children():
-            value_str = self._to_str(node.get(value_name))
-            if value_str is None:
-                continue
-
-            findings.append(
-                self._make_finding(
-                    path=f"HKLM\\SOFTWARE\\{_IFEO_PATH}\\{subkey_name}\\{value_name}",
-                    value=value_str,
-                    access=AccessLevel.SYSTEM,
-                )
-            )
-
-        return findings
-
-
 @register_plugin
-class IfeoDebugger(_IfeoMixin, PersistencePlugin):
+class IfeoDebugger(PersistencePlugin):
     definition = CheckDefinition(
         id="ifeo_debugger",
         technique="Image File Execution Options Debugger",
@@ -50,11 +28,30 @@ class IfeoDebugger(_IfeoMixin, PersistencePlugin):
     )
 
     def run(self) -> list[Finding]:
-        return self._scan_ifeo("Debugger")
+        findings: list[Finding] = []
+
+        tree = self.hive_ops.load_subtree("SOFTWARE", _IFEO_PATH)
+        if tree is None:
+            return findings
+
+        for subkey_name, node in tree.children():
+            value_str = registry_value_to_str(node.get("Debugger"))
+            if value_str is None:
+                continue
+
+            findings.append(
+                self._make_finding(
+                    path=f"HKLM\\SOFTWARE\\{_IFEO_PATH}\\{subkey_name}\\Debugger",
+                    value=value_str,
+                    access=AccessLevel.SYSTEM,
+                )
+            )
+
+        return findings
 
 
 @register_plugin
-class IfeoSilentProcessExit(_IfeoMixin, PersistencePlugin):
+class IfeoSilentProcessExit(PersistencePlugin):
     definition = CheckDefinition(
         id="ifeo_silent_process_exit",
         technique="Silent Process Exit Monitor",
@@ -70,12 +67,12 @@ class IfeoSilentProcessExit(_IfeoMixin, PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        tree = self._load_subtree("SOFTWARE", _SPE_PATH)
+        tree = self.hive_ops.load_subtree("SOFTWARE", _SPE_PATH)
         if tree is None:
             return findings
 
         for subkey_name, node in tree.children():
-            value_str = self._to_str(node.get("MonitorProcess"))
+            value_str = registry_value_to_str(node.get("MonitorProcess"))
             if value_str is None:
                 continue
 
@@ -91,7 +88,7 @@ class IfeoSilentProcessExit(_IfeoMixin, PersistencePlugin):
 
 
 @register_plugin
-class IfeoDelegatedNtdll(_IfeoMixin, PersistencePlugin):
+class IfeoDelegatedNtdll(PersistencePlugin):
     definition = CheckDefinition(
         id="ifeo_delegated_ntdll",
         technique="IFEO Delegated NTDLL",
@@ -106,11 +103,11 @@ class IfeoDelegatedNtdll(_IfeoMixin, PersistencePlugin):
 
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
-        tree = self._load_subtree("SOFTWARE", _IFEO_PATH)
+        tree = self.hive_ops.load_subtree("SOFTWARE", _IFEO_PATH)
         if tree is None:
             return findings
         for subkey_name, node in tree.children():
-            value_str = self._to_str(node.get("VerifierDlls"))
+            value_str = registry_value_to_str(node.get("VerifierDlls"))
             if value_str is None:
                 continue
             global_flag = node.get("GlobalFlag")

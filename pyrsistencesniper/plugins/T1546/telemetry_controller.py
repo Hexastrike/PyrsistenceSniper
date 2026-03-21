@@ -1,8 +1,13 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    Finding,
+)
+from pyrsistencesniper.core.registry import registry_value_to_str
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _TELEMETRY_PATH = (
     r"Microsoft\Windows\CurrentVersion\Diagnostics"
@@ -28,12 +33,22 @@ class TelemetryController(PersistencePlugin):
     def run(self) -> list[Finding]:
         findings: list[Finding] = []
 
-        tree = self._load_subtree("SOFTWARE", _TELEMETRY_PATH)
+        tree = self.hive_ops.load_subtree("SOFTWARE", _TELEMETRY_PATH)
         if tree is None:
             return findings
 
+        parent_cmd = registry_value_to_str(tree.get("Command"))
+        if parent_cmd is not None:
+            findings.append(
+                self._make_finding(
+                    path=f"HKLM\\SOFTWARE\\{_TELEMETRY_PATH}\\Command",
+                    value=parent_cmd,
+                    access=AccessLevel.SYSTEM,
+                )
+            )
+
         for controller, node in tree.children():
-            value_str = self._to_str(node.get("Command"))
+            value_str = registry_value_to_str(node.get("Command"))
             if value_str is None:
                 continue
 

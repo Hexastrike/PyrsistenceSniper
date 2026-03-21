@@ -1,8 +1,12 @@
 from __future__ import annotations
 
-from pyrsistencesniper.models.finding import AccessLevel, Finding
+from pyrsistencesniper.core.models import (
+    AccessLevel,
+    CheckDefinition,
+    Finding,
+)
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import CheckDefinition, PersistencePlugin
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _DSRM_NETWORK_LOGON = 2
 
@@ -26,7 +30,7 @@ class DsrmBackdoor(PersistencePlugin):
         key_path = r"Control\Lsa"
         for cs in ("ControlSet001", "ControlSet002", "CurrentControlSet"):
             full_path = f"{cs}\\{key_path}"
-            tree = self._load_subtree("SYSTEM", full_path)
+            tree = self.hive_ops.load_subtree("SYSTEM", full_path)
             if tree is None:
                 continue
             val = tree.get("DsrmAdminLogonBehavior")

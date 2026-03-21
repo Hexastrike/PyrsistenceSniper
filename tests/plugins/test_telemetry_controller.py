@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pyrsistencesniper.models.finding import AccessLevel
+from pyrsistencesniper.core.models import AccessLevel
 from pyrsistencesniper.plugins.T1546.telemetry_controller import TelemetryController
 
 from .conftest import make_node, make_plugin, setup_hklm

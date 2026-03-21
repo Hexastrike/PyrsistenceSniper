@@ -7,9 +7,7 @@ import logging
 from collections.abc import Callable
 
 from pyrsistencesniper.core.context import AnalysisContext
-from pyrsistencesniper.core.profile import DetectionProfile
-from pyrsistencesniper.enrichment import run_enrichments
-from pyrsistencesniper.models.finding import (
+from pyrsistencesniper.core.models import (
     MATCH_TO_SEVERITY,
     AnnotatedResult,
     FilterRule,
@@ -17,9 +15,11 @@ from pyrsistencesniper.models.finding import (
     MatchResult,
     Severity,
 )
+from pyrsistencesniper.core.profile import DetectionProfile
+from pyrsistencesniper.core.resolver import ResolutionPipeline
+from pyrsistencesniper.enrichment import run_enrichments
 from pyrsistencesniper.plugins import _PLUGIN_REGISTRY, _discover_plugins
 from pyrsistencesniper.plugins.base import PersistencePlugin
-from pyrsistencesniper.resolution.resolver import ResolutionPipeline
 
 _PluginRegistry = dict[str, type[PersistencePlugin]]
 
@@ -38,7 +38,7 @@ def _is_blocked(
         rule.matches(finding) for rule in plugin_cls.definition.block
     ):
         return True
-    return profile.matches_block(check_id, finding)
+    return any(r.matches(finding) for r in profile.effective_rules(check_id).block)
 
 
 def _best_allow_match(
@@ -52,7 +52,7 @@ def _best_allow_match(
     plugin_cls = registry.get(check_id)
     if plugin_cls is not None:
         rules.extend(plugin_cls.definition.allow)
-    rules.extend(profile.allow_rules_for(check_id))
+    rules.extend(profile.effective_rules(check_id).allow)
 
     best = MatchResult.NONE
     for rule in rules:
@@ -89,14 +89,14 @@ def _select_plugins(
         return [
             plugin_cls
             for plugin_cls in plugins
-            if profile.is_enabled(plugin_cls.definition.id)
+            if profile.effective_rules(plugin_cls.definition.id).enabled
         ]
 
     technique_ids = set(technique_filter)
     return [
         plugin_cls
         for plugin_cls in plugins
-        if profile.is_enabled(plugin_cls.definition.id)
+        if profile.effective_rules(plugin_cls.definition.id).enabled
         and (
             plugin_cls.definition.id in technique_ids
             or plugin_cls.definition.mitre_id in technique_ids

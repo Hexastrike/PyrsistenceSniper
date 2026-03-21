@@ -8,19 +8,15 @@ We took PersistenceSniper, merged it with Python, and misspelled it on purpose. 
 
 Point it at a KAPE dump, a Velociraptor collection, or a mounted disk image and get offline Windows persistence detection in seconds. No live system access, no admin privileges, no PowerShell. Runs on Windows, Linux, and macOS because investigators don't always get to pick their workstation.
 
----
-
 ## 🚀 Key Features
 
-- **Wide persistence coverage** — 114 checks across Run keys, services, COM hijacking, scheduled tasks, WMI subscriptions, Office add-ins, IFEO injection, accessibility backdoors, startup folders, LSA packages, and more.
+- **Wide persistence coverage** — 117 checks across Run keys, services, COM hijacking, scheduled tasks, WMI subscriptions, Office add-ins, IFEO injection, accessibility backdoors, startup folders, LSA packages, and more.
 - **Signature-based filtering** — Validates Authenticode signatures to separate real persistence from OS defaults. No value-based whitelists that miss swapped binaries or DLL proxying.
 - **Custom detection profiles** — YAML-based allow and block rules, globally or per-check. Adapt the tool to your environment, not the other way around.
 - **Flexible output** — Console, CSV, HTML, and XLSX. Adding new formats is straightforward.
 - **Extensible plugin system** — Adding a new persistence check is a single file. Most checks are declarative. Complex logic gets one method override.
 - **Finding enrichment** — Every finding is automatically enriched with file existence, SHA-256 hashes, signer information, and LOLBin classification.
 - **Speed** — Native registry parsing via libregf. Scans complete in roughly 10–30 seconds on heavily used systems.
-
----
 
 ## 📋 Prerequisites
 
@@ -33,8 +29,6 @@ Point it at a KAPE dump, a Velociraptor collection, or a mounted disk image and 
 | **macOS** | Xcode Command Line Tools (`xcode-select --install`). |
 
 > **Note:** If no pre-built wheel is available for your platform or Python version, pip will build libregf from source (takes up to a minute). Windows users may also need the [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with the **"Desktop development with C++"** workload.
-
----
 
 ## 📦 Installation
 
@@ -63,8 +57,6 @@ docker run --rm -v /path/to/triage:/evidence:ro pyrsistencesniper /evidence --fo
 # Full HTML report with no filtering
 docker run --rm -v /path/to/triage:/evidence:ro pyrsistencesniper /evidence --min-severity info --format html --output /evidence/report.html
 ```
-
----
 
 ## 🎯 Usage
 
@@ -140,8 +132,6 @@ Supported standalone artifacts: `SYSTEM`, `SOFTWARE`, `SAM`, `SECURITY`, `NTUSER
 
 PyrsistenceSniper auto-detects standalone mode and runs only the checks that apply to the given hive. Note that resolution features (file existence, hashes, signatures) are unavailable in standalone mode since there's no filesystem to cross-reference.
 
----
-
 ## 🔍 How It Works
 
 PyrsistenceSniper runs each finding through a multi-stage pipeline:
@@ -169,11 +159,9 @@ Each finding carries:
 
 Console output groups findings by MITRE technique and flags anomalies. CSV and XLSX output include all fields plus dynamic enrichment columns. HTML produces a standalone report suitable for client delivery.
 
----
-
 ## 🛡️ Supported Checks
 
-114 persistence checks across 9 MITRE ATT&CK techniques. Run `pyrsistencesniper --list-checks` for a quick overview in the terminal.
+117 persistence checks across 9 MITRE ATT&CK techniques. Run `pyrsistencesniper --list-checks` for a quick overview in the terminal.
 
 | MITRE ID | Technique | Checks |
 |----------|-----------|--------|
@@ -186,8 +174,6 @@ Console output groups findings by MITRE technique and flags anomalies. CSV and X
 | T1547 | Boot/Logon Autostart Execution | `active_setup`, `authentication_packages`, `boot_execute`, `boot_verification_program`, `dsrm_backdoor`, `explorer_app_key`, `explorer_bho`, `explorer_context_menu`, `explorer_load`, `font_drivers`, `lsa_cfg_flags`, `lsa_run_as_ppl`, `platform_execute`, `print_monitors`, `print_processors`, `rdp_clx_dll`, `rdp_virtual_channel`, `rdp_wds_startup`, `run_keys`, `run_services`, `run_services_once`, `s0_initial_command`, `scm_extension`, `security_packages`, `session_manager_execute`, `session_manager_subsystems`, `setup_execute`, `shell_folders_startup`, `shell_launcher`, `startup_folder`, `time_providers`, `ts_initial_program`, `winlogon_mpnotify`, `winlogon_notify_packages`, `winlogon_shell`, `winlogon_userinit` |
 | T1556 | Modify Authentication Process | `lsa_password_filter`, `network_provider_dll` |
 | T1574 | Hijack Execution Flow | `appdomain_manager`, `autodial_dll`, `chm_helper_dll`, `content_index_dll`, `cor_profiler`, `coreclr_profiler`, `crypto_expo_offload`, `diagtrack_dll`, `diagtrack_listener_dll`, `direct3d_dll`, `dotnet_framework_profiler`, `dotnet_startup_hooks`, `gp_extension_dlls`, `hhctrl_ocx_dll`, `known_dlls`, `known_managed_debugging_dlls`, `lsa_extensions`, `mapi32_dll_path`, `minidump_auxiliary_dlls`, `msdtc_xa_dll`, `nldp_dll`, `rdp_test_dvc_plugin`, `search_indexer_dll`, `server_level_plugin_dll`, `snmp_extension_agent`, `winsock_auto_proxy`, `wu_service_startup_dll` |
-
----
 
 ## ⚙️ Detection Profiles
 
@@ -232,7 +218,19 @@ All fields are optional. When multiple fields are present, **all** must match (A
 | `not_lolbin` | boolean | Only match if the binary is **not** a LOLBin |
 | `reason` | — | Human-readable justification (shown in verbose output) |
 
----
+### Rule evaluation
+
+Rules come from three layers, all evaluated together:
+
+| Layer | Source | Scope |
+|-------|--------|-------|
+| **Plugin built-in** | Hardcoded in each check's definition | That check only |
+| **Profile global** | Top-level `allow`/`block` in the YAML | All checks |
+| **Profile per-check** | `checks.<id>.allow`/`block` in the YAML | That check only |
+
+Per-check profile rules **add to** global rules — they don't replace them. A check with one per-check allow rule and two global allow rules has three allow rules total.
+
+**Block rules win.** The pipeline evaluates block rules first. If any block rule from any layer matches, the finding is `HIGH` — allow rules are not considered. Allow rules only affect findings that no block rule matched.
 
 ## 🛠️ Development
 
@@ -254,22 +252,19 @@ make cov                          # Tests with coverage report
 pyrsistencesniper/
   cli.py              # Entry point and argument parsing
   config/             # Default detection profile
-  core/               # Analysis context, pipeline orchestration, detection profiles, logging
+  core/               # Domain models, pipeline orchestration, offline artifact I/O,
+                      #   path normalization, metadata resolution, detection profiles, logging
   data/               # Bundled data files (LOLBin list)
-  forensics/          # Offline artifact I/O — registry hive parsing, filesystem access,
-                      #   Authenticode signature extraction
-  resolution/         # Post-detection enrichment — path normalization, metadata resolution,
-                      #   LOLBin classification
-  models/             # Domain data models — Finding, CheckDefinition, FilterRule, etc.
+  enrichment/         # Optional enrichment plugins
+  output/             # Console, CSV, HTML, XLSX renderers
   plugins/            # Detection plugins, grouped by MITRE ATT&CK technique
-    base.py           # PersistencePlugin base class
+    base.py           # PersistencePlugin base class with composable helpers
+    runner.py         # Plugin discovery and registration
     T1547/            # Boot/logon autostart execution
     T1546/            # Event-triggered execution
     T1574/            # Hijack execution flow
     T1543/            # Services
     ...
-  enrichment/         # Optional enrichment plugins
-  output/             # Console, CSV, HTML, XLSX renderers
   ui/                 # CLI presentation — banner, progress display
 ```
 
@@ -278,10 +273,9 @@ pyrsistencesniper/
 Plugins live in `pyrsistencesniper/plugins/`, organized by technique ID. Most checks are fully declarative:
 
 ```python
+from pyrsistencesniper.core.models import CheckDefinition, HiveScope, RegistryTarget
 from pyrsistencesniper.plugins import register_plugin
-from pyrsistencesniper.plugins.base import (
-    CheckDefinition, HiveScope, PersistencePlugin, RegistryTarget,
-)
+from pyrsistencesniper.plugins.base import PersistencePlugin
 
 @register_plugin
 class LogonScripts(PersistencePlugin):
@@ -304,9 +298,7 @@ class LogonScripts(PersistencePlugin):
     )
 ```
 
-The base class handles registry scanning, value extraction, and finding creation. For checks that need custom logic (filesystem walking, cross-referencing multiple hives, etc.), override `run()` and return a `list[Finding]`. The plugin gets dependency-injected helpers via `self.registry`, `self.filesystem`, and `self.profile`.
-
----
+The base class handles registry scanning, value extraction, and finding creation. For checks that need custom logic (filesystem walking, cross-referencing multiple hives, etc.), override `run()` and return a `list[Finding]`. The plugin gets dependency-injected helpers via `self.context` — including `self.registry`, `self.filesystem`, `self.profile`, and `self.hive_ops` for high-level registry operations like iterating user hives, resolving CLSIDs, or loading subtrees.
 
 ## 📖 Background
 
@@ -316,16 +308,12 @@ Where we kept running into friction was the workflow. Autoruns is a Windows bina
 
 We kept writing one-off scripts to cover the gaps, and at some point it made more sense to build something purpose-built. PyrsistenceSniper parses hives offline with libregf, walks filesystem artifacts and scheduled task XMLs, enriches everything with file metadata and Authenticode signatures, and filters through detection profiles to strip out OS noise. On most systems that cuts output by 80–90%.
 
----
-
 ## 🙏 Credits
 
 - [PersistenceSniper](https://github.com/last-byte/PersistenceSniper) by Federico Lagrasta
 - [Autoruns](https://learn.microsoft.com/en-us/sysinternals/downloads/autoruns) by Sysinternals
 - [libregf](https://github.com/libyal/libregf) by Joachim Metz
 - [MITRE ATT&CK](https://attack.mitre.org/)
-
----
 
 ## ⚖️ License
 

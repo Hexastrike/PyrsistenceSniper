@@ -1,7 +1,7 @@
 [project]
 name = "pyrsistencesniper"
-version = "0.5.0"
-description = ""
+version = "0.6.0"
+description = "Offline Windows Persistence Detection"
 authors = [
     {name = "Maurice Fielenbach",email = "info@hexastrike.com"}
 ]
