@@ -3,9 +3,9 @@
 [![PyPI](https://img.shields.io/pypi/v/pyrsistencesniper?color=blue)](https://pypi.org/project/pyrsistencesniper/)
 [![CI](https://github.com/Hexastrike/PyrsistenceSniper/actions/workflows/ci.yml/badge.svg)](https://github.com/Hexastrike/PyrsistenceSniper/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Hexastrike/PyrsistenceSniper/graph/badge.svg)](https://codecov.io/gh/Hexastrike/PyrsistenceSniper)
-[![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](#)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue)](#)
+[![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://pypi.org/project/pyrsistencesniper/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Hexastrike/PyrsistenceSniper/blob/main/LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue)](https://github.com/Hexastrike/PyrsistenceSniper)
 
 We took PersistenceSniper, merged it with Python, and misspelled it on purpose. Meet **Py**rsistenceSniper.
 
@@ -326,4 +326,4 @@ We kept writing one-off scripts to cover the gaps, and at some point it made mor
 
 ## ⚖️ License
 
-Distributed under the **MIT License**. See [LICENSE](LICENSE).
+Distributed under the **MIT License**. See [LICENSE](https://github.com/Hexastrike/PyrsistenceSniper/blob/main/LICENSE).
