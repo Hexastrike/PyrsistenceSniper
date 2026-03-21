@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import contextlib
 import dataclasses
-import hashlib
 import logging
 from typing import Any, TypedDict
 
@@ -20,22 +19,48 @@ from pyrsistencesniper.core.winutil import (
 )
 
 try:
-    from signify.authenticode.signed_file import SignedPEFile
+    import lief
 
-    _HAS_SIGNIFY = True
+    _HAS_LIEF = True
 except ImportError:
-    _HAS_SIGNIFY = False
+    _HAS_LIEF = False
 
 try:
-    from signify.authenticode import CertificateTrustList
+    from asn1crypto import cms
 
-    _HAS_SIGNIFY_CTL = True
+    _HAS_ASN1 = True
 except ImportError:
-    _HAS_SIGNIFY_CTL = False
+    _HAS_ASN1 = False
 
 logger = logging.getLogger(__name__)
 
 _CATROOT_SUBDIR = "Windows/System32/CatRoot/{F750E6C3-38EE-11D1-85E5-00C04FC295EE}"
+
+_SPC_SP_OPUS_INFO_OID = "1.3.6.1.4.1.311.2.1.12"
+
+
+def _extract_program_name_from_cms(data: bytes) -> str:
+    """Parse a CMS SignedData blob (.cat file) and extract the signer program name."""
+    content_info = cms.ContentInfo.load(data)
+    signed_data = content_info["content"]
+    for signer_info in signed_data["signer_infos"]:
+        for attr in signer_info["signed_attrs"]:
+            if attr["type"].dotted == _SPC_SP_OPUS_INFO_OID:
+                raw = attr["values"][0].contents
+                # SpcSpOpusInfo: SEQUENCE { [0] EXPLICIT SpcString, ... }
+                # SpcString: CHOICE { [0] BMPString, [1] IA5String }
+                # Quick parse: find the BMPString (tag 0x1e) or IA5String (tag 0x16)
+                from asn1crypto import core
+
+                seq = core.Sequence.load(raw)
+                for child in seq:
+                    child_bytes = child.contents
+                    if child_bytes:
+                        try:
+                            return str(child_bytes.decode("utf-16-be").strip("\x00"))
+                        except UnicodeDecodeError:
+                            return str(child_bytes.decode("ascii", errors="replace"))
+    return ""
 
 
 class SignerExtractor:
@@ -47,19 +72,23 @@ class SignerExtractor:
 
     def extract(self, resolved_path: str) -> str:
         """Return the signer program name, or empty string if unavailable."""
-        if not _HAS_SIGNIFY:
+        if not _HAS_LIEF:
             return ""
         host_path = self._fs.resolve(resolved_path)
         if not host_path.is_file():
             return ""
         try:
-            with host_path.open("rb") as pe_file_handle:
-                pe_signed = SignedPEFile(pe_file_handle)
-                for signature in pe_signed.iter_signatures():
-                    signer_info = signature.signer_info
-                    if signer_info is not None and signer_info.program_name:  # type: ignore[attr-defined]
-                        return str(signer_info.program_name)  # type: ignore[attr-defined]
-                return self._lookup_in_catalogs(pe_signed)
+            pe = lief.PE.parse(str(host_path))
+            if pe is None:
+                return ""
+            for sig in pe.signatures:
+                for signer in sig.signers:
+                    opus = signer.get_auth_attribute(
+                        lief.PE.Attribute.TYPE.SPC_SP_OPUS_INFO
+                    )
+                    if opus is not None and opus.program_name:  # type: ignore[attr-defined]
+                        return str(opus.program_name)  # type: ignore[attr-defined]
+            return self._lookup_in_catalogs(pe)
         except Exception:
             logger.debug(
                 "Signer extraction failed for %s",
@@ -68,21 +97,18 @@ class SignerExtractor:
             )
         return ""
 
-    def _lookup_in_catalogs(self, pe_signed: SignedPEFile) -> str:
+    def _lookup_in_catalogs(self, pe: Any) -> str:  # noqa: ANN401
         """Search catalog files for a matching hash and return the signer name."""
-        if not _HAS_SIGNIFY_CTL:
+        if not _HAS_ASN1:
             return ""
         catalog_data = self._get_catalog_data()
-        for algo in (hashlib.sha256, hashlib.sha1):
-            fingerprint_bytes = pe_signed.get_fingerprint(algo)
+        for authentihash in (pe.authentihash_sha256, pe.authentihash_sha1):
+            fingerprint = bytes(authentihash)
             for data in catalog_data:
-                if fingerprint_bytes not in data:
+                if fingerprint not in data:
                     continue
                 try:
-                    ctl = CertificateTrustList.from_envelope(data)
-                    signer_info = ctl.signer_info
-                    if signer_info is not None and signer_info.program_name:  # type: ignore[attr-defined]
-                        return str(signer_info.program_name)  # type: ignore[attr-defined]
+                    return _extract_program_name_from_cms(data)
                 except Exception:
                     logger.debug("Catalog parse failed", exc_info=True)
         return ""

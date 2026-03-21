@@ -236,21 +236,19 @@ def test_resolve_bare_dll_fallback_to_system32(_mock_signer: MagicMock) -> None:
 class TestExtract:
     """Tests for SignerExtractor.extract()."""
 
-    def test_extract_returns_empty_when_signify_unavailable(
-        self, tmp_path: Path
-    ) -> None:
-        """extract() returns '' when signify is not installed."""
+    def test_extract_returns_empty_when_lief_unavailable(self, tmp_path: Path) -> None:
+        """extract() returns '' when lief is not installed."""
         fs = FilesystemHelper(image_root=tmp_path)
         extractor = SignerExtractor(fs)
-        with patch("pyrsistencesniper.core.resolver._HAS_SIGNIFY", False):
+        with patch("pyrsistencesniper.core.resolver._HAS_LIEF", False):
             result = extractor.extract("C:\\Windows\\System32\\cmd.exe")
-        assert result == "", "Should return empty string when signify unavailable"
+        assert result == "", "Should return empty string when lief unavailable"
 
     def test_extract_returns_empty_for_nonexistent_file(self, tmp_path: Path) -> None:
         """extract() returns '' when the resolved path does not exist."""
         fs = FilesystemHelper(image_root=tmp_path)
         extractor = SignerExtractor(fs)
-        with patch("pyrsistencesniper.core.resolver._HAS_SIGNIFY", True):
+        with patch("pyrsistencesniper.core.resolver._HAS_LIEF", True):
             result = extractor.extract("C:\\nonexistent\\file.exe")
         assert result == "", "Should return empty string for nonexistent file"
 
@@ -264,19 +262,22 @@ class TestExtract:
         fs = FilesystemHelper(image_root=tmp_path)
         extractor = SignerExtractor(fs)
 
-        mock_signer_info = MagicMock()
-        mock_signer_info.program_name = "Microsoft Windows"
+        mock_opus = MagicMock()
+        mock_opus.program_name = "Microsoft Windows"
 
-        mock_signature = MagicMock()
-        mock_signature.signer_info = mock_signer_info
+        mock_signer = MagicMock()
+        mock_signer.get_auth_attribute.return_value = mock_opus
+
+        mock_sig = MagicMock()
+        mock_sig.signers = [mock_signer]
 
         mock_pe = MagicMock()
-        mock_pe.iter_signatures.return_value = [mock_signature]
+        mock_pe.signatures = [mock_sig]
 
         with (
-            patch("pyrsistencesniper.core.resolver._HAS_SIGNIFY", True),
+            patch("pyrsistencesniper.core.resolver._HAS_LIEF", True),
             patch(
-                "pyrsistencesniper.core.resolver.SignedPEFile",
+                "pyrsistencesniper.core.resolver.lief.PE.parse",
                 return_value=mock_pe,
             ),
         ):
@@ -295,12 +296,12 @@ class TestExtract:
         extractor = SignerExtractor(fs)
 
         mock_pe = MagicMock()
-        mock_pe.iter_signatures.return_value = []  # No direct signatures
+        mock_pe.signatures = []  # No direct signatures
 
         with (
-            patch("pyrsistencesniper.core.resolver._HAS_SIGNIFY", True),
+            patch("pyrsistencesniper.core.resolver._HAS_LIEF", True),
             patch(
-                "pyrsistencesniper.core.resolver.SignedPEFile",
+                "pyrsistencesniper.core.resolver.lief.PE.parse",
                 return_value=mock_pe,
             ),
             patch.object(
@@ -326,9 +327,9 @@ class TestExtract:
         extractor = SignerExtractor(fs)
 
         with (
-            patch("pyrsistencesniper.core.resolver._HAS_SIGNIFY", True),
+            patch("pyrsistencesniper.core.resolver._HAS_LIEF", True),
             patch(
-                "pyrsistencesniper.core.resolver.SignedPEFile",
+                "pyrsistencesniper.core.resolver.lief.PE.parse",
                 side_effect=RuntimeError("parse failed"),
             ),
         ):
@@ -399,14 +400,14 @@ class TestCatalogLoading:
 class TestCatalogLookup:
     """Tests for catalog-based signer lookup."""
 
-    def test_lookup_in_catalogs_returns_empty_without_signify_ctl(
+    def test_lookup_in_catalogs_returns_empty_without_asn1(
         self, tmp_path: Path
     ) -> None:
-        """_lookup_in_catalogs returns '' when signify_ctl is not available."""
+        """_lookup_in_catalogs returns '' when asn1crypto is not available."""
         fs = FilesystemHelper(image_root=tmp_path)
         extractor = SignerExtractor(fs)
 
         mock_pe = MagicMock()
-        with patch("pyrsistencesniper.core.resolver._HAS_SIGNIFY_CTL", False):
+        with patch("pyrsistencesniper.core.resolver._HAS_ASN1", False):
             result = extractor._lookup_in_catalogs(mock_pe)
-        assert result == "", "Should return empty string when signify_ctl unavailable"
+        assert result == "", "Should return empty string when asn1crypto unavailable"

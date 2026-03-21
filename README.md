@@ -1,5 +1,7 @@
 # PyrsistenceSniper — Offline Windows Persistence Detection
 
+[![CI](https://github.com/Hexastrike/PyrsistenceSniper/actions/workflows/ci.yml/badge.svg)](https://github.com/Hexastrike/PyrsistenceSniper/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/Hexastrike/PyrsistenceSniper/graph/badge.svg)](https://codecov.io/gh/Hexastrike/PyrsistenceSniper)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue)](#)

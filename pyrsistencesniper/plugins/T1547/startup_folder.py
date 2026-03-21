@@ -84,7 +84,7 @@ class StartupFolder(PersistencePlugin):
                     expanded = expand_env_vars(str(val), username)
                     return self.filesystem.resolve(expanded)
 
-        return self.filesystem.image_root / Path(default)
+        return self.filesystem.image_root / Path(*PureWindowsPath(default).parts)
 
     def _scan_folder(
         self,
