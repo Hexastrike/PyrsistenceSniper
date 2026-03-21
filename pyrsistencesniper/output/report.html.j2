@@ -8,7 +8,7 @@
 ::selection { background: hsla(340,75%,55%,0.4); color: #f5f7fa; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  background-color: #0a0e1a; color: #f5f7fa; line-height: 1.5; padding: 1.5rem;
+  background-color: #000000; color: #f5f7fa; line-height: 1.5; padding: 1.5rem;
   background-image:
     radial-gradient(1200px 600px at 20% -10%, hsla(340,85%,58%,0.18), transparent 60%),
     radial-gradient(900px 600px at 85% 0%, hsla(200,90%,60%,0.12), transparent 55%),
@@ -28,7 +28,7 @@ a:hover { text-decoration: underline; }
 .stats-bar { display: flex; align-items: baseline; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.25rem 0; }
 .stat-card {
   display: flex; align-items: baseline; gap: 0.35rem;
-  padding: 0.3rem 1.1rem; border-left: 1px solid #252a36;
+  padding: 0.3rem 1.1rem; border-left: 1px solid #333333;
 }
 .stat-card:first-child { border-left: none; padding-left: 0; }
 .stat-card .stat-label { font-size: 0.8rem; color: #99a3b3; order: -1; }
@@ -40,24 +40,47 @@ a:hover { text-decoration: underline; }
 .stat-info .stat-value { color: #38bdf8; }
 .controls { display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
 .controls input[type="text"] {
-  background: #0a0e1a; border: 1px solid #252a36; border-radius: 0.6rem;
+  background: #000000; border: 1px solid #333333; border-radius: 0.6rem;
   color: #f5f7fa; padding: 0.4rem 0.75rem; font-size: 0.85rem; min-width: 220px;
 }
-.controls input[type="text"]:focus, .controls select:focus { outline: none; box-shadow: 0 0 0 2px hsla(340,75%,55%,0.3); }
+.controls input[type="text"]:focus { outline: none; box-shadow: 0 0 0 2px hsla(340,75%,55%,0.3); }
 .controls input[type="text"]::placeholder { color: #99a3b3; }
-.controls select {
-  background: #101626; border: 1px solid #252a36; border-radius: 0.6rem;
-  color: #f5f7fa; padding: 0.4rem 0.5rem; font-size: 0.85rem;
+.filter-wrap { position: relative; }
+.btn-filter {
+  background: #1a1a1a; border: 1px solid #333333; border-radius: 0.6rem;
+  color: #f5f7fa; padding: 0.4rem 0.75rem; font-size: 0.85rem; cursor: pointer;
+  white-space: nowrap;
 }
+.btn-filter:hover { border-color: #99a3b3; }
+.btn-filter.active { box-shadow: 0 0 0 2px hsla(340,75%,55%,0.3); }
+.filter-panel {
+  display: none; position: absolute; top: 100%; left: 0; margin-top: 0.35rem; z-index: 900;
+  background: rgba(20,20,20,0.95); backdrop-filter: blur(8px); border: 1px solid #333333;
+  border-radius: 0.6rem; box-shadow: 0 8px 24px rgba(0,0,0,0.5); padding: 0.35rem 0;
+  min-width: 200px; max-height: 320px; overflow-y: auto;
+}
+.filter-panel.open { display: block; }
+.filter-panel .filter-select-all {
+  display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.75rem;
+  border-bottom: 1px solid #333333; margin-bottom: 0.25rem;
+  font-size: 0.8rem; font-weight: 600; color: #f5f7fa; cursor: pointer; white-space: nowrap;
+}
+.filter-panel .filter-select-all:hover { background: #2a2a2a; }
+.filter-panel label {
+  display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.75rem;
+  font-size: 0.8rem; color: #f5f7fa; cursor: pointer; white-space: nowrap;
+}
+.filter-panel label:hover { background: #333333; }
+.filter-panel input[type="checkbox"] { accent-color: #d6336c; }
 .btn-reset, .btn-columns {
-  background: transparent; border: 1px solid #252a36; border-radius: 0.6rem;
+  background: transparent; border: 1px solid #333333; border-radius: 0.6rem;
   color: #99a3b3; padding: 0.4rem 0.75rem; font-size: 0.85rem; cursor: pointer;
 }
 .btn-reset:hover, .btn-columns:hover { color: #f5f7fa; border-color: #99a3b3; }
 .col-picker-wrap { position: relative; }
 .col-picker {
   display: none; position: absolute; top: 100%; left: 0; margin-top: 0.35rem; z-index: 900;
-  background: rgba(16,22,38,0.95); backdrop-filter: blur(8px); border: 1px solid #252a36;
+  background: rgba(20,20,20,0.95); backdrop-filter: blur(8px); border: 1px solid #333333;
   border-radius: 0.6rem; box-shadow: 0 8px 24px rgba(0,0,0,0.5); padding: 0.35rem 0;
   min-width: 180px; max-height: 320px; overflow-y: auto;
 }
@@ -66,17 +89,17 @@ a:hover { text-decoration: underline; }
   display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.75rem;
   font-size: 0.8rem; color: #f5f7fa; cursor: pointer; white-space: nowrap;
 }
-.col-picker label:hover { background: #252a36; }
+.col-picker label:hover { background: #333333; }
 .col-picker input[type="checkbox"] { accent-color: #d6336c; }
 .row-count { color: #99a3b3; font-size: 0.85rem; margin-left: auto; }
-.table-wrapper { overflow-x: auto; border: 1px solid #252a36; border-radius: 0.6rem; }
-table { border-collapse: collapse; width: 100%; font-size: 0.8rem; }
+.table-wrapper { overflow: auto; border: 1px solid #333333; border-radius: 0.6rem; max-height: calc(100vh - 14rem); }
+table { border-collapse: collapse; width: 100%; font-size: 0.8rem; table-layout: fixed; }
 th {
-  background: #101626; color: #f5f7fa; border-bottom: 2px solid #252a36;
+  background: #1a1a1a; color: #f5f7fa; border-bottom: 2px solid #333333;
   padding: 0.6rem 0.75rem; text-align: left; position: sticky; top: 0; z-index: 1;
   cursor: pointer; user-select: none; white-space: nowrap;
 }
-th:hover { background: #202538; }
+th:hover { background: #2a2a2a; }
 th .sort-indicator { margin-left: 0.3rem; display: inline-flex; vertical-align: middle; opacity: 0.4; }
 th .sort-indicator.active { opacity: 1; }
 th .col-resize {
@@ -85,12 +108,12 @@ th .col-resize {
 }
 th .col-resize:hover { background: hsla(340,75%,55%,0.4); }
 td {
-  padding: 0.5rem 0.75rem; border-bottom: 1px solid #252a36;
+  padding: 0.5rem 0.75rem; border-bottom: 1px solid #333333;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-tr:nth-child(odd) td { background: #0a0e1a; }
-tr:nth-child(even) td { background: #101626; }
-tr:hover td { background: #202538; }
+tr:nth-child(odd) td { background: #111111; }
+tr:nth-child(even) td { background: #1a1a1a; }
+tr:hover td { background: #2a2a2a; }
 .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 600; }
 .badge-high { background: rgba(232,54,111,0.14); color: #e8366f; }
 .badge-medium { background: rgba(240,152,62,0.14); color: #f0983e; }
@@ -98,18 +121,18 @@ tr:hover td { background: #202538; }
 .badge-info { background: rgba(56,189,248,0.14); color: #38bdf8; }
 #context-menu {
   display: none; position: fixed; z-index: 1000;
-  background: rgba(16,22,38,0.8); backdrop-filter: blur(8px); border: 1px solid #252a36;
+  background: rgba(20,20,20,0.8); backdrop-filter: blur(8px); border: 1px solid #333333;
   border-radius: 0.6rem; box-shadow: 0 8px 24px rgba(0,0,0,0.5); min-width: 200px; padding: 0.25rem 0;
 }
 #context-menu .ctx-item {
   display: block; width: 100%; border: none; background: none; color: #f5f7fa;
   padding: 0.5rem 0.75rem; text-align: left; font-size: 0.85rem; cursor: pointer;
 }
-#context-menu .ctx-item:hover { background: #252a36; }
-#context-menu .ctx-sep { border-top: 1px solid #252a36; margin: 0.25rem 0; }
+#context-menu .ctx-item:hover { background: #333333; }
+#context-menu .ctx-sep { border-top: 1px solid #333333; margin: 0.25rem 0; }
 .report-footer {
   text-align: center; color: #99a3b3; font-size: 0.8rem;
-  padding: 1.5rem 0 0.5rem; border-top: 1px solid #252a36; margin-top: 1.5rem;
+  padding: 1.5rem 0 0.5rem; border-top: 1px solid #333333; margin-top: 1.5rem;
 }
 </style>
 </head>
@@ -130,10 +153,10 @@ tr:hover td { background: #202538; }
 </div>
 <div class="controls">
   <input type="text" id="search" placeholder="Search all fields...">
-  <select id="filter-severity"><option value="">All Severities</option></select>
-  <select id="filter-technique"><option value="">All Techniques</option></select>
-  <select id="filter-mitre"><option value="">All MITRE IDs</option></select>
-  <select id="filter-access"><option value="">All Access Levels</option></select>
+  <div class="filter-wrap"><button type="button" class="btn-filter" id="btn-filter-severity">All Severities</button><div class="filter-panel" id="panel-severity"></div></div>
+  <div class="filter-wrap"><button type="button" class="btn-filter" id="btn-filter-technique">All Techniques</button><div class="filter-panel" id="panel-technique"></div></div>
+  <div class="filter-wrap"><button type="button" class="btn-filter" id="btn-filter-mitre">All MITRE IDs</button><div class="filter-panel" id="panel-mitre"></div></div>
+  <div class="filter-wrap"><button type="button" class="btn-filter" id="btn-filter-access">All Access Levels</button><div class="filter-panel" id="panel-access"></div></div>
   <button type="button" id="reset-filters" class="btn-reset">Reset</button>
   <div class="col-picker-wrap">
     <button type="button" id="col-toggle" class="btn-columns">Columns</button>
@@ -173,25 +196,87 @@ var theadRow=document.getElementById("thead-row");
 var tbody=document.getElementById("tbody");
 var rowCountEl=document.getElementById("row-count");
 var ctxMenu=document.getElementById("context-menu");
-var filterSev=document.getElementById("filter-severity");
-var filterTech=document.getElementById("filter-technique");
-var filterMitre=document.getElementById("filter-mitre");
-var filterAccess=document.getElementById("filter-access");
 var colPicker=document.getElementById("col-picker");
 var SVG_UP='<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5L5 4L7.5 6.5"/></svg>';
 var SVG_DN='<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5L5 6L7.5 3.5"/></svg>';
 var SVG_BOTH='<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5L5 8L7.5 6.5M2.5 3.5L5 2L7.5 3.5"/></svg>';
+var DEFAULT_WIDTHS={path:280,value:260,technique:180,mitre_id:90,description:220,access_gained:100,severity:80,is_lolbin:60,exists:60,sha256:160,is_builtin:60,is_in_os_directory:80,signer:140,hostname:100,check_id:120,references:200};
+
+/* --- Filter state --- */
+var FILTER_DEFS=[
+  {key:"severity",field:"severity",allLabel:"All Severities",shortLabel:"Severities"},
+  {key:"technique",field:"technique",allLabel:"All Techniques",shortLabel:"Techniques"},
+  {key:"mitre",field:"mitre_id",allLabel:"All MITRE IDs",shortLabel:"MITRE IDs"},
+  {key:"access",field:"access_gained",allLabel:"All Access Levels",shortLabel:"Access Levels"}
+];
+var filterState={};
 
 document.getElementById("gen-time").textContent="Generated: "+new Date().toLocaleString();
 
-function addOptions(sel,items){
-  items.forEach(function(v){var o=document.createElement("option");o.value=v;o.textContent=v;sel.appendChild(o);});
+/* --- Filter panels --- */
+function buildFilterPanel(def){
+  var vals={};
+  DATA.forEach(function(r){var v=r[def.field];if(v!=null&&v!=="")vals[v]=1;});
+  var sorted=Object.keys(vals).sort();
+  var allSet=new Set(sorted);
+  filterState[def.key]={all:allSet,selected:new Set(sorted)};
+  var panel=document.getElementById("panel-"+def.key);
+  panel.textContent="";
+  var selectAllLabel=document.createElement("label");selectAllLabel.className="filter-select-all";
+  var cbAll=document.createElement("input");cbAll.type="checkbox";cbAll.checked=true;
+  selectAllLabel.appendChild(cbAll);selectAllLabel.appendChild(document.createTextNode("Select All"));
+  panel.appendChild(selectAllLabel);
+  var checkboxes=[];
+  function syncSelectAll(){
+    var sel=filterState[def.key].selected.size,total=filterState[def.key].all.size;
+    cbAll.checked=sel===total;cbAll.indeterminate=sel>0&&sel<total;
+  }
+  sorted.forEach(function(v){
+    var label=document.createElement("label");
+    var cb=document.createElement("input");cb.type="checkbox";cb.checked=true;cb.setAttribute("data-val",v);
+    cb.addEventListener("change",function(){
+      if(cb.checked)filterState[def.key].selected.add(v);else filterState[def.key].selected.delete(v);
+      syncSelectAll();updateFilterButton(def);renderTable();
+    });
+    label.appendChild(cb);label.appendChild(document.createTextNode(v));panel.appendChild(label);
+    checkboxes.push(cb);
+  });
+  cbAll.addEventListener("change",function(){
+    if(cbAll.checked){
+      checkboxes.forEach(function(cb){cb.checked=true;filterState[def.key].selected.add(cb.getAttribute("data-val"));});
+    }else{
+      checkboxes.forEach(function(cb){cb.checked=false;});
+      filterState[def.key].selected.clear();
+    }
+    cbAll.indeterminate=false;
+    updateFilterButton(def);renderTable();
+  });
+  var btn=document.getElementById("btn-filter-"+def.key);
+  btn.addEventListener("click",function(e){
+    e.stopPropagation();
+    var wasOpen=panel.classList.contains("open");
+    closeAllPanels();
+    if(!wasOpen)panel.classList.add("open");
+  });
 }
+function updateFilterButton(def){
+  var st=filterState[def.key],btn=document.getElementById("btn-filter-"+def.key);
+  if(st.selected.size===st.all.size){btn.textContent=def.allLabel;btn.classList.remove("active");}
+  else{btn.textContent=def.shortLabel+" ("+st.selected.size+"/"+st.all.size+")";btn.classList.add("active");}
+}
+function closeAllPanels(){
+  document.querySelectorAll(".filter-panel.open").forEach(function(p){p.classList.remove("open");});
+  colPicker.classList.remove("open");
+}
+
+/* --- Table headers with default widths --- */
 function buildHeaders(){
   theadRow.textContent="";
   FIELDS.forEach(function(f){
     if(!visibleFields.has(f))return;
     var th=document.createElement("th");th.textContent=LABELS[f]||f;th.setAttribute("data-field",f);
+    var dw=DEFAULT_WIDTHS[f]||120;
+    th.style.width=dw+"px";th.style.minWidth="20px";
     var indicator=document.createElement("span");indicator.className="sort-indicator";
     indicator.innerHTML=sortField===f?(sortAsc?SVG_UP:SVG_DN):SVG_BOTH;
     if(sortField===f)indicator.classList.add("active");
@@ -205,29 +290,19 @@ function buildHeaders(){
 }
 function initResize(e,th){
   var startX=e.pageX,startW=th.offsetWidth;
-  function onMove(ev){var w=Math.max(40,startW+(ev.pageX-startX));th.style.width=w+"px";th.style.minWidth=w+"px";}
+  function onMove(ev){var w=Math.max(20,startW+(ev.pageX-startX));th.style.width=w+"px";th.style.minWidth=w+"px";}
   function onUp(){document.removeEventListener("mousemove",onMove);document.removeEventListener("mouseup",onUp);window.removeEventListener("blur",onUp);}
   document.addEventListener("mousemove",onMove);document.addEventListener("mouseup",onUp);window.addEventListener("blur",onUp);
 }
-function populateFilters(){
-  var sevs={},techs={},mitres={},accesses={};
-  DATA.forEach(function(r){
-    if(r.severity)sevs[r.severity]=1;if(r.technique)techs[r.technique]=1;
-    if(r.mitre_id)mitres[r.mitre_id]=1;if(r.access_gained)accesses[r.access_gained]=1;
-  });
-  addOptions(filterSev,Object.keys(sevs).sort());
-  addOptions(filterTech,Object.keys(techs).sort());
-  addOptions(filterMitre,Object.keys(mitres).sort());
-  addOptions(filterAccess,Object.keys(accesses).sort());
-}
+
+/* --- Filtering & rendering --- */
 function getFilteredData(){
   var query=searchEl.value.toLowerCase();
-  var fSev=filterSev.value,fTech=filterTech.value,fMitre=filterMitre.value,fAccess=filterAccess.value;
   var out=DATA.filter(function(r){
-    if(fSev&&r.severity!==fSev)return false;
-    if(fTech&&r.technique!==fTech)return false;
-    if(fMitre&&r.mitre_id!==fMitre)return false;
-    if(fAccess&&r.access_gained!==fAccess)return false;
+    for(var i=0;i<FILTER_DEFS.length;i++){
+      var fd=FILTER_DEFS[i],st=filterState[fd.key];
+      if(st.selected.size<st.all.size&&!st.selected.has(r[fd.field]))return false;
+    }
     if(query){var matched=false;FIELDS.forEach(function(f){if(String(r[f]!=null?r[f]:"").toLowerCase().indexOf(query)!==-1)matched=true;});if(!matched)return false;}
     return true;
   });
@@ -273,6 +348,8 @@ function updateSortIndicators(){
     else{ind.innerHTML=SVG_BOTH;ind.classList.remove("active");}
   });
 }
+
+/* --- Context menu --- */
 function showContextMenu(e,row){
   e.preventDefault();ctxRow=row;
   var sha=row.sha256||"";
@@ -300,15 +377,25 @@ function handleContextAction(action){
   }
   hideContextMenu();
 }
+
+/* --- Event listeners --- */
 var debounceTimer;searchEl.addEventListener("input",function(){clearTimeout(debounceTimer);debounceTimer=setTimeout(renderTable,200);});
-[filterSev,filterTech,filterMitre,filterAccess].forEach(function(el){el.addEventListener("change",renderTable);});
 document.getElementById("reset-filters").addEventListener("click",function(){
-  searchEl.value="";filterSev.value="";filterTech.value="";filterMitre.value="";filterAccess.value="";
-  sortField=null;sortAsc=true;visibleFields=new Set(FIELDS);buildColPicker();buildHeaders();renderTable();
+  searchEl.value="";sortField=null;sortAsc=true;visibleFields=new Set(FIELDS);
+  FILTER_DEFS.forEach(function(def){
+    var st=filterState[def.key];
+    st.selected=new Set(st.all);
+    document.getElementById("panel-"+def.key).querySelectorAll('input[type="checkbox"]').forEach(function(cb){cb.checked=true;});
+    updateFilterButton(def);
+  });
+  buildColPicker();buildHeaders();renderTable();
 });
-document.addEventListener("click",function(e){hideContextMenu();if(!colPicker.contains(e.target))colPicker.classList.remove("open");});
+document.addEventListener("click",function(e){
+  hideContextMenu();
+  if(!e.target.closest(".filter-wrap")&&!e.target.closest(".col-picker-wrap"))closeAllPanels();
+});
 document.addEventListener("scroll",hideContextMenu,true);
-document.addEventListener("keydown",function(e){if(e.key==="Escape")hideContextMenu();});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"){hideContextMenu();closeAllPanels();}});
 ctxMenu.querySelectorAll(".ctx-item").forEach(function(btn){
   btn.addEventListener("click",function(e){e.stopPropagation();handleContextAction(btn.getAttribute("data-action"));});
 });
@@ -325,9 +412,14 @@ function buildColPicker(){
   });
 }
 document.getElementById("col-toggle").addEventListener("click",function(e){
-  e.stopPropagation();colPicker.classList.toggle("open");
+  e.stopPropagation();
+  var wasOpen=colPicker.classList.contains("open");
+  closeAllPanels();
+  if(!wasOpen)colPicker.classList.add("open");
 });
-buildColPicker();buildHeaders();populateFilters();renderTable();
+
+/* --- Init --- */
+buildColPicker();buildHeaders();FILTER_DEFS.forEach(buildFilterPanel);renderTable();
 })();
 </script>
 </body>
