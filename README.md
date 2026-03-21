@@ -1,5 +1,6 @@
 # PyrsistenceSniper — Offline Windows Persistence Detection
 
+[![PyPI](https://img.shields.io/pypi/v/pyrsistencesniper?color=blue)](https://pypi.org/project/pyrsistencesniper/)
 [![CI](https://github.com/Hexastrike/PyrsistenceSniper/actions/workflows/ci.yml/badge.svg)](https://github.com/Hexastrike/PyrsistenceSniper/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Hexastrike/PyrsistenceSniper/graph/badge.svg)](https://codecov.io/gh/Hexastrike/PyrsistenceSniper)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](#)
@@ -33,6 +34,12 @@ Point it at a KAPE dump, a Velociraptor collection, or a mounted disk image and 
 > **Note:** If no pre-built wheel is available for your platform or Python version, pip will build libregf from source (takes up to a minute). Windows users may also need the [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with the **"Desktop development with C++"** workload.
 
 ## 📦 Installation
+
+### From PyPI
+
+```bash
+pip install pyrsistencesniper
+```
 
 ### From source
 
