@@ -72,11 +72,11 @@ docker run --rm -v /path/to/triage:/evidence:ro pyrsistencesniper /evidence --mi
 The `paths` argument is the root of your forensic collection — wherever the `Windows/` directory lives. KAPE output, Velociraptor collections, mounted E01s, raw directory copies. As long as the hives and filesystem artifacts are in their expected paths relative to the root, PyrsistenceSniper will find them.
 
 ```
-pyrsistencesniper [-h] [--hostname HOSTNAME] [--format {console,csv,html,xlsx}]
-                  [--output OUTPUT] [--profile PROFILE]
-                  [--technique TECHNIQUE ...] [--list-checks]
-                  [--update-lolbins] [--min-severity {info,low,medium,high}]
-                  [-v] [paths ...]
+python -m pyrsistencesniper [-h] [--hostname HOSTNAME] [--format {console,csv,html,xlsx}]
+                            [--output OUTPUT] [--profile PROFILE]
+                            [--technique TECHNIQUE ...] [--list-checks]
+                            [--update-lolbins] [--min-severity {info,low,medium,high}]
+                            [-v] [paths ...]
 ```
 
 | Flag | Description |
@@ -95,31 +95,31 @@ pyrsistencesniper [-h] [--hostname HOSTNAME] [--format {console,csv,html,xlsx}]
 
 ```bash
 # Scan a KAPE collection
-pyrsistencesniper /mnt/case042/C
+python -m pyrsistencesniper /mnt/case042/C
 
 # Export as CSV for stacking across multiple systems
-pyrsistencesniper /mnt/case042/C --format csv --output host1.csv
+python -m pyrsistencesniper /mnt/case042/C --format csv --output host1.csv
 
 # Generate an HTML report
-pyrsistencesniper /mnt/case042/C --format html --output report.html
+python -m pyrsistencesniper /mnt/case042/C --format html --output report.html
 
 # Show everything, including OS defaults
-pyrsistencesniper /mnt/case042/C --min-severity info
+python -m pyrsistencesniper /mnt/case042/C --min-severity info
 
 # Only check specific MITRE ATT&CK techniques
-pyrsistencesniper /mnt/case042/C --technique T1547 T1546
+python -m pyrsistencesniper /mnt/case042/C --technique T1547 T1546
 
 # Apply a custom detection profile
-pyrsistencesniper /mnt/case042/C --profile ./profiles/customer_baseline.yaml
+python -m pyrsistencesniper /mnt/case042/C --profile ./profiles/customer_baseline.yaml
 
 # Scan a standalone NTUSER.DAT hive
-pyrsistencesniper /path/to/NTUSER.DAT
+python -m pyrsistencesniper /path/to/NTUSER.DAT
 
 # Scan a standalone SYSTEM hive with verbose output
-pyrsistencesniper /path/to/SYSTEM -v
+python -m pyrsistencesniper /path/to/SYSTEM -v
 
 # List all available persistence checks
-pyrsistencesniper --list-checks
+python -m pyrsistencesniper --list-checks
 ```
 
 ### Standalone artifact scanning
@@ -128,13 +128,13 @@ Pass a single hive file directly — no directory structure needed:
 
 ```bash
 # Scan a standalone NTUSER.DAT
-pyrsistencesniper /path/to/NTUSER.DAT
+python -m pyrsistencesniper /path/to/NTUSER.DAT
 
 # Scan a standalone SYSTEM hive
-pyrsistencesniper /path/to/SYSTEM
+python -m pyrsistencesniper /path/to/SYSTEM
 
 # Scan a standalone SOFTWARE hive with CSV output
-pyrsistencesniper /path/to/SOFTWARE --format csv --output results.csv
+python -m pyrsistencesniper /path/to/SOFTWARE --format csv --output results.csv
 ```
 
 Supported standalone artifacts: `SYSTEM`, `SOFTWARE`, `SAM`, `SECURITY`, `NTUSER.DAT`, `UsrClass.dat`, `DEFAULT`, `Amcache.hve`.
@@ -170,7 +170,7 @@ Console output groups findings by MITRE technique and flags anomalies. CSV and X
 
 ## 🛡️ Supported Checks
 
-117 persistence checks across 9 MITRE ATT&CK techniques. Run `pyrsistencesniper --list-checks` for a quick overview in the terminal.
+117 persistence checks across 9 MITRE ATT&CK techniques. Run `python -m pyrsistencesniper --list-checks` for a quick overview in the terminal.
 
 | MITRE ID | Technique | Checks |
 |----------|-----------|--------|
