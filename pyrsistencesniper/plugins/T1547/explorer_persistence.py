@@ -54,7 +54,7 @@ class ExplorerBrowserHelperObjects(PersistencePlugin):
             FilterRule(
                 reason="Microsoft Edge IE-to-Edge redirection BHO",
                 value_matches=r"ie_to_edge_bho(_64)?\.dll",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
     )

@@ -29,13 +29,13 @@ class DiskCleanupHandler(PersistencePlugin):
             FilterRule(
                 reason="Built-in disk cleanup handler",
                 value_matches=r"\\system32\\",
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
             FilterRule(
                 reason="Built-in disk cleanup DLL",
                 value_matches=r"(ieframe|shell32|dataclen|setupcln)\.dll$",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
     )

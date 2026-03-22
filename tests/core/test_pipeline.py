@@ -187,7 +187,7 @@ def test_run_all_checks_allow_rule_suppression(tmp_path: Path) -> None:
             id="stub_allow",
             technique="Stub Allow",
             mitre_id="T0000",
-            allow=(FilterRule(signer="microsoft", not_lolbin=True),),
+            allow=(FilterRule(signer="Microsoft", not_lolbin=True),),
         )
 
         def run(self) -> list[Finding]:
@@ -244,7 +244,7 @@ def test_run_all_checks_partial_allow_match_low(tmp_path: Path) -> None:
             id="stub_partial",
             technique="Stub Partial",
             mitre_id="T0000",
-            allow=(FilterRule(signer="unknown_signer", path_matches=r"stub"),),
+            allow=(FilterRule(signer="Unknown_signer", path_matches=r"stub"),),
         )
 
         def run(self) -> list[Finding]:
@@ -358,7 +358,7 @@ def test_run_all_checks_lolbin_partial_allow(tmp_path: Path) -> None:
             id="stub_allow",
             technique="Stub Allow",
             mitre_id="T0000",
-            allow=(FilterRule(signer="microsoft", not_lolbin=True),),
+            allow=(FilterRule(signer="Microsoft", not_lolbin=True),),
         )
 
         def run(self) -> list[Finding]:

@@ -80,7 +80,7 @@ class HhctrlOcx(PersistencePlugin):
             FilterRule(
                 reason="Default HTML Help control",
                 value_matches=r"hhctrl\.ocx$",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
         targets=(
@@ -109,7 +109,7 @@ class AutodialDll(PersistencePlugin):
             FilterRule(
                 reason="Default autodial DLL",
                 value_matches=r"rasadhlp\.dll$",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
         targets=(
@@ -138,7 +138,7 @@ class LsaExtensions(PersistencePlugin):
             FilterRule(
                 reason="Default LSA extension",
                 value_matches=r"^lsasrv\.dll$",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
         targets=(
@@ -265,7 +265,7 @@ class DiagTrackDll(PersistencePlugin):
             FilterRule(
                 reason="Default DiagTrack service",
                 value_matches=r"svchost\.exe",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
         targets=(
@@ -294,7 +294,7 @@ class DiagTrackListenerDll(PersistencePlugin):
             FilterRule(
                 reason="Default DiagTrack listener",
                 value_matches=r"Diagtrack-Listener\.etl",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
         targets=(
@@ -367,7 +367,7 @@ class WuServiceStartupDll(PersistencePlugin):
             FilterRule(
                 reason="Default Windows Update DLL",
                 value_matches=r"wuaueng\.dll$",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
         targets=(
@@ -418,7 +418,7 @@ class MiniDumpAuxiliaryDlls(PersistencePlugin):
             FilterRule(
                 reason="Default minidump auxiliary DLL",
                 value_matches=r"(clr|mscorwks|Chakra|jscript9|mrt100)\.dll$",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
     )
@@ -487,7 +487,7 @@ class GpExtensionDlls(PersistencePlugin):
             FilterRule(
                 reason="Built-in GP extension",
                 value_matches=r"\\system32\\",
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
             FilterRule(
@@ -498,7 +498,7 @@ class GpExtensionDlls(PersistencePlugin):
                     r"|wlgpclnt|AppManagementConfiguration"
                     r"|WorkFoldersGPExt)\.dll$"
                 ),
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
         targets=(
@@ -531,7 +531,7 @@ class WinsockAutoProxy(PersistencePlugin):
             FilterRule(
                 reason="Default Winsock provider",
                 value_matches=r"(mswsock|napinsp|nlansp_c|winrnr|wshbth)\.dll$",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
         targets=(

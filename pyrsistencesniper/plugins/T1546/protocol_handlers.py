@@ -44,12 +44,17 @@ class ProtocolHandlerHijack(PersistencePlugin):
             FilterRule(
                 reason="Default ms-msdt handler",
                 value_matches=r"msdt\.exe",
-                signer="microsoft",
+                signer="Microsoft",
             ),
             FilterRule(
                 reason="Default Windows protocol handler",
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
+            ),
+            FilterRule(
+                reason="Default Windows Explorer protocol handler",
+                value_matches=r"explorer\.exe",
+                signer="Microsoft",
             ),
         ),
     )
@@ -197,7 +202,7 @@ class SearchProtocolHandler(PersistencePlugin):
             FilterRule(
                 reason="Default Windows search handler",
                 value_matches=r"Explorer\.exe",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
     )

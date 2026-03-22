@@ -33,7 +33,7 @@ class WindowsServiceImagePath(PersistencePlugin):
             FilterRule(
                 reason="svchost-hosted service",
                 value_matches=r"svchost\.exe\s+-k\b",
-                signer="microsoft",
+                signer="Microsoft",
             ),
             FilterRule(
                 reason="Built-in OS service",
@@ -41,48 +41,48 @@ class WindowsServiceImagePath(PersistencePlugin):
                     r"(system32|syswow64|\\servicing\\"
                     r"|Microsoft\.NET\\|Windows Media Player)\\"
                 ),
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
             FilterRule(
                 reason="Windows Defender / ATP service",
                 value_matches=r"Windows Defender",
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
             FilterRule(
                 reason="Default Windows Installer service",
                 value_matches=r"msiexec\.exe",
-                signer="microsoft",
+                signer="Microsoft",
             ),
             FilterRule(
                 reason="Microsoft Edge / Edge Update service",
                 value_matches=r"Microsoft\\(EdgeUpdate\\MicrosoftEdgeUpdate|Edge\\.*\\elevation_service)\.exe",
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
             FilterRule(
                 reason="Google Chrome / Update service",
                 value_matches=r"Google\\(GoogleUpdater\\.*\\updater|Chrome\\.*\\elevation_service)\.exe",
-                signer="google",
+                signer="Google",
                 not_lolbin=True,
             ),
             FilterRule(
                 reason="Windows TrustedInstaller",
                 value_matches=r"TrustedInstaller\.exe",
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
             FilterRule(
                 reason="Windows Subsystem for Linux service",
                 value_matches=r"WSL\\wslservice\.exe",
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
             FilterRule(
                 reason=".NET Framework shared hosting",
                 value_matches=r"Microsoft\.NET\\.*\\SMSvcHost\.exe",
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
         ),
@@ -133,7 +133,7 @@ class WindowsServiceDll(PersistencePlugin):
             FilterRule(
                 reason="Built-in OS service DLL",
                 value_matches=r"system32\\",
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
         ),

@@ -29,7 +29,7 @@ class AmsiProviders(PersistencePlugin):
             FilterRule(
                 reason="Windows Defender AMSI provider",
                 value_matches=r"MpOav\.dll",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
     )

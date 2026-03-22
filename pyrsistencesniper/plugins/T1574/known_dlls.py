@@ -39,11 +39,11 @@ class KnownDlls(PersistencePlugin):
                     r"|shlwapi|TextShaping|ucrtbase|USER32"
                     r"|win32u|WINTRUST|WS2_32|WLDAP32)\.dll$"
                 ),
-                signer="microsoft",
+                signer="Microsoft",
             ),
             FilterRule(
                 reason="Standard Windows KnownDLL entry",
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
         ),

@@ -171,7 +171,7 @@ class SessionManagerSubSystems(PersistencePlugin):
             FilterRule(
                 reason="Default Windows subsystem configuration",
                 value_matches=r"csrss\.exe",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
     )

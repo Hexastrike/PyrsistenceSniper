@@ -37,7 +37,7 @@ class TypeLibHijack(PersistencePlugin):
             FilterRule(
                 reason="Standard system type library",
                 path_matches=r"\\(system32|syswow64|Program Files)",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
     )

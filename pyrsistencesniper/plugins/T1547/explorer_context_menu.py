@@ -34,13 +34,18 @@ class ExplorerContextMenu(PersistencePlugin):
             FilterRule(
                 reason="Built-in context menu handler",
                 value_matches=r"(\\system32\\|\\Windows Defender\\)",
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
             FilterRule(
                 reason="Built-in shell extension DLL",
                 value_matches=r"(shell32|ieframe)\.dll$",
-                signer="microsoft",
+                signer="Microsoft",
+            ),
+            FilterRule(
+                reason="7-Zip context menu handler",
+                value_matches=r"7-Zip\\7-zip\.dll",
+                not_lolbin=True,
             ),
         ),
     )

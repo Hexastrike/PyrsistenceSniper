@@ -60,7 +60,7 @@ def test_all_plugins_have_complete_definitions() -> None:
 
 
 def test_not_lolbin_blocks_lolbin() -> None:
-    rule = FilterRule(signer="microsoft", not_lolbin=True)
+    rule = FilterRule(signer="Microsoft", not_lolbin=True)
     finding = Finding(
         value="powershell.exe", signer="Microsoft Windows", is_lolbin=True
     )
@@ -68,13 +68,13 @@ def test_not_lolbin_blocks_lolbin() -> None:
 
 
 def test_not_lolbin_blocks_unresolved() -> None:
-    rule = FilterRule(signer="microsoft", not_lolbin=True)
+    rule = FilterRule(signer="Microsoft", not_lolbin=True)
     finding = Finding(value="unknown.exe", signer="Microsoft Windows", is_lolbin=None)
     assert rule.matches(finding) is False
 
 
 def test_not_lolbin_allows_non_lolbin() -> None:
-    rule = FilterRule(signer="microsoft", not_lolbin=True)
+    rule = FilterRule(signer="Microsoft", not_lolbin=True)
     finding = Finding(value="svchost.exe", signer="Microsoft Windows", is_lolbin=False)
     assert rule.matches(finding) is True
 
@@ -83,19 +83,19 @@ def test_not_lolbin_allows_non_lolbin() -> None:
 
 
 def test_signer_substring_match() -> None:
-    rule = FilterRule(signer="microsoft")
+    rule = FilterRule(signer="Microsoft")
     finding = Finding(value="test.exe", signer="Microsoft Corporation")
     assert rule.matches(finding) is True
 
 
 def test_signer_substring_no_match() -> None:
-    rule = FilterRule(signer="microsoft")
+    rule = FilterRule(signer="Microsoft")
     finding = Finding(value="test.exe", signer="Evil Corp")
     assert rule.matches(finding) is False
 
 
 def test_signer_empty_no_match() -> None:
-    rule = FilterRule(signer="microsoft")
+    rule = FilterRule(signer="Microsoft")
     finding = Finding(value="test.exe", signer="")
     assert rule.matches(finding) is False
 

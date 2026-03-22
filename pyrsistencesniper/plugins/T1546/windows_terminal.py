@@ -32,17 +32,17 @@ class WindowsTerminal(PersistencePlugin):
             FilterRule(
                 reason="Default Windows shell",
                 value_matches=r"(?i)^(%SystemRoot%\\System32\\)?cmd\.exe$",
-                signer="microsoft",
+                signer="Microsoft",
             ),
             FilterRule(
                 reason="Default PowerShell",
                 value_matches=r"(?i)^(%SystemRoot%\\System32\\WindowsPowerShell\\v1\.0\\)?powershell\.exe$",
-                signer="microsoft",
+                signer="Microsoft",
             ),
             FilterRule(
                 reason="Default PowerShell 7+",
                 value_matches=r"(?i)^pwsh\.exe$",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
     )

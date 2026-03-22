@@ -30,7 +30,7 @@ class PrintMonitors(PersistencePlugin):
                     r"^(localspl|tcpmon|usbmon|WSDMon|APMon|AppMon|FXSMON"
                     r"|msonppmon)\.dll$"
                 ),
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
         targets=(
@@ -61,7 +61,7 @@ class PrintProcessors(PersistencePlugin):
             FilterRule(
                 reason="Default Windows print processor",
                 value_matches=r"^winprint\.dll$",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
         targets=(

@@ -34,7 +34,7 @@ class ServiceFailureCommand(PersistencePlugin):
             FilterRule(
                 reason="NVIDIA display container service recovery",
                 value_matches=r"NVIDIA Corporation\\.*\\NvContainerRecovery\.bat",
-                signer="nvidia",
+                signer="Nvidia",
             ),
         ),
     )

@@ -30,7 +30,7 @@ class NetworkProviderDll(PersistencePlugin):
             FilterRule(
                 reason="Default Windows network provider",
                 value_matches=r"(ntlanman|davclnt|rdpnp|drprov|P9NP|vmhgfs)\.dll$",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
     )

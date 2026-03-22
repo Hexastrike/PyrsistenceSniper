@@ -38,24 +38,24 @@ class ActiveSetup(PersistencePlugin):
             FilterRule(
                 reason="Built-in active setup component",
                 value_matches=r"\\system32\\",
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
             FilterRule(
                 reason="Built-in media/IE setup",
                 value_matches=r"(unregmp2|ie4uinit)\.exe",
-                signer="microsoft",
+                signer="Microsoft",
             ),
             FilterRule(
                 reason="Google Chrome per-user setup",
                 value_matches=r"Google\\Chrome\\Application\\.*\\Installer\\chrmstp\.exe",
-                signer="google",
+                signer="Google",
                 not_lolbin=True,
             ),
             FilterRule(
                 reason="Microsoft Edge per-user setup",
                 value_matches=r"Microsoft\\Edge\\Application\\.*\\Installer\\setup\.exe",
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
         ),

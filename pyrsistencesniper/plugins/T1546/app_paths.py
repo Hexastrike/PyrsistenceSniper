@@ -29,19 +29,19 @@ class AppPaths(PersistencePlugin):
             FilterRule(
                 reason="Built-in OS application",
                 value_matches=r"\\system32\\",
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
             FilterRule(
                 reason="Microsoft application in Program Files",
                 value_matches=r"(?i)\\Program Files( \(x86\))?\\",
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
             FilterRule(
                 reason="Google Chrome application path",
                 value_matches=r"Google\\Chrome\\Application\\chrome\.exe",
-                signer="google",
+                signer="Google",
                 not_lolbin=True,
             ),
         ),

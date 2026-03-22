@@ -62,7 +62,7 @@ class FileAssociationHijack(PersistencePlugin):
         allow=(
             FilterRule(
                 reason="Standard system handler",
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
         ),

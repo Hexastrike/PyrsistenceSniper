@@ -67,7 +67,7 @@ class AssistiveTechnology(PersistencePlugin):
                     r"(?i)(EoAExperiences|LiveCaptions|Magnify|Narrator"
                     r"|osk|sapisvr|VoiceAccess)\.exe"
                 ),
-                signer="microsoft",
+                signer="Microsoft",
                 not_lolbin=True,
             ),
         ),

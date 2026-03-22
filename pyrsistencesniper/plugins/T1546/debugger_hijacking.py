@@ -144,12 +144,12 @@ class WerRuntimeExceptionHelperModules(PersistencePlugin):
             FilterRule(
                 reason="Known WER helper module",
                 value_matches=r"(mscordacwks|iertutil|msiwer|wbiosrvc|msedge_wer)\.dll",
-                signer="microsoft",
+                signer="Microsoft",
             ),
             FilterRule(
                 reason="Google Chrome WER helper",
                 value_matches=r"chrome_wer\.dll",
-                signer="google",
+                signer="Google",
             ),
         ),
     )

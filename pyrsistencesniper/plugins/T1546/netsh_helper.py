@@ -32,7 +32,7 @@ class NetshHelper(PersistencePlugin):
                     r"|nshhttp|nshipsec|nshwfp|rpcnsh|WcnNetsh|whhelper"
                     r"|wlancfg|wshelper|wwancfg|peerdistsh)\.dll$"
                 ),
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
         targets=(

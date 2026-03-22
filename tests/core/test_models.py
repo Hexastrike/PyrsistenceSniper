@@ -112,7 +112,7 @@ def test_match_result_full_when_all_conditions_match() -> None:
 
 
 def test_match_result_partial_when_core_passes_signer_fails() -> None:
-    rule = FilterRule(value_matches=r"^explorer\.exe$", signer="unknown")
+    rule = FilterRule(value_matches=r"^explorer\.exe$", signer="Unknown")
     f = Finding(value="explorer.exe", signer="")
     assert rule.match_result(f) == MatchResult.PARTIAL
 
@@ -136,19 +136,19 @@ def test_match_result_none_for_empty_rule() -> None:
 
 
 def test_match_result_none_when_core_fails_signer_matches() -> None:
-    rule = FilterRule(path_matches=r"Winlogon", signer="microsoft")
+    rule = FilterRule(path_matches=r"Winlogon", signer="Microsoft")
     f = Finding(path="HKLM\\Run", signer="Microsoft Windows")
     assert rule.match_result(f) == MatchResult.NONE
 
 
 def test_match_result_none_when_only_signer_fails() -> None:
-    rule = FilterRule(signer="unknown")
+    rule = FilterRule(signer="Unknown")
     f = Finding(signer="Microsoft Windows")
     assert rule.match_result(f) == MatchResult.NONE
 
 
 def test_match_result_full_when_only_signer_matches() -> None:
-    rule = FilterRule(signer="microsoft")
+    rule = FilterRule(signer="Microsoft")
     f = Finding(signer="Microsoft Windows")
     assert rule.match_result(f) == MatchResult.FULL
 
@@ -158,7 +158,7 @@ def test_match_result_full_when_only_signer_matches() -> None:
 # FilterRule entries with signer= and not_lolbin= fields.  These tests verify
 # that the same filtering behaviour is achieved through FilterRule.matches().
 
-_MS_RULE = FilterRule(signer="microsoft", not_lolbin=True)
+_MS_RULE = FilterRule(signer="Microsoft", not_lolbin=True)
 
 
 # -- basic suppression logic --------------------------------------------------
@@ -259,18 +259,18 @@ def test_none_is_lolbin_not_suppressed() -> None:
 
 
 def test_value_and_signer_both_match() -> None:
-    rule = FilterRule(value_matches=r"explorer\.exe", signer="microsoft")
+    rule = FilterRule(value_matches=r"explorer\.exe", signer="Microsoft")
     finding = Finding(value="explorer.exe", signer="Microsoft Windows")
     assert rule.matches(finding) is True
 
 
 def test_value_match_but_unsigned_no_match() -> None:
-    rule = FilterRule(value_matches=r"explorer\.exe", signer="microsoft")
+    rule = FilterRule(value_matches=r"explorer\.exe", signer="Microsoft")
     finding = Finding(value="explorer.exe", signer="")
     assert rule.matches(finding) is False
 
 
 def test_value_match_but_wrong_signer_no_match() -> None:
-    rule = FilterRule(value_matches=r"explorer\.exe", signer="microsoft")
+    rule = FilterRule(value_matches=r"explorer\.exe", signer="Microsoft")
     finding = Finding(value="explorer.exe", signer="Evil Corp")
     assert rule.matches(finding) is False

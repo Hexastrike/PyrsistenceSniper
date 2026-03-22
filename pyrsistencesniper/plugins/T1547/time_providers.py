@@ -27,12 +27,12 @@ class TimeProviders(PersistencePlugin):
             FilterRule(
                 reason="Default Windows time provider",
                 value_matches=r"w32time\.dll$",
-                signer="microsoft",
+                signer="Microsoft",
             ),
             FilterRule(
                 reason="Hyper-V time provider",
                 value_matches=r"vmictimeprovider\.dll$",
-                signer="microsoft",
+                signer="Microsoft",
             ),
         ),
         targets=(
