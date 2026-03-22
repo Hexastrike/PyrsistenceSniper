@@ -1,6 +1,6 @@
 [project]
 name = "pyrsistencesniper"
-version = "0.6.1.1"
+version = "0.7.0"
 description = "Offline Windows Persistence Detection"
 authors = [
     {name = "Maurice Fielenbach", email = "info@hexastrike.com"}
@@ -164,7 +164,7 @@ dev = [
 version_toml = ["pyproject.toml:project.version"]
 version_variables = ["pyrsistencesniper/__init__.py:__version__"]
 branch = "main"
-build_command = "pip install build && python -m build"
+major_on_zero = false
 commit_message = "chore(release): v{version}"
 tag_format = "v{version}"
 
