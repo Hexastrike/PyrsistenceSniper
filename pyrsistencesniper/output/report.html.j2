@@ -281,17 +281,19 @@ function buildHeaders(){
     indicator.innerHTML=sortField===f?(sortAsc?SVG_UP:SVG_DN):SVG_BOTH;
     if(sortField===f)indicator.classList.add("active");
     th.appendChild(indicator);
-    th.addEventListener("click",function(){sortBy(f);});
+    th.addEventListener("click",function(){if(!resizing){sortBy(f);}});
     var handle=document.createElement("div");handle.className="col-resize";
     handle.addEventListener("mousedown",function(e){e.stopPropagation();initResize(e,th);});
     th.appendChild(handle);
     theadRow.appendChild(th);
   });
 }
+var resizing=false;
 function initResize(e,th){
+  resizing=true;
   var startX=e.pageX,startW=th.offsetWidth;
   function onMove(ev){var w=Math.max(20,startW+(ev.pageX-startX));th.style.width=w+"px";th.style.minWidth=w+"px";}
-  function onUp(){document.removeEventListener("mousemove",onMove);document.removeEventListener("mouseup",onUp);window.removeEventListener("blur",onUp);}
+  function onUp(){document.removeEventListener("mousemove",onMove);document.removeEventListener("mouseup",onUp);window.removeEventListener("blur",onUp);setTimeout(function(){resizing=false;},0);}
   document.addEventListener("mousemove",onMove);document.addEventListener("mouseup",onUp);window.addEventListener("blur",onUp);
 }
 
