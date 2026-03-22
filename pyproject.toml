@@ -165,7 +165,7 @@ version_toml = ["pyproject.toml:project.version"]
 version_variables = ["pyrsistencesniper/__init__.py:__version__"]
 branch = "main"
 major_on_zero = false
-commit_message = "chore(release): v{version}"
+commit_message = "chore(release): v{version} [skip ci]"
 tag_format = "v{version}"
 
 [tool.semantic_release.commit_parser_options]
