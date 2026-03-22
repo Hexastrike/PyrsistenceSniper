@@ -159,3 +159,16 @@ dev = [
     "types-pyyaml (>=6.0.12.20250915,<7.0.0.0)",
     "pre-commit (>=4.5.1,<5.0.0)"
 ]
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+version_variables = ["pyrsistencesniper/__init__.py:__version__"]
+branch = "main"
+build_command = "pip install build && python -m build"
+commit_message = "chore(release): v{version}"
+tag_format = "v{version}"
+
+[tool.semantic_release.commit_parser_options]
+allowed_tags = ["feat", "fix", "perf", "refactor", "style", "docs", "chore", "ci", "test", "build"]
+minor_tags = ["feat"]
+patch_tags = ["fix", "perf", "refactor", "style"]
