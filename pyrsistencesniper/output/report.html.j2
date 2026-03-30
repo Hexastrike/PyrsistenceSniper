@@ -174,6 +174,8 @@ tr:hover td { background: #1a1a1a; }
   <button class="ctx-item" data-action="copy-sha256" id="ctx-copy-sha256">Copy SHA256</button>
   <button class="ctx-item" data-action="copy-path">Copy Path</button>
   <button class="ctx-item" data-action="copy-json">Copy Row as JSON</button>
+  <div class="ctx-sep"></div>
+  <button class="ctx-item" data-action="exclude-match">Exclude matching rows</button>
 </div>
 <div class="report-footer">
   Powered by <strong>PyrsistenceSniper</strong> &middot; Hexastrike Cybersecurity
@@ -184,7 +186,7 @@ tr:hover td { background: #1a1a1a; }
 var DATA={{ results|tojson }};
 var FIELDS={{ fieldnames|tojson }};
 var LABELS={{ labels|tojson }};
-var sortField=null,sortAsc=true,ctxRow=null;
+var sortField=null,sortAsc=true,ctxRow=null,excludeTerms=[];
 var visibleFields=new Set(FIELDS);
 var searchEl=document.getElementById("search");
 var theadRow=document.getElementById("thead-row");
@@ -301,6 +303,7 @@ function getFilteredData(){
       if(st.selected.size<st.all.size&&!st.selected.has(r[fd.field]))return false;
     }
     if(query){var matched=false;FIELDS.forEach(function(f){if(String(r[f]!=null?r[f]:"").toLowerCase().indexOf(query)!==-1)matched=true;});if(!matched)return false;}
+    for(var e=0;e<excludeTerms.length;e++){var ex=excludeTerms[e],p=String(r.path||"").toLowerCase(),v=String(r.value||"").toLowerCase();if(p.indexOf(ex)!==-1||v.indexOf(ex)!==-1)return false;}
     return true;
   });
   if(sortField!==null){
@@ -316,7 +319,7 @@ function renderTable(){
   var rows=getFilteredData(),frag=document.createDocumentFragment();
   rows.forEach(function(r){frag.appendChild(renderRow(r));});
   tbody.textContent="";tbody.appendChild(frag);
-  rowCountEl.textContent=rows.length+" / "+DATA.length+" rows";
+  rowCountEl.textContent=rows.length+" / "+DATA.length+" rows"+(excludeTerms.length?" ("+excludeTerms.length+" excluded)":"");
 }
 function renderRow(row){
   var tr=document.createElement("tr");
@@ -371,6 +374,7 @@ function handleContextAction(action){
     case"copy-sha256":navigator.clipboard.writeText(ctxRow.sha256||"");break;
     case"copy-path":navigator.clipboard.writeText(ctxRow.path||"");break;
     case"copy-json":navigator.clipboard.writeText(JSON.stringify(ctxRow,null,2));break;
+    case"exclude-match":var exTerm=(selection||ctxRow.value||"").toLowerCase();if(exTerm&&excludeTerms.indexOf(exTerm)===-1){excludeTerms.push(exTerm);renderTable();}break;
   }
   hideContextMenu();
 }
@@ -378,7 +382,7 @@ function handleContextAction(action){
 /* --- Event listeners --- */
 var debounceTimer;searchEl.addEventListener("input",function(){clearTimeout(debounceTimer);debounceTimer=setTimeout(renderTable,200);});
 document.getElementById("reset-filters").addEventListener("click",function(){
-  searchEl.value="";sortField=null;sortAsc=true;visibleFields=new Set(FIELDS);
+  searchEl.value="";sortField=null;sortAsc=true;visibleFields=new Set(FIELDS);excludeTerms=[];
   FILTER_DEFS.forEach(function(def){
     var st=filterState[def.key];
     st.selected=new Set(st.all);
