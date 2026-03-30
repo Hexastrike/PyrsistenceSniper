@@ -11,6 +11,15 @@ from pyrsistencesniper.core.winutil import canonicalize_windows_path
 logger = logging.getLogger(__name__)
 
 
+def safe_iterdir(directory: Path) -> list[Path]:
+    """List directory entries, returning empty list on any OS error."""
+    try:
+        return list(directory.iterdir())
+    except OSError:
+        logger.debug("Cannot read directory: %s", directory, exc_info=True)
+        return []
+
+
 class FilesystemHelper:
     """Resolves Windows paths to host paths and inspects files under the image root."""
 

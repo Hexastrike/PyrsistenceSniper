@@ -7,7 +7,7 @@ import functools
 import logging
 from pathlib import Path
 
-from pyrsistencesniper.core.filesystem import FilesystemHelper
+from pyrsistencesniper.core.filesystem import FilesystemHelper, safe_iterdir
 from pyrsistencesniper.core.models import HiveProtocol, UserProfile
 from pyrsistencesniper.core.profile import DetectionProfile
 from pyrsistencesniper.core.registry import RegistryHelper
@@ -80,23 +80,17 @@ def _discover_hives(root: Path) -> dict[str, Path]:
     hives: dict[str, Path] = {}
     config_dir = root / "Windows" / "System32" / "config"
     if config_dir.is_dir():
-        try:
-            for entry in config_dir.iterdir():
-                if entry.is_file():
-                    hives[entry.name.lower()] = entry
-        except PermissionError:
-            logger.debug("Permission denied reading %s", config_dir)
-    # Root-level fallback for hives not found in config/
-    try:
-        for entry in root.iterdir():
-            if (
-                entry.is_file()
-                and entry.name.lower() not in hives
-                and entry.name.lower() in _KNOWN_HIVE_NAMES
-            ):
+        for entry in safe_iterdir(config_dir):
+            if entry.is_file():
                 hives[entry.name.lower()] = entry
-    except PermissionError:
-        logger.debug("Permission denied reading %s", root)
+    # Root-level fallback for hives not found in config/
+    for entry in safe_iterdir(root):
+        if (
+            entry.is_file()
+            and entry.name.lower() not in hives
+            and entry.name.lower() in _KNOWN_HIVE_NAMES
+        ):
+            hives[entry.name.lower()] = entry
     return hives
 
 
@@ -106,12 +100,7 @@ def _discover_profiles(root: Path) -> list[UserProfile]:
     profiles: list[UserProfile] = []
     if not users_dir.is_dir():
         return profiles
-    try:
-        entries = sorted(users_dir.iterdir())
-    except PermissionError:
-        logger.debug("Permission denied reading %s", users_dir)
-        return profiles
-    for entry in entries:
+    for entry in sorted(safe_iterdir(users_dir)):
         if not entry.is_dir():
             continue
         ntuser = entry / "NTUSER.DAT"

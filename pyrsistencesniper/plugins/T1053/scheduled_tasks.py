@@ -7,6 +7,7 @@ from pathlib import Path, PureWindowsPath
 
 import defusedxml.ElementTree as DefusedET
 
+from pyrsistencesniper.core.filesystem import safe_iterdir
 from pyrsistencesniper.core.models import (
     AccessLevel,
     CheckDefinition,
@@ -101,15 +102,7 @@ class ScheduledTaskFiles(PersistencePlugin):
         if depth >= _MAX_DEPTH:
             return
 
-        try:
-            entries = list(directory.iterdir())
-        except PermissionError:
-            logger.debug(
-                "Permission denied reading directory: %s",
-                directory,
-                exc_info=True,
-            )
-            return
+        entries = safe_iterdir(directory)
 
         for entry in entries:
             if entry.is_dir():

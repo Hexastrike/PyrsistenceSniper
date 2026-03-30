@@ -124,7 +124,11 @@ class SignerExtractor:
         cat_dir = self._fs.image_root / _CATROOT_SUBDIR
         if not cat_dir.is_dir():
             return []
-        cat_files = list(cat_dir.glob("*.cat"))
+        try:
+            cat_files = list(cat_dir.glob("*.cat"))
+        except OSError:
+            logger.debug("Cannot glob catalog directory: %s", cat_dir, exc_info=True)
+            return []
         if not cat_files:
             return []
         logger.info("Loading %d catalog files into memory ...", len(cat_files))

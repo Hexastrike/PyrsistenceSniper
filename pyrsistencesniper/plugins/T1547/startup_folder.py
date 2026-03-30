@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path, PureWindowsPath
 
+from pyrsistencesniper.core.filesystem import safe_iterdir
 from pyrsistencesniper.core.models import (
     AccessLevel,
     CheckDefinition,
@@ -94,12 +95,7 @@ class StartupFolder(PersistencePlugin):
     ) -> None:
         if not folder.is_dir():
             return
-        try:
-            entries = list(folder.iterdir())
-        except PermissionError:
-            logger.debug("Permission denied reading folder: %s", folder, exc_info=True)
-            return
-        for entry in entries:
+        for entry in safe_iterdir(folder):
             if entry.is_file() and entry.name.lower() != "desktop.ini":
                 try:
                     rel = str(

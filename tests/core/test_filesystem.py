@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import hashlib
 from typing import TYPE_CHECKING
+from unittest.mock import patch
 
-from pyrsistencesniper.core.filesystem import FilesystemHelper
+from pyrsistencesniper.core.filesystem import FilesystemHelper, safe_iterdir
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -99,3 +100,35 @@ def test_resolve_unc_returns_root(tmp_path: Path) -> None:
     resolved = fs.resolve("\\\\server\\share\\file.txt")
     expected = tmp_path
     assert resolved == expected
+
+
+# -- safe_iterdir -------------------------------------------------------------
+
+
+def test_safe_iterdir_returns_entries(tmp_path: Path) -> None:
+    (tmp_path / "a.txt").write_text("a")
+    (tmp_path / "b.txt").write_text("b")
+    entries = safe_iterdir(tmp_path)
+    names = sorted(e.name for e in entries)
+    assert names == ["a.txt", "b.txt"]
+
+
+def test_safe_iterdir_oserror_returns_empty(tmp_path: Path) -> None:
+    from pathlib import Path as _Path
+
+    with patch.object(_Path, "iterdir", side_effect=OSError("generic OS error")):
+        assert safe_iterdir(tmp_path) == []
+
+
+def test_safe_iterdir_filenotfounderror_returns_empty(tmp_path: Path) -> None:
+    from pathlib import Path as _Path
+
+    with patch.object(_Path, "iterdir", side_effect=FileNotFoundError("[WinError 3]")):
+        assert safe_iterdir(tmp_path) == []
+
+
+def test_safe_iterdir_permissionerror_returns_empty(tmp_path: Path) -> None:
+    from pathlib import Path as _Path
+
+    with patch.object(_Path, "iterdir", side_effect=PermissionError("access denied")):
+        assert safe_iterdir(tmp_path) == []

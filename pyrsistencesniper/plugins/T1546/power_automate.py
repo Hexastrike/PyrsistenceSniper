@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path, PureWindowsPath
 
+from pyrsistencesniper.core.filesystem import safe_iterdir
 from pyrsistencesniper.core.models import (
     AccessLevel,
     CheckDefinition,
@@ -50,21 +51,14 @@ class PowerAutomate(PersistencePlugin):
     def _scan_directory(self, directory: Path, findings: list[Finding]) -> None:
         if not directory.is_dir():
             return
-        try:
-            findings.extend(
-                self._make_finding(
-                    path=str(
-                        PureWindowsPath(entry.relative_to(self.filesystem.image_root))
-                    ),
-                    value=entry.name,
-                    access=AccessLevel.USER,
-                )
-                for entry in directory.iterdir()
-                if entry.is_dir()
+        findings.extend(
+            self._make_finding(
+                path=str(
+                    PureWindowsPath(entry.relative_to(self.filesystem.image_root))
+                ),
+                value=entry.name,
+                access=AccessLevel.USER,
             )
-        except PermissionError:
-            logger.debug(
-                "Permission denied reading directory: %s",
-                directory,
-                exc_info=True,
-            )
+            for entry in safe_iterdir(directory)
+            if entry.is_dir()
+        )
