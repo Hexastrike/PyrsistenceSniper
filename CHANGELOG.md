@@ -1,6 +1,37 @@
 # CHANGELOG
 
 
+## v0.8.0 (2026-03-30)
+
+### Bug Fixes
+
+- Broaden PermissionError to OSError for long/URL-encoded path handling (fixes #1)
+  ([`c4d6b3f`](https://github.com/Hexastrike/PyrsistenceSniper/commit/c4d6b3f6c181b9d23b787f8194aa3cb82b461375))
+
+- Include Poetry lockfile
+  ([`f88c356`](https://github.com/Hexastrike/PyrsistenceSniper/commit/f88c3568d84a2dbe052eb01f3409abf9fb90ff8e))
+
+### Chores
+
+- Pin all dependencies to exact versions
+  ([`3f17692`](https://github.com/Hexastrike/PyrsistenceSniper/commit/3f176921e8db8eb94de6d86a6544f9cd8a13481b))
+
+### Code Style
+
+- Modernize HTML report with clean dark theme and remove glow effects
+  ([`8dc9101`](https://github.com/Hexastrike/PyrsistenceSniper/commit/8dc910111d486355e9a0ed13196c540c70ad893b))
+
+### Documentation
+
+- Use python -m pyrsistencesniper as primary CLI usage
+  ([`082e37c`](https://github.com/Hexastrike/PyrsistenceSniper/commit/082e37c940a8e62549417403f89c8e15d54ccb07))
+
+### Features
+
+- Add exclude matching rows option to HTML report context menu
+  ([`576a677`](https://github.com/Hexastrike/PyrsistenceSniper/commit/576a6774da6b879149e5c92d52c53e5c3d20dfac))
+
+
 ## v0.7.1 (2026-03-22)
 
 ### Bug Fixes
