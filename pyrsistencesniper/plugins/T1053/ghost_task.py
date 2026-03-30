@@ -1,4 +1,4 @@
-"""Detect ghost scheduled tasks -- registry entries with no corresponding XML file."""
+"""Detect ghost scheduled tasks - registry entries with no corresponding XML file."""
 
 from __future__ import annotations
 

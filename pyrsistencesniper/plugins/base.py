@@ -53,7 +53,7 @@ class PersistencePlugin:
     def run(self) -> list[Finding]:
         """Execute the check. Override in subclasses for custom detection.
 
-        Filtering convention -- plugins filter at two levels:
+        Filtering convention - plugins filter at two levels:
 
         * **In run()**: reject values that are not valid findings (garbage
           data, non-executable flags, wrong value types).  These are data

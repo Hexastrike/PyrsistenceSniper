@@ -36,16 +36,16 @@ classifiers = [
     "Topic :: Utilities",
 ]
 dependencies = [
-    "libregf-python (>=20240303,<20280000)",
-    "pyyaml (>=6.0.3,<7.0.0)",
-    "jinja2 (>=3.1.6,<4.0.0)",
-    "lief (>=0.15.0,<1.0.0)",
-    "asn1crypto (>=1.5.0,<2.0.0)",
-    "httpx (>=0.28.0,<1.0.0)",
-    "platformdirs (>=4.9.2,<5.0.0)",
-    "rich (>=13.0,<15.0)",
-    "defusedxml (>=0.7.1,<1)",
-    "openpyxl (>=3.1.0,<4.0.0)"
+    "libregf-python (==20240421)",
+    "pyyaml (==6.0.3)",
+    "jinja2 (==3.1.6)",
+    "lief (==0.17.6)",
+    "asn1crypto (==1.5.1)",
+    "httpx (==0.28.1)",
+    "platformdirs (==4.9.4)",
+    "rich (==14.3.3)",
+    "defusedxml (==0.7.1)",
+    "openpyxl (==3.1.5)"
 ]
 
 
@@ -55,7 +55,7 @@ Repository = "https://github.com/Hexastrike/PyrsistenceSniper"
 Issues = "https://github.com/Hexastrike/PyrsistenceSniper/issues"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core==2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [project.scripts]
@@ -91,8 +91,8 @@ select = [
     "PTH",  # flake8-use-pathlib
 ]
 ignore = [
-    "PLR0913",  # too many arguments -- legitimate for AnalysisContext, plugin constructors
-    "PLC0415",  # import-outside-toplevel -- inline imports kept only for circular-import avoidance
+    "PLR0913",  # too many arguments, legitimate for AnalysisContext, plugin constructors
+    "PLC0415",  # import-outside-toplevel, inline imports kept only for circular-import avoidance
     "S101",     # assert used for internal invariants
 ]
 
@@ -152,12 +152,12 @@ fail_under = 80
 
 [dependency-groups]
 dev = [
-    "pytest (>=9.0.2,<10.0.0)",
-    "pytest-cov (>=7.0.0,<8.0.0)",
-    "mypy (>=1.19.1,<2.0.0)",
-    "ruff (>=0.15.2,<0.16.0)",
-    "types-pyyaml (>=6.0.12.20250915,<7.0.0.0)",
-    "pre-commit (>=4.5.1,<5.0.0)"
+    "pytest (==9.0.2)",
+    "pytest-cov (==7.1.0)",
+    "mypy (==1.19.1)",
+    "ruff (==0.15.2)",
+    "types-pyyaml (==6.0.12.20250915)",
+    "pre-commit (==4.5.1)"
 ]
 
 [tool.semantic_release]
