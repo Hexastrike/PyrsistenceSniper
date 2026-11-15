@@ -206,6 +206,7 @@ def _run_scan(args: argparse.Namespace) -> None:
             output=args.output,
             inventory=inventory,
             failures=failures,
+            hostname=context.hostname,
         )
     except KeyboardInterrupt:
         sys.exit(130)
@@ -233,7 +234,7 @@ def _warn_on_skipped_paths() -> None:
 def _partial_read_failures() -> tuple[CheckFailure, ...]:
     """Report partially-read registry keys as coverage the scan did not get."""
     return tuple(
-        CheckFailure(check_id=f"registry key {key_name}", error=error)
+        CheckFailure(artifact=f"registry key {key_name}", error=error)
         for key_name, error in sorted(partial_reads().items())
     )
 
@@ -242,29 +243,25 @@ def _exit_on_incomplete_scan(
     inventory: tuple[HiveRecord, ...],
     failures: tuple[CheckFailure, ...],
 ) -> None:
-    """Exit non-zero when a hive, a check or an artifact produced nothing."""
+    """Name each hive, check or artifact that produced nothing, then exit non-zero."""
     unreadable = [record for record in inventory if record.cost_checks]
-    incomplete = False
 
     if unreadable:
-        incomplete = True
-        names = ", ".join(
-            f"{record.name} [{record.owner}]" if record.owner else record.name
-            for record in unreadable
-        )
         sys.stderr.write(
-            f"Scan incomplete: {len(unreadable)} hive(s) could not be read: {names}\n"
+            f"Scan incomplete: {len(unreadable)} hive(s) could not be read\n"
         )
+        for record in unreadable:
+            sys.stderr.write(f"  {record.label}: {record.outcome}\n")
 
     if failures:
-        incomplete = True
-        names = ", ".join(failure.check_id for failure in failures)
         sys.stderr.write(
             f"Scan incomplete: {len(failures)} check(s) or artifact(s) "
-            f"produced nothing: {names}\n"
+            "produced nothing\n"
         )
+        for failure in failures:
+            sys.stderr.write(f"  {failure.label}: {failure.error}\n")
 
-    if incomplete:
+    if unreadable or failures:
         sys.exit(2)
 
 

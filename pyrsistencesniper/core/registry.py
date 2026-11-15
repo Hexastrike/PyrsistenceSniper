@@ -317,7 +317,9 @@ def record_artifact_failure(
     if identity in _artifact_failures:
         return
     error = _describe_failure(reason)
-    _artifact_failures[identity] = CheckFailure(check_id=identity, error=error)
+    _artifact_failures[identity] = CheckFailure(
+        check_id=check_id, artifact=str(artifact), error=error
+    )
     logger.warning("Check %s could not read artifact %s: %s", check_id, artifact, error)
 
 

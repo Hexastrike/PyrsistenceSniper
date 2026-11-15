@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import csv
 import io
+import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -62,6 +64,16 @@ def _html(results: list[Any], **kwargs: Any) -> str:
     out = io.StringIO()
     HtmlOutput()._write(results, out, **kwargs)
     return out.getvalue()
+
+
+def _html_rows(results: list[Any], **kwargs: Any) -> list[dict[str, Any]]:
+    """Render the HTML report and return the rows its table is built from."""
+    payload = re.search(
+        r"var DATA=(.*?);\s*var FIELDS=", _html(results, **kwargs), re.DOTALL
+    )
+    assert payload is not None
+    rows: list[dict[str, Any]] = json.loads(payload.group(1))
+    return rows
 
 
 def _csv(results: list[Any], **kwargs: Any) -> str:
@@ -284,15 +296,28 @@ def test_console_stays_quiet_when_every_check_ran() -> None:
     assert "did not run" not in _console([], failures=())
 
 
-def test_html_renders_the_failed_check_block() -> None:
-    """The HTML artifact carries failed checks, so it is not read as clean."""
-    html = _html(
+def test_html_carries_a_failed_check_as_an_error_row() -> None:
+    """A failed check is a row of the table, so the report is not read as clean."""
+    rows = _html_rows(
         [(Finding(path="p", value="v"), ())],
         failures=(CheckFailure(check_id="com_hijack", error="OSError: bad cell"),),
     )
 
-    assert "did not run" in html
-    assert "com_hijack" in html
+    assert rows[0]["severity"] == "ERROR"
+    assert rows[0]["check_id"] == "com_hijack"
+    assert rows[0]["value"] == "OSError: bad cell"
+
+
+def test_xlsx_carries_a_failed_check_as_an_error_row() -> None:
+    """The findings sheet leads with the check that produced nothing."""
+    sheet = _workbook(
+        [(Finding(path="p", value="v"), ())],
+        failures=(CheckFailure(check_id="ghost_task", error="ValueError: boom"),),
+    ).active
+
+    assert _cell_under(sheet, "Severity").value == "ERROR"
+    assert _cell_under(sheet, "Check ID").value == "ghost_task"
+    assert _cell_under(sheet, "Value").value == "ValueError: boom"
 
 
 def test_xlsx_writes_a_failed_check_sheet(tmp_path: Path) -> None:
@@ -308,34 +333,63 @@ def test_xlsx_writes_a_failed_check_sheet(tmp_path: Path) -> None:
     assert rows[1] == ("ghost_task", "ValueError: boom")
 
 
-def test_html_renders_the_unreadable_hive_block() -> None:
-    """The HTML report carries the integrity warning into the artifact."""
-    html = _html(
+def test_html_carries_an_unreadable_hive_as_an_error_row() -> None:
+    """The hive that was never read travels with the report, as a row of its table."""
+    rows = _html_rows(
         [(Finding(path="p", value="v"), ())],
         inventory=(_hive("SYSTEM", HiveStatus.OPEN_FAILED, error="OSError: bad hive"),),
     )
 
-    assert "Scan incomplete" in html
-    assert "SYSTEM" in html
+    assert rows[0]["severity"] == "ERROR"
+    assert rows[0]["path"] == "SYSTEM"
+    assert rows[0]["value"] == "OPEN_FAILED: OSError: bad hive"
 
 
-def test_html_omits_the_block_when_every_hive_was_read() -> None:
-    """A clean report carries no permanent scare banner."""
-    assert "Scan incomplete" not in _html(
+def test_html_holds_only_findings_when_every_hive_was_read() -> None:
+    """A clean report carries its findings and no row about the scan itself."""
+    rows = _html_rows(
         [(Finding(path="p", value="v"), ())],
         inventory=(_hive("SOFTWARE", HiveStatus.OPENED),),
     )
 
+    assert [row["severity"] for row in rows] == ["MEDIUM"]
 
-def test_html_notes_dirty_hives_separately() -> None:
-    """A hive that was read but is dirty is a caveat, not a failure."""
-    html = _html(
+
+def test_html_carries_a_dirty_hive_as_an_error_row() -> None:
+    """A hive that was read but is dirty is named in the table, with its caveat."""
+    rows = _html_rows(
         [(Finding(path="p", value="v"), ())],
         inventory=(_hive("SOFTWARE", HiveStatus.OPENED, dirty=True),),
     )
 
-    assert "uncommitted transactions" in html
+    assert rows[0]["severity"] == "ERROR"
+    assert rows[0]["path"] == "SOFTWARE"
+    assert rows[0]["value"] == "Uncommitted transactions"
+
+
+def test_html_reports_gaps_in_the_table_and_nowhere_else() -> None:
+    """No error text is printed above the table; the rows are the only channel."""
+    html = _html(
+        [(Finding(path="p", value="v"), ())],
+        inventory=(_hive("SYSTEM", HiveStatus.OPEN_FAILED, error="OSError: bad hive"),),
+        failures=(CheckFailure(check_id="com_hijack", error="OSError: bad cell"),),
+    )
+
+    assert "scan-integrity" not in html
     assert "Scan incomplete" not in html
+    assert html.count("OSError: bad hive") == 1
+    assert html.count("OSError: bad cell") == 1
+
+
+def test_html_counts_gaps_apart_from_findings() -> None:
+    """Total counts findings only, so an error row cannot inflate what was found."""
+    html = _html(
+        [(Finding(path="p", value="v"), ())],
+        failures=(CheckFailure(check_id="run_keys", error="OSError: bad cell"),),
+    )
+
+    assert '<div class="stat-value">1</div><div class="stat-label">Total</div>' in html
+    assert '<div class="stat-value">1</div><div class="stat-label">Errors</div>' in html
 
 
 def test_html_filters_every_column_rather_than_a_fixed_four() -> None:
@@ -362,16 +416,48 @@ def test_html_shows_active_filters_as_chips() -> None:
     assert "renderChips" in html
 
 
-def test_csv_ignores_the_inventory() -> None:
-    """The CSV stays a pure findings table so downstream parsers keep working."""
+def test_csv_carries_an_unreadable_hive_as_an_error_row() -> None:
+    """A gap rides in the findings' own columns, so a parser meets one table shape."""
     csv_text = _csv(
         [(Finding(path="p", value="v"), ())],
-        inventory=(_hive("SYSTEM", HiveStatus.OPEN_FAILED),),
+        inventory=(_hive("SYSTEM", HiveStatus.OPEN_FAILED, error="OSError: bad"),),
+        hostname="HOST",
     )
-    rows = list(csv.reader(io.StringIO(csv_text)))
+    header, gap, finding = csv.reader(io.StringIO(csv_text))
+    cells = dict(zip(header, gap, strict=True))
 
-    assert len(rows) == 2
-    assert "SYSTEM" not in csv_text
+    assert cells["Severity"] == "ERROR"
+    assert cells["Path"] == "SYSTEM"
+    assert cells["Value"] == "OPEN_FAILED: OSError: bad"
+    assert cells["Hostname"] == "HOST"
+    assert len(finding) == len(header)
+
+
+def test_csv_reports_a_gap_even_without_findings() -> None:
+    """A scan that found nothing because a check failed must not write an empty file."""
+    csv_text = _csv(
+        [], failures=(CheckFailure(check_id="run_keys", error="OSError: bad cell"),)
+    )
+
+    assert len(list(csv.reader(io.StringIO(csv_text)))) == 2
+    assert "run_keys" in csv_text
+
+
+def test_csv_stays_empty_without_findings_or_gaps() -> None:
+    """A clean scan that found nothing writes no header, as it did before."""
+    assert _csv([], inventory=(_hive("SOFTWARE", HiveStatus.OPENED),)) == ""
+
+
+def test_csv_quotes_a_formula_trigger_in_an_error_row() -> None:
+    """An attacker names the artifact, so a gap row is sanitized like a finding."""
+    csv_text = _csv(
+        [],
+        failures=(
+            CheckFailure(check_id="run_keys", artifact="=HYPERLINK()", error="boom"),
+        ),
+    )
+
+    assert "'=HYPERLINK()" in csv_text
 
 
 def test_xlsx_appends_a_hive_sheet(tmp_path: Path) -> None:

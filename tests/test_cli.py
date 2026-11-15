@@ -161,8 +161,8 @@ def test_unreadable_hive_exits_two(
 
     assert exc.value.code == 2
     err = capsys.readouterr().err
-    assert "SYSTEM" in err
-    assert "Error" not in err
+    assert "SYSTEM: OPEN_FAILED: OSError: bad" in err
+    assert not any(line.startswith("Error:") for line in err.splitlines())
 
 
 def test_failed_check_exits_two(
@@ -184,7 +184,33 @@ def test_failed_check_exits_two(
         main()
 
     assert exc.value.code == 2
-    assert "run_keys" in capsys.readouterr().err
+    assert "run_keys: OSError: bad" in capsys.readouterr().err
+
+
+def test_partially_read_key_exits_two_and_reaches_the_renderer(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A key read only in part is lost coverage, named by the key and not a check."""
+    context = context_with(HiveRecord(name="SOFTWARE", status=HiveStatus.OPENED))
+    argv = ["pyrsistencesniper", str(tmp_path)]
+
+    with (
+        patch("sys.argv", argv),
+        patched_scan(context) as get_renderer,
+        patch(
+            "pyrsistencesniper.cli.partial_reads",
+            return_value={"Run": "OSError: bad cell"},
+        ),
+        pytest.raises(SystemExit) as exc,
+    ):
+        main()
+
+    assert exc.value.code == 2
+    assert "registry key Run: OSError: bad cell" in capsys.readouterr().err
+    _args, kwargs = get_renderer.return_value.return_value.render.call_args
+    assert kwargs["failures"] == (
+        CheckFailure(artifact="registry key Run", error="OSError: bad cell"),
+    )
 
 
 def test_failed_check_reaches_the_renderer(tmp_path: Path) -> None:
@@ -267,3 +293,16 @@ def test_renderer_receives_the_hive_inventory(tmp_path: Path) -> None:
 
     _args, kwargs = get_renderer.return_value.return_value.render.call_args
     assert kwargs["inventory"] == records
+
+
+def test_renderer_receives_the_hostname(tmp_path: Path) -> None:
+    """The hostname reaches the renderer so a row about the scan names its host."""
+    context = context_with(HiveRecord(name="SOFTWARE", status=HiveStatus.OPENED))
+    context.hostname = "HOST1"
+    argv = ["pyrsistencesniper", str(tmp_path)]
+
+    with patch("sys.argv", argv), patched_scan(context) as get_renderer:
+        main()
+
+    _args, kwargs = get_renderer.return_value.return_value.render.call_args
+    assert kwargs["hostname"] == "HOST1"

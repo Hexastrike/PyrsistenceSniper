@@ -12,6 +12,7 @@
   --sev-medium: #FFB224;
   --sev-low: #3ECF8E;
   --sev-info: #5CA0FF;
+  --sev-error: #FF6024;
 }
 ::selection { background: rgba(230,80,100,0.4); color: #ffffff; }
 body {
@@ -32,19 +33,6 @@ a:hover { text-decoration: underline; }
 .stat-card { display: flex; align-items: baseline; gap: 0.4rem; }
 .stat-card .stat-label { font-size: 0.8rem; color: #888888; order: -1; }
 .stat-card .stat-value { font-size: 0.95rem; font-weight: 600; color: #e5e5e5; }
-.scan-integrity {
-  border: 1px solid #7f1d1d; border-left-width: 3px; border-radius: 0.6rem;
-  background: #1a0d0d; padding: 0.75rem 1rem; margin-bottom: 1.25rem;
-}
-.scan-integrity-soft { border-color: #78500f; background: #191203; }
-.scan-integrity-title { font-size: 0.9rem; font-weight: 600; color: #e5e5e5; }
-.scan-integrity-note { font-size: 0.8rem; color: #a1a1a1; margin-top: 0.25rem; }
-.scan-integrity-table { border-collapse: collapse; margin-top: 0.6rem; font-size: 0.78rem; }
-.scan-integrity-table th, .scan-integrity-table td {
-  text-align: left; padding: 0.2rem 1.25rem 0.2rem 0; color: #c8c8c8;
-  vertical-align: top; max-width: 46ch; overflow-wrap: anywhere;
-}
-.scan-integrity-table th { color: #888888; font-weight: 500; }
 .controls { display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
 .controls input[type="text"] {
   background: #000000; border: 1px solid #333333; border-radius: 0.6rem;
@@ -189,6 +177,7 @@ tr.detail-row:hover td { background: #050505; }
 .badge-medium { background: rgba(255,178,36,0.14); color: var(--sev-medium); }
 .badge-low { background: rgba(62,207,142,0.14); color: var(--sev-low); }
 .badge-info { background: rgba(92,160,255,0.14); color: var(--sev-info); }
+.badge-error { background: rgba(255,96,36,0.14); color: var(--sev-error); }
 #context-menu {
   display: none; position: fixed; z-index: 1000;
   background: #111111; border: 1px solid #333333;
@@ -220,37 +209,8 @@ tr.detail-row:hover td { background: #050505; }
   <div class="stat-card stat-medium"><div class="stat-value">{{ severity_counts.MEDIUM }}</div><div class="stat-label">Medium</div></div>
   <div class="stat-card stat-low"><div class="stat-value">{{ severity_counts.LOW }}</div><div class="stat-label">Low</div></div>
   <div class="stat-card stat-info"><div class="stat-value">{{ severity_counts.INFO }}</div><div class="stat-label">Info</div></div>
+  <div class="stat-card stat-error"><div class="stat-value">{{ severity_counts.ERROR }}</div><div class="stat-label">Errors</div></div>
 </div>
-{% if unreadable_hives %}
-<div class="scan-integrity">
-  <div class="scan-integrity-title">Scan incomplete: {{ unreadable_hives|length }} hive(s) were not read</div>
-  <div class="scan-integrity-note">Checks reading these hives produced nothing, which is not the same as finding nothing.</div>
-  <table class="scan-integrity-table">
-    <tr><th>Hive</th><th>User</th><th>Status</th><th>Reason</th></tr>
-    {% for record in unreadable_hives %}
-    <tr><td>{{ record.name }}</td><td>{{ record.owner }}</td><td>{{ record.status.value }}</td><td>{{ record.error }}</td></tr>
-    {% endfor %}
-  </table>
-</div>
-{% endif %}
-{% if failed_checks %}
-<div class="scan-integrity">
-  <div class="scan-integrity-title">Scan incomplete: {{ failed_checks|length }} check(s) did not run</div>
-  <div class="scan-integrity-note">These checks produced nothing because they failed, which is not the same as finding nothing.</div>
-  <table class="scan-integrity-table">
-    <tr><th>Check</th><th>Reason</th></tr>
-    {% for failure in failed_checks %}
-    <tr><td>{{ failure.check_id }}</td><td>{{ failure.error }}</td></tr>
-    {% endfor %}
-  </table>
-</div>
-{% endif %}
-{% if dirty_hives %}
-<div class="scan-integrity scan-integrity-soft">
-  <div class="scan-integrity-title">{{ dirty_hives|length }} hive(s) carried uncommitted transactions</div>
-  <div class="scan-integrity-note">Values written shortly before collection may be missing from this report. {{ dirty_hives|join(', ') }}</div>
-</div>
-{% endif %}
 <div class="controls">
   <input type="text" id="search" placeholder="Search all fields...">
   <button type="button" id="reset-filters" class="btn-reset">Reset</button>

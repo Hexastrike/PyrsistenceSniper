@@ -81,7 +81,7 @@ def test_invalid_xml_is_reported_as_lost_coverage(tmp_path: Path) -> None:
     assert plugin.run() == []
 
     (failure,) = artifact_failures()
-    assert failure.check_id == f"scheduled_task_files artifact {bad_task}"
+    assert failure.label == f"scheduled_task_files artifact {bad_task}"
     assert "ParseError" in failure.error
 
 

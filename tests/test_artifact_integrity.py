@@ -33,8 +33,8 @@ def test_unparseable_artifact_is_reported_as_lost_coverage() -> None:
     )
 
     (failure,) = artifact_failures()
-    assert "scheduled_tasks" in failure.check_id
-    assert _TASK_XML in failure.check_id
+    assert failure.check_id == "scheduled_tasks"
+    assert failure.artifact == _TASK_XML
     assert failure.error == "ParseError: no element found: line 1"
 
 
@@ -93,7 +93,7 @@ def test_two_checks_failing_on_one_artifact_are_both_reported() -> None:
     record_artifact_failure("scheduled_tasks", Path(_TASK_XML), ValueError("boom"))
     record_artifact_failure("ghost_task", Path(_TASK_XML), ValueError("boom"))
 
-    reported = {failure.check_id for failure in artifact_failures()}
+    reported = {failure.label for failure in artifact_failures()}
     assert reported == {
         f"ghost_task artifact {_TASK_XML}",
         f"scheduled_tasks artifact {_TASK_XML}",
@@ -181,7 +181,8 @@ def test_unparseable_artifact_reaches_the_renderer(tmp_path: Path) -> None:
     _args, kwargs = get_renderer.return_value.return_value.render.call_args
     assert kwargs["failures"] == (
         CheckFailure(
-            check_id=f"scheduled_tasks artifact {_TASK_XML}",
+            check_id="scheduled_tasks",
+            artifact=_TASK_XML,
             error="ParseError: no element found",
         ),
     )

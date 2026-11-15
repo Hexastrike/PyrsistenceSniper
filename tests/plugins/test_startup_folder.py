@@ -222,8 +222,8 @@ def test_unreadable_shortcut_is_reported_as_lost_coverage(tmp_path: Path) -> Non
     assert findings[0].resolve_target == findings[0].path
     failures = artifact_failures()
     assert len(failures) == 1
-    assert failures[0].check_id.startswith("startup_folder artifact ")
-    assert failures[0].check_id.endswith("broken.lnk")
+    assert failures[0].label.startswith("startup_folder artifact ")
+    assert failures[0].label.endswith("broken.lnk")
     assert "ValueError" in failures[0].error
 
 
@@ -248,7 +248,7 @@ def test_redirected_folder_is_bounded_and_reported(tmp_path: Path) -> None:
     assert len(findings) == 256
     failures = artifact_failures()
     assert len(failures) == 1
-    assert failures[0].check_id.endswith("Startup")
+    assert failures[0].label.endswith("Startup")
     assert "300 files" in failures[0].error
     assert "first 256" in failures[0].error
 

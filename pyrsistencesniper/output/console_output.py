@@ -30,7 +30,9 @@ class ConsoleOutput(OutputBase):
         *,
         inventory: tuple[HiveRecord, ...] = (),
         failures: tuple[CheckFailure, ...] = (),
+        hostname: str = "",
     ) -> None:
+        del hostname
         self._write_scan_integrity(out, inventory)
         self._write_failed_checks(out, failures)
         if not results:
@@ -113,7 +115,7 @@ class ConsoleOutput(OutputBase):
             "produced nothing",
         )
         for failure in failures:
-            out.write(f"{failure.check_id}: {failure.error}\n")
+            out.write(f"{failure.label}: {failure.error}\n")
         out.write(
             "These produced nothing because they failed, "
             "which is not the same as finding nothing.\n"

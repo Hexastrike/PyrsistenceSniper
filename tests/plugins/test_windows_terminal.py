@@ -215,11 +215,11 @@ def test_malformed_json_reports_lost_coverage(tmp_path: Path) -> None:
     assert plugin.run() == []
     failures = artifact_failures()
     assert len(failures) == 1
-    assert failures[0].check_id.startswith("windows_terminal artifact ")
+    assert failures[0].label.startswith("windows_terminal artifact ")
     # The ledger names the artifact by its host path, whose separator is the
     # analyst's, so the identity is compared as a path and not as a substring.
     resolved = plugin.filesystem.resolve(rf"Users\user1\{_PACKAGED}")
-    assert str(resolved) in failures[0].check_id
+    assert str(resolved) in failures[0].label
 
 
 def test_absent_settings_file_is_silent(tmp_path: Path) -> None:

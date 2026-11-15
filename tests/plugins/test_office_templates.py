@@ -177,7 +177,7 @@ def test_overfilled_folder_is_capped_and_recorded(tmp_path: Path) -> None:
 
     assert len(findings) == 128
     assert len(artifact_failures()) == 1
-    assert "office_templates artifact" in artifact_failures()[0].check_id
+    assert "office_templates artifact" in artifact_failures()[0].label
 
 
 def test_template_under_a_profile_name_with_a_space_resolves(tmp_path: Path) -> None:

@@ -60,13 +60,34 @@ class HiveRecord:
             return True
         return self.status is HiveStatus.NOT_COLLECTED and self.name in ESSENTIAL_HIVES
 
+    @property
+    def label(self) -> str:
+        """Name the hive, with its owner when it belongs to a user."""
+        return f"{self.name} [{self.owner}]" if self.owner else self.name
+
+    @property
+    def outcome(self) -> str:
+        """State what became of the hive, with the reason when one was recorded."""
+        return f"{self.status.value}: {self.error}" if self.error else self.status.value
+
 
 @dataclass(frozen=True, slots=True)
 class CheckFailure:
-    """One check that raised and therefore contributed no findings to the scan."""
+    """One check, registry key or artifact that failed and contributed nothing."""
 
     check_id: str = ""
     error: str = ""
+    # The key or file that was lost, empty when the whole check produced nothing
+    artifact: str = ""
+
+    @property
+    def label(self) -> str:
+        """Name what was lost on one line, the check, the artifact, or both."""
+        if not self.artifact:
+            return self.check_id
+        if not self.check_id:
+            return self.artifact
+        return f"{self.check_id} artifact {self.artifact}"
 
 
 class ChangeEvidence(enum.Enum):

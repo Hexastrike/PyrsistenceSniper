@@ -413,8 +413,8 @@ def test_unreadable_repository_is_reported_as_lost_coverage(
 
     assert plugin.run() == []
     (failure,) = artifact_failures()
-    assert failure.check_id.startswith("wmi_event_subscription artifact ")
-    assert "OBJECTS.DATA" in failure.check_id
+    assert failure.label.startswith("wmi_event_subscription artifact ")
+    assert "OBJECTS.DATA" in failure.label
     assert "PermissionError" in failure.error
 
 
@@ -428,6 +428,6 @@ def test_record_flood_stops_the_scan_and_says_so(tmp_path: Path) -> None:
 
     assert len(findings) >= _MAX_RECORDS
     (failure,) = artifact_failures()
-    assert failure.check_id.startswith("wmi_event_subscription artifact ")
-    assert "OBJECTS.DATA" in failure.check_id
+    assert failure.label.startswith("wmi_event_subscription artifact ")
+    assert "OBJECTS.DATA" in failure.label
     assert str(_MAX_RECORDS) in failure.error

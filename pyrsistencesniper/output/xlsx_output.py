@@ -12,7 +12,12 @@ from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.worksheet import Worksheet
 
 from pyrsistencesniper.core.models import AnnotatedResult, CheckFailure, HiveRecord
-from pyrsistencesniper.output.base import OutputBase, label_for, sanitize_cell
+from pyrsistencesniper.output.base import (
+    OutputBase,
+    integrity_rows,
+    label_for,
+    sanitize_cell,
+)
 
 _HEADER_FONT = Font(bold=True)
 _HEADER_FILL = PatternFill(start_color="D9D9D9", end_color="D9D9D9", fill_type="solid")
@@ -45,12 +50,14 @@ class XlsxOutput(OutputBase):
         *,
         inventory: tuple[HiveRecord, ...] = (),
         failures: tuple[CheckFailure, ...] = (),
+        hostname: str = "",
     ) -> None:
         if output is None:
             msg = "XLSX output requires a file path or binary stream"
             raise ValueError(msg)
 
-        rows, fieldnames = self._flatten_results(results)
+        findings, fieldnames = self._flatten_results(results)
+        rows = [*integrity_rows(inventory, failures, hostname), *findings]
 
         workbook = Workbook()
         sheet = workbook.active
@@ -110,7 +117,7 @@ class XlsxOutput(OutputBase):
         """Append a sheet naming every check that raised and produced no findings."""
         sheet = workbook.create_sheet("Failed Checks")
         _write_header_row(sheet, ("Check", "Error"))
-        _write_rows(sheet, [(failure.check_id, failure.error) for failure in failures])
+        _write_rows(sheet, [(failure.label, failure.error) for failure in failures])
 
     def _write(
         self,
@@ -119,6 +126,7 @@ class XlsxOutput(OutputBase):
         *,
         inventory: tuple[HiveRecord, ...] = (),
         failures: tuple[CheckFailure, ...] = (),
+        hostname: str = "",
     ) -> None:
         msg = "XLSX is binary; use render() directly"
         raise NotImplementedError(msg)

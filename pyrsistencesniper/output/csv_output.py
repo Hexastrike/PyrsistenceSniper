@@ -6,7 +6,12 @@ import csv
 from typing import IO, Any
 
 from pyrsistencesniper.core.models import AnnotatedResult, CheckFailure, HiveRecord
-from pyrsistencesniper.output.base import OutputBase, label_for, sanitize_cell
+from pyrsistencesniper.output.base import (
+    OutputBase,
+    integrity_rows,
+    label_for,
+    sanitize_cell,
+)
 
 
 class CsvOutput(OutputBase):
@@ -23,15 +28,16 @@ class CsvOutput(OutputBase):
         *,
         inventory: tuple[HiveRecord, ...] = (),
         failures: tuple[CheckFailure, ...] = (),
+        hostname: str = "",
     ) -> None:
-        """Write the findings table only."""
-        # Scan integrity rows are left out on purpose: this format exists to be
-        # parsed, and interleaving them would break every consumer of it.
-        del inventory, failures
-        if not results:
+        """Write one table: the scan's gaps first, then its findings."""
+        # This format exists to be parsed, so a gap shares the findings' columns
+        # and is told apart by its Severity cell, never by a second table shape.
+        findings, fieldnames = self._flatten_results(results)
+        rows = [*integrity_rows(inventory, failures, hostname), *findings]
+        if not rows:
             return
 
-        rows, fieldnames = self._flatten_results(results)
         sanitized = [
             {field: sanitize_cell(value) for field, value in row.items()}
             for row in rows

@@ -281,8 +281,8 @@ def test_unparsable_shortcut_reports_lost_coverage(tmp_path: Path) -> None:
     assert findings[0].value == "corrupt.lnk"
     failures = artifact_failures()
     assert len(failures) == 1
-    assert failures[0].check_id.startswith("shell_folders_startup artifact ")
-    assert "corrupt.lnk" in failures[0].check_id
+    assert failures[0].label.startswith("shell_folders_startup artifact ")
+    assert "corrupt.lnk" in failures[0].label
 
 
 def test_user_shortcut_expands_against_the_owning_profile(tmp_path: Path) -> None:

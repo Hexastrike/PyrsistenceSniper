@@ -8,7 +8,12 @@ from typing import IO, Any
 from jinja2 import Environment
 
 from pyrsistencesniper.core.models import AnnotatedResult, CheckFailure, HiveRecord
-from pyrsistencesniper.output.base import OutputBase, label_for
+from pyrsistencesniper.output.base import (
+    ERROR_LEVEL,
+    OutputBase,
+    integrity_rows,
+    label_for,
+)
 
 _HTML_TEMPLATE = (
     files("pyrsistencesniper.output").joinpath("report.html.j2").read_text("utf-8")
@@ -34,18 +39,15 @@ _CHANGE_EVIDENCE_HELP = (
 )
 
 
-def _dirty_hive_names(inventory: tuple[HiveRecord, ...]) -> list[str]:
-    """Name the hives that were read but held uncommitted transactions."""
-    return [
-        f"{record.name} [{record.owner}]" if record.owner else record.name
-        for record in inventory
-        if record.dirty
-    ]
-
-
 def _count_severities(rows: list[dict[str, Any]]) -> dict[str, int]:
-    """Count findings per severity level for the stats bar."""
-    counts: dict[str, int] = {"HIGH": 0, "MEDIUM": 0, "LOW": 0, "INFO": 0}
+    """Count rows per level for the stats bar, findings and scan gaps alike."""
+    counts: dict[str, int] = {
+        "HIGH": 0,
+        "MEDIUM": 0,
+        "LOW": 0,
+        "INFO": 0,
+        ERROR_LEVEL: 0,
+    }
     for row in rows:
         severity = row.get("severity", "")
         if severity in counts:
@@ -63,27 +65,26 @@ class HtmlOutput(OutputBase):
         *,
         inventory: tuple[HiveRecord, ...] = (),
         failures: tuple[CheckFailure, ...] = (),
+        hostname: str = "",
     ) -> None:
         environment = Environment(autoescape=True)
         environment.policies["json.dumps_kwargs"] = {"default": str}
         template = environment.from_string(_HTML_TEMPLATE)
-        rows, fieldnames = self._flatten_results(results)
-        for (finding, _enrichments), row in zip(results, rows, strict=True):
+        findings, fieldnames = self._flatten_results(results)
+        for (finding, _enrichments), row in zip(results, findings, strict=True):
             row["_change_candidates"] = list(finding.change_candidates)
+        rows = [*integrity_rows(inventory, failures, hostname), *findings]
         labels = {field: label_for(field) for field in fieldnames}
         out.write(
             template.render(
                 results=rows,
                 fieldnames=fieldnames,
                 labels=labels,
-                total=len(rows),
+                total=len(findings),
                 severity_counts=_count_severities(rows),
                 column_help={
                     "last_change": _LAST_CHANGE_HELP,
                     "change_evidence": _CHANGE_EVIDENCE_HELP,
                 },
-                unreadable_hives=self.unreadable_hives(inventory),
-                dirty_hives=_dirty_hive_names(inventory),
-                failed_checks=failures,
             )
         )

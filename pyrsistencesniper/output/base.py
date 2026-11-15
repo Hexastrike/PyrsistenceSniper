@@ -12,12 +12,32 @@ from typing import IO, Any
 
 from pyrsistencesniper.core.models import (
     AnnotatedResult,
+    ChangeEvidence,
     CheckFailure,
     Finding,
     HiveRecord,
+    HiveStatus,
 )
 
 CORE_FIELDS: tuple[str, ...] = tuple(Finding.FIELDS.keys())
+
+ERROR_LEVEL = "ERROR"
+
+_READ_STATUSES = frozenset({HiveStatus.OPENED, HiveStatus.REPAIRED})
+
+_HIVE_NOT_READ = (
+    "Hive was not read. Checks reading it produced nothing, "
+    "which is not the same as finding nothing."
+)
+_CHECK_FAILED = (
+    "Check failed and produced nothing, which is not the same as finding nothing."
+)
+_ARTIFACT_LOST = "Could not be read in full, so findings from it may be missing."
+_UNCOMMITTED = "Uncommitted transactions"
+_HIVE_DIRTY = (
+    "Values written to this hive shortly before collection "
+    "may be missing from this report."
+)
 
 _FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r", "\n")
 _ILLEGAL_SPREADSHEET_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff]")
@@ -60,6 +80,63 @@ def sanitize_cell(value: object) -> str:
     return text
 
 
+def _integrity_row(level: str, hostname: str, **cells: str) -> dict[str, Any]:
+    """Build one row with every findings column present and only known cells set."""
+    row: dict[str, Any] = dict.fromkeys(CORE_FIELDS, "")
+    row.update(
+        cells,
+        severity=level,
+        hostname=hostname,
+        change_evidence=ChangeEvidence.NOT_APPLICABLE.value,
+    )
+    return row
+
+
+# Scan gaps are shaped into rows here instead of being modelled as findings. A
+# finding passes allow rules and --min-severity, either of which could hide a
+# gap, and it always states an access level, which a gap does not have.
+def integrity_rows(
+    inventory: tuple[HiveRecord, ...],
+    failures: tuple[CheckFailure, ...],
+    hostname: str = "",
+) -> list[dict[str, Any]]:
+    """Shape what the scan lost, then what it must caveat, into report rows."""
+    rows = [
+        _integrity_row(
+            ERROR_LEVEL,
+            hostname,
+            path=record.label,
+            value=record.outcome,
+            description=_HIVE_NOT_READ,
+        )
+        for record in inventory
+        if record.cost_checks
+    ]
+    rows.extend(
+        _integrity_row(
+            ERROR_LEVEL,
+            hostname,
+            path=failure.artifact,
+            value=failure.error,
+            check_id=failure.check_id,
+            description=_ARTIFACT_LOST if failure.artifact else _CHECK_FAILED,
+        )
+        for failure in failures
+    )
+    rows.extend(
+        _integrity_row(
+            ERROR_LEVEL,
+            hostname,
+            path=record.label,
+            value=_UNCOMMITTED,
+            description=_HIVE_DIRTY,
+        )
+        for record in inventory
+        if record.dirty and record.status in _READ_STATUSES
+    )
+    return rows
+
+
 class OutputBase(ABC):
     """Base class that all output renderers must extend."""
 
@@ -70,6 +147,7 @@ class OutputBase(ABC):
         *,
         inventory: tuple[HiveRecord, ...] = (),
         failures: tuple[CheckFailure, ...] = (),
+        hostname: str = "",
     ) -> None:
         """Write results to a file path, open stream, or stdout."""
         if isinstance(output, Path):
@@ -80,12 +158,28 @@ class OutputBase(ABC):
             with output.open(
                 "w", encoding="utf-8", errors="backslashreplace", **self._open_kwargs()
             ) as stream:
-                self._write(results, stream, inventory=inventory, failures=failures)
+                self._write(
+                    results,
+                    stream,
+                    inventory=inventory,
+                    failures=failures,
+                    hostname=hostname,
+                )
         elif output is not None:
-            self._write(results, output, inventory=inventory, failures=failures)
+            self._write(
+                results,
+                output,
+                inventory=inventory,
+                failures=failures,
+                hostname=hostname,
+            )
         else:
             self._write(
-                results, _console_stream(), inventory=inventory, failures=failures
+                results,
+                _console_stream(),
+                inventory=inventory,
+                failures=failures,
+                hostname=hostname,
             )
 
     @abstractmethod
@@ -96,6 +190,7 @@ class OutputBase(ABC):
         *,
         inventory: tuple[HiveRecord, ...] = (),
         failures: tuple[CheckFailure, ...] = (),
+        hostname: str = "",
     ) -> None: ...
 
     @staticmethod

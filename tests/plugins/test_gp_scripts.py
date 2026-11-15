@@ -160,8 +160,8 @@ def test_malformed_line_is_reported_as_lost_coverage(tmp_path: Path) -> None:
     make_plugin(GpScripts, tmp_path).run()
 
     (failure,) = artifact_failures()
-    assert "gp_scripts" in failure.check_id
-    assert "scripts.ini" in failure.check_id
+    assert failure.check_id == "gp_scripts"
+    assert "scripts.ini" in failure.artifact
     assert failure.error == "no key=value pair could be read from line(s) 3"
 
 
