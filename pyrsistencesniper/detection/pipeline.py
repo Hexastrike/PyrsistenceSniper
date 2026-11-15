@@ -115,61 +115,34 @@ def _deduplicate(findings: list[Finding]) -> list[Finding]:
     return unique
 
 
-def _resolve_findings(
+# A stage that fails on one finding keeps that finding as it was: losing the
+# detail a stage adds must never cost the report the finding itself.
+def _apply_stage(
     findings: list[Finding],
-    context: AnalysisContext,
+    stage: str,
+    detail: str,
+    operation: Callable[[Finding], Finding],
     progress: Callable[[str, int, int], None] | None,
 ) -> list[Finding]:
-    """Resolve file metadata (exists, sha256, signer, ...) for each finding."""
-    resolver = ResolutionPipeline(context.filesystem)
+    """Run one per-finding stage, keeping a finding the stage could not process."""
     total = len(findings)
-    resolved: list[Finding] = []
-
+    processed: list[Finding] = []
     for index, finding in enumerate(findings):
         if progress is not None:
-            progress("Resolving findings", index + 1, total)
+            progress(stage, index + 1, total)
         try:
-            resolved.append(resolver.resolve(finding))
+            processed.append(operation(finding))
         except Exception as exc:
             logger.warning(
-                "Could not resolve metadata for %s finding: %s: %s",
+                "Could not resolve %s for %s finding: %s: %s",
+                detail,
                 finding.check_id,
                 type(exc).__name__,
                 exc,
             )
-            logger.debug("Resolution error details:", exc_info=True)
-            resolved.append(finding)
-
-    return resolved
-
-
-def _timestamp_findings(
-    findings: list[Finding],
-    context: AnalysisContext,
-    mft_path: Path | None,
-    progress: Callable[[str, int, int], None] | None,
-) -> list[Finding]:
-    """Fill last-change columns from each finding's declared time evidence."""
-    executor = TimelineExecutor(context, mft_path=mft_path)
-    total = len(findings)
-    stamped: list[Finding] = []
-
-    for index, finding in enumerate(findings):
-        if progress is not None:
-            progress("Resolving timestamps", index + 1, total)
-        try:
-            stamped.append(executor.timestamp(finding))
-        except Exception as exc:
-            logger.warning(
-                "Could not resolve timestamps for %s finding: %s: %s",
-                finding.check_id,
-                type(exc).__name__,
-                exc,
-            )
-            logger.debug("Timestamp error details:", exc_info=True)
-            stamped.append(finding)
-
-    return stamped
+            logger.debug("%s error details:", stage, exc_info=True)
+            processed.append(finding)
+    return processed
 
 
 def _classify_and_filter(
@@ -205,8 +178,20 @@ def run_pipeline(
         return []
 
     raw = _execute_plugins(plugins, context, progress)
-    resolved = _resolve_findings(_deduplicate(raw), context, progress)
+    resolved = _apply_stage(
+        _deduplicate(raw),
+        "Resolving findings",
+        "metadata",
+        ResolutionPipeline(context.filesystem).resolve,
+        progress,
+    )
     classified = _classify_and_filter(resolved, profile, min_severity)
     if timeline:
-        classified = _timestamp_findings(classified, context, mft_path, progress)
+        classified = _apply_stage(
+            classified,
+            "Resolving timestamps",
+            "timestamps",
+            TimelineExecutor(context, mft_path=mft_path).timestamp,
+            progress,
+        )
     return run_enrichments(classified, progress=progress)
