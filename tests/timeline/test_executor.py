@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from pyrsistencesniper.core.models import ChangeEvidence, Finding
 from pyrsistencesniper.timeline import executor as executor_module
@@ -12,12 +12,12 @@ from pyrsistencesniper.timeline.executor import (
     _fallback_evidence,
 )
 
-_NOW = datetime(2026, 8, 10, tzinfo=timezone.utc)
+_NOW = datetime(2026, 8, 10, tzinfo=UTC)
 
 
 def _at(day: int) -> datetime:
     """A July 2026 timestamp, recent enough to pass the plausibility check."""
-    return datetime(2026, 7, day, tzinfo=timezone.utc)
+    return datetime(2026, 7, day, tzinfo=UTC)
 
 
 class _StubExecutor(TimelineExecutor):
@@ -113,7 +113,7 @@ def test_implausible_never_wins_but_stays_in_candidates(monkeypatch) -> None:
     result = _stamp(
         [
             TimeCandidate(
-                datetime(1601, 1, 1, tzinfo=timezone.utc),
+                datetime(1601, 1, 1, tzinfo=UTC),
                 "$MFT",
                 precision=Precision.EXACT,
             ),
@@ -165,7 +165,7 @@ def test_resolved_finding_records_resolved(monkeypatch) -> None:
 
 def test_only_implausible_candidates_record_rejected(monkeypatch) -> None:
     """Candidates were found and every one of them was refused."""
-    ancient = datetime(1601, 1, 1, tzinfo=timezone.utc)
+    ancient = datetime(1601, 1, 1, tzinfo=UTC)
     result = _stamp(
         [TimeCandidate(ancient, "$MFT", precision=Precision.EXACT)], monkeypatch
     )

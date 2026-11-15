@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import Evtx.Evtx as EvtxReader
@@ -154,5 +154,5 @@ class EvtxIndex:
             name = node.get("Name")
             if name:
                 data[name] = node.text or ""
-        when = record.timestamp().replace(tzinfo=timezone.utc)
+        when = record.timestamp().replace(tzinfo=UTC)
         return when, int((event_id_node.text or "").strip()), record.record_num(), data

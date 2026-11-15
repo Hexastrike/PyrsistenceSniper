@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import ClassVar
 
@@ -112,7 +112,7 @@ def test_matches_by_field(tmp_path: Path) -> None:
     hits = index.matches("System", (7045,), "ServiceName", "evilsvc")
     assert len(hits) == 1
     assert hits[0].event_id == 7045
-    assert hits[0].when.tzinfo == timezone.utc
+    assert hits[0].when.tzinfo == UTC
 
 
 def test_wrong_event_id_filtered(tmp_path: Path) -> None:

@@ -5,7 +5,7 @@ from __future__ import annotations
 import io
 import struct
 from collections.abc import Sequence
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from pyrsistencesniper.timeline.mft import MftEntry, parse_mft
 
@@ -30,10 +30,10 @@ FN_MODIFIED_FT = 134291499271660537
 DOS_FN_CREATED_FT = 134291499281660537
 DOS_FN_MODIFIED_FT = 134291499291660537
 
-SI_CREATED_DT = datetime(2026, 7, 21, 23, 25, 24, 166053, tzinfo=timezone.utc)
-SI_MODIFIED_DT = datetime(2026, 7, 21, 23, 25, 25, 166053, tzinfo=timezone.utc)
-FN_CREATED_DT = datetime(2026, 7, 21, 23, 25, 26, 166053, tzinfo=timezone.utc)
-FN_MODIFIED_DT = datetime(2026, 7, 21, 23, 25, 27, 166053, tzinfo=timezone.utc)
+SI_CREATED_DT = datetime(2026, 7, 21, 23, 25, 24, 166053, tzinfo=UTC)
+SI_MODIFIED_DT = datetime(2026, 7, 21, 23, 25, 25, 166053, tzinfo=UTC)
+FN_CREATED_DT = datetime(2026, 7, 21, 23, 25, 26, 166053, tzinfo=UTC)
+FN_MODIFIED_DT = datetime(2026, 7, 21, 23, 25, 27, 166053, tzinfo=UTC)
 
 
 def _resident_attr(attr_type: int, value: bytes) -> bytes:

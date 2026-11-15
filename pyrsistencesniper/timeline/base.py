@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import enum
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-_FILETIME_EPOCH = datetime(1601, 1, 1, tzinfo=timezone.utc)
-MIN_CREDIBLE = datetime(1990, 1, 1, tzinfo=timezone.utc)
+_FILETIME_EPOCH = datetime(1601, 1, 1, tzinfo=UTC)
+MIN_CREDIBLE = datetime(1990, 1, 1, tzinfo=UTC)
 MAX_FUTURE_SKEW = timedelta(hours=48)
 
 
@@ -36,7 +36,7 @@ class TimeCandidate:
 
 def format_ts(when: datetime) -> str:
     """Render an aware datetime as a UTC timestamp string."""
-    return when.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    return when.astimezone(UTC).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def from_filetime(filetime: int) -> datetime:

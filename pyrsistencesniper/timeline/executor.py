@@ -5,7 +5,7 @@ from __future__ import annotations
 import dataclasses
 import logging
 from collections.abc import Mapping
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from pyrsistencesniper.core.context import AnalysisContext
@@ -127,7 +127,7 @@ class TimelineExecutor:
 
     def timestamp(self, finding: Finding) -> Finding:
         """Return the finding with change columns filled from its evidence."""
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         descriptors = finding.time_evidence or _fallback_evidence(
             finding, self._profile_sids
         )

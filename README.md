@@ -3,7 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/pyrsistencesniper?color=blue)](https://pypi.org/project/pyrsistencesniper/)
 [![CI](https://github.com/Hexastrike/PyrsistenceSniper/actions/workflows/ci.yml/badge.svg)](https://github.com/Hexastrike/PyrsistenceSniper/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Hexastrike/PyrsistenceSniper/graph/badge.svg)](https://codecov.io/gh/Hexastrike/PyrsistenceSniper)
-[![Python](https://img.shields.io/badge/python-3.10--3.14-3776AB?logo=python&logoColor=white)](https://pypi.org/project/pyrsistencesniper/)
+[![Python](https://img.shields.io/badge/python-3.11--3.14-3776AB?logo=python&logoColor=white)](https://pypi.org/project/pyrsistencesniper/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Hexastrike/PyrsistenceSniper/blob/main/LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue)](https://github.com/Hexastrike/PyrsistenceSniper)
 

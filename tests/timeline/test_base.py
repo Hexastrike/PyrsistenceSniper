@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 from pyrsistencesniper.timeline.base import (
@@ -16,7 +16,7 @@ from pyrsistencesniper.timeline.base import (
 
 def test_format_ts_renders_utc() -> None:
     """Timestamps render in one fixed, sortable form with no zone suffix to read."""
-    when = datetime(2026, 2, 18, 15, 50, 59, tzinfo=timezone.utc)
+    when = datetime(2026, 2, 18, 15, 50, 59, tzinfo=UTC)
     assert format_ts(when) == "2026-02-18 15:50:59"
 
 
@@ -29,7 +29,7 @@ def test_format_ts_converts_to_utc() -> None:
 
 def test_from_filetime_epoch() -> None:
     """1601-01-01 is the anchor every other conversion is offset from."""
-    assert from_filetime(0) == datetime(1601, 1, 1, tzinfo=timezone.utc)
+    assert from_filetime(0) == datetime(1601, 1, 1, tzinfo=UTC)
 
 
 def test_from_filetime_known_value() -> None:
@@ -39,32 +39,32 @@ def test_from_filetime_known_value() -> None:
     assert result.year == 2026
     assert result.month == 7
     assert result.day == 21
-    assert result.tzinfo == timezone.utc
+    assert result.tzinfo == UTC
 
 
 def test_is_implausible_rejects_pre_1990() -> None:
     """The FILETIME epoch itself is an unset field, not a change made in 1601."""
-    now = datetime(2026, 1, 1, tzinfo=timezone.utc)
-    assert is_implausible(datetime(1601, 1, 1, tzinfo=timezone.utc), now)
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    assert is_implausible(datetime(1601, 1, 1, tzinfo=UTC), now)
 
 
 def test_is_implausible_rejects_far_future() -> None:
     """Past the skew allowance a date cannot describe a change that already happened."""
-    now = datetime(2026, 1, 1, tzinfo=timezone.utc)
-    future = datetime(2026, 1, 5, tzinfo=timezone.utc)
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    future = datetime(2026, 1, 5, tzinfo=UTC)
     assert is_implausible(future, now)
 
 
 def test_is_implausible_accepts_recent() -> None:
     """An ordinary recent date survives the filter, which must not reject everything."""
-    now = datetime(2026, 1, 1, tzinfo=timezone.utc)
-    assert not is_implausible(datetime(2025, 6, 1, tzinfo=timezone.utc), now)
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    assert not is_implausible(datetime(2025, 6, 1, tzinfo=UTC), now)
 
 
 def test_time_candidate_is_frozen() -> None:
     """Collected evidence is immutable, so no resolver can rewrite another's finding."""
     candidate = TimeCandidate(
-        when=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        when=datetime(2026, 1, 1, tzinfo=UTC),
         source="$MFT",
         precision=Precision.EXACT,
     )

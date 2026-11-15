@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
 
 from pyrsistencesniper.core.models import FileWriteTime
@@ -16,10 +16,10 @@ def _entry(**kwargs: object) -> MftEntry:
     base = {
         "record_number": 42,
         "path": "windows\\system32\\tasks\\evil",
-        "si_created": datetime(2026, 7, 1, tzinfo=timezone.utc),
-        "si_modified": datetime(2026, 7, 20, tzinfo=timezone.utc),
-        "fn_created": datetime(2026, 7, 1, tzinfo=timezone.utc),
-        "fn_modified": datetime(2026, 7, 1, tzinfo=timezone.utc),
+        "si_created": datetime(2026, 7, 1, tzinfo=UTC),
+        "si_modified": datetime(2026, 7, 20, tzinfo=UTC),
+        "fn_created": datetime(2026, 7, 1, tzinfo=UTC),
+        "fn_modified": datetime(2026, 7, 1, tzinfo=UTC),
     }
     base.update(kwargs)
     return MftEntry(**base)  # type: ignore[arg-type]
@@ -38,7 +38,7 @@ def test_mft_hit_yields_exact_candidate() -> None:
     assert len(out) == 1
     assert out[0].source == "$MFT"
     assert out[0].precision is Precision.EXACT
-    assert out[0].when == datetime(2026, 7, 20, tzinfo=timezone.utc)
+    assert out[0].when == datetime(2026, 7, 20, tzinfo=UTC)
 
 
 def test_weak_evidence_grades_weak() -> None:
@@ -61,8 +61,8 @@ def test_mft_hit_without_si_modified_yields_nothing() -> None:
 def test_timestomp_hint_when_si_predates_fn() -> None:
     """$SI is user-settable and $FN is not, so si before fn reads as backdating."""
     entry = _entry(
-        si_modified=datetime(2020, 1, 1, tzinfo=timezone.utc),
-        fn_modified=datetime(2026, 7, 1, tzinfo=timezone.utc),
+        si_modified=datetime(2020, 1, 1, tzinfo=UTC),
+        fn_modified=datetime(2026, 7, 1, tzinfo=UTC),
     )
     out = _resolver(entry).resolve_file(FileWriteTime(path="a"))
     assert "timestomping hint" in out[0].detail
@@ -70,7 +70,7 @@ def test_timestomp_hint_when_si_predates_fn() -> None:
 
 def test_no_timestomp_hint_within_slack() -> None:
     """Ordinary writes leave a small $SI/$FN gap, so slack keeps the hint quiet."""
-    when = datetime(2026, 7, 1, tzinfo=timezone.utc)
+    when = datetime(2026, 7, 1, tzinfo=UTC)
     entry = _entry(si_modified=when, fn_modified=when + timedelta(seconds=5))
     out = _resolver(entry).resolve_file(FileWriteTime(path="a"))
     assert "timestomping hint" not in out[0].detail

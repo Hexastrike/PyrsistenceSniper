@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import io
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -34,7 +34,7 @@ def _entry(path: str) -> MftEntry:
         record_number=1,
         path=path,
         si_created=None,
-        si_modified=datetime(2026, 7, 20, tzinfo=timezone.utc),
+        si_modified=datetime(2026, 7, 20, tzinfo=UTC),
         fn_created=None,
         fn_modified=None,
     )
