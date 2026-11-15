@@ -110,7 +110,7 @@ class FilesystemHelper:
         return self._root
 
     # Resolved once: every lookup compares against it, and resolving it per
-    # call doubled the filesystem round trips of a scan.
+    # call doubles the filesystem round trips of a scan.
     @functools.cached_property
     def _resolved_root(self) -> Path | None:
         """Return the image root with links followed, or None when it cannot be."""

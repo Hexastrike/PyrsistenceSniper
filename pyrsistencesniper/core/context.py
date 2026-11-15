@@ -243,7 +243,7 @@ class AnalysisContext:
     def profile_sids(self) -> dict[str, str]:
         """Map each casefolded profile directory name to its account SID."""
         # ProfileList keys by SID and stores the profile directory in
-        # ProfileImagePath, the only link between the ``Users\\<name>``
+        # ProfileImagePath, the only link between the ``Users\<name>``
         # directory an offline scan walks and the SID a live system logs under.
         # Resolved on demand so a scan that never needs it does not open SOFTWARE.
         hive = self.open_hive_by_name("SOFTWARE")

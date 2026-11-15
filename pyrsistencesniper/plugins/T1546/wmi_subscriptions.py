@@ -63,8 +63,8 @@ _MAX_RECORDS = 10_000
 
 # An instance heap opens with a little-endian length whose high bit is set, so
 # the record itself states where its values end and a command line of any length
-# is read whole. A record stating no length -- carved, or with its class name not
-# heading the heap -- is read to the longest heap the overlap can carry across a
+# is read whole. A record stating no length (carved, or with its class name not
+# heading the heap) is read to the longest heap the overlap can carry across a
 # read boundary, which is that overlap less the header search.
 _HEAP_LENGTH_FLAG = 0x8000_0000
 _HEAP_LENGTH_MASK = 0x7FFF_FFFF
@@ -251,7 +251,7 @@ class WmiEventSubscription(PersistencePlugin):
                 for window, cutoff in _iter_windows(handle):
                     # The budget is spent as each window is appended rather than
                     # checked afterwards: one 4 MiB window holds far more records
-                    # than the cap, so testing after the extend let a crafted
+                    # than the cap, so testing after the extend would let a crafted
                     # repository overshoot it by an order of magnitude.
                     budget = max(_MAX_RECORDS - len(heaps) - len(bindings), 0)
                     window_heaps = _instance_heaps(window, cutoff)
@@ -264,8 +264,7 @@ class WmiEventSubscription(PersistencePlugin):
                         len(window_bindings) - len(kept_bindings)
                     )
                     # Reported only when records were actually discarded, and
-                    # with the count really kept: the previous message named the
-                    # cap and claimed unread bytes even when neither was true.
+                    # with the count really kept rather than the cap.
                     if dropped:
                         record_artifact_failure(
                             self.definition.id,

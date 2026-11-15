@@ -45,7 +45,6 @@ def test_handler_writes_to_stderr() -> None:
     """Diagnostics on stderr leave stdout free for report output being piped."""
     setup_logging(level=logging.WARNING)
     logging.getLogger("pyrsistencesniper.test_child").warning("boom")
-    # capsys cannot see a logging StreamHandler's output, so assert on the handler.
     handler = _namespace_logger().handlers[0]
     assert isinstance(handler, logging.StreamHandler)
 

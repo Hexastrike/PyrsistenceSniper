@@ -3,8 +3,8 @@
 # Package-wide logging policy. A failure that costs the run a whole check,
 # artifact or hive is a WARNING naming what was lost plus a DEBUG carrying the
 # traceback. A failure recovered from without losing coverage is a DEBUG with
-# exc_info=True. Silence is correct only in a ``_try_*`` helper, whose contract
-# is to report failure through its return value.
+# exc_info=True. Silence is correct only in a helper whose contract is to
+# report failure through its return value.
 
 from __future__ import annotations
 

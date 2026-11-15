@@ -89,7 +89,7 @@ select = [
     "PTH",  # flake8-use-pathlib
 ]
 ignore = [
-    "PLR0913",  # too many arguments, legitimate for AnalysisContext, plugin constructors
+    "PLR0913",  # too many arguments, legitimate for AnalysisContext, plugin helpers
     "PLR0917",  # too many positional arguments, same rationale as PLR0913
 ]
 

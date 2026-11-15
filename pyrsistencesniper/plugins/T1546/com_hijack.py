@@ -86,7 +86,7 @@ def _hijack_values(
 ) -> Iterator[tuple[str, str]]:
     """Yield the subkey and value pairs on one CLSID that constitute a hijack."""
     # TreatAs is always reported: it exists only to redirect activation and stays
-    # rare -- 17 entries across all four CLSID views of a live Windows 11 profile.
+    # rare, 17 entries across all four CLSID views of a live Windows 11 profile.
     # A server key is reported only when a per-user CLSID shadows a machine class,
     # because the override is what makes it the technique. Reporting every
     # per-user server key instead surfaced 69 stock OneDrive, Paint and shell

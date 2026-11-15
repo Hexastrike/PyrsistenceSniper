@@ -28,7 +28,8 @@ _TASKS_KEY = (
     "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Schedule\\TaskCache\\Tasks"
 )
 
-# The live task the residual-limitation measurement was taken against.
+# A task Windows itself ships under Microsoft\Windows, the folder the ghost_task
+# allow rule covers.
 _BUILTIN_TASK_FOLDERS = ("Microsoft", "Windows", ".NET Framework")
 _BUILTIN_TASK_NAME = ".NET Framework NGEN v4.0.30319"
 
