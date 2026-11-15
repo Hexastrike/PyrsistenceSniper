@@ -178,12 +178,9 @@ class BitsNotifyCommand(PersistencePlugin):
         technique="BITS Job Notification Command",
         mitre_id="T1197",
         description=(
-            "A BITS job can carry a notification command line that the queue "
-            "manager runs when the transfer completes or finally fails. The "
-            "job survives reboots and lives in no registry key and no "
-            "scheduled task, so no other check sees it. Only jobs that set a "
-            "notification command are reported: an ordinary transfer job is "
-            "not persistence, and Windows creates those constantly."
+            "A BITS job can carry a notification command line that the queue manager "
+            "runs when the transfer completes or finally fails. The job survives "
+            "reboots and lives in no registry key and no scheduled task."
         ),
         references=("https://attack.mitre.org/techniques/T1197/",),
     )

@@ -41,10 +41,9 @@ class LsaPasswordFilter(PersistencePlugin):
         technique="LSA Password Filter",
         mitre_id="T1556.002",
         description=(
-            "LSA password filter DLLs (Notification Packages) are called "
-            "on every password change. A non-default package (beyond "
-            "'scecli') may capture plaintext passwords before they are "
-            "hashed."
+            "LSA password filter DLLs (Notification Packages) are called on every "
+            "password change with the new password in plaintext. The default is "
+            "'scecli'."
         ),
         references=("https://attack.mitre.org/techniques/T1556/002/",),
         targets=(

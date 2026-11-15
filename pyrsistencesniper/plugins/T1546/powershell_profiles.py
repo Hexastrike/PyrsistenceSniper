@@ -59,10 +59,9 @@ class PowerShellProfiles(PersistencePlugin):
         mitre_id="T1546.013",
         description=(
             "PowerShell profile scripts (profile.ps1, "
-            "Microsoft.PowerShell_profile.ps1) execute automatically on "
-            "every PowerShell session start. Both system-wide and per-user "
-            "profiles for Windows PowerShell and PowerShell Core are "
-            "checked, including Documents folders redirected into OneDrive."
+            "Microsoft.PowerShell_profile.ps1) run at the start of every PowerShell "
+            "session, system-wide or per user, for both Windows PowerShell and "
+            "PowerShell Core."
         ),
         references=("https://attack.mitre.org/techniques/T1546/013/",),
     )

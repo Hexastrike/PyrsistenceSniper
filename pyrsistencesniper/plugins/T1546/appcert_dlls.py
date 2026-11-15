@@ -20,9 +20,8 @@ class AppCertDlls(PersistencePlugin):
         technique="AppCert DLLs",
         mitre_id="T1546.009",
         description=(
-            "AppCertDlls are loaded into every process that calls "
-            "CreateProcess and related Win32 APIs. Abuse provides code "
-            "execution within the context of any spawned process."
+            "AppCertDlls are loaded into every process that calls CreateProcess and "
+            "the related Win32 process-creation APIs."
         ),
         references=("https://attack.mitre.org/techniques/T1546/009/",),
         targets=(

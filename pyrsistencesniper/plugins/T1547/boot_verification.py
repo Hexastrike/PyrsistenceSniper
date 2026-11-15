@@ -20,9 +20,8 @@ class BootVerificationProgram(PersistencePlugin):
         technique="Boot Verification Program",
         mitre_id="T1547.001",
         description=(
-            "The BootVerificationProgram ImagePath specifies a program "
-            "that confirms boot success. Hijacking this value provides "
-            "SYSTEM-level persistence triggered on every boot."
+            "The BootVerificationProgram ImagePath names a program run at every boot "
+            "to confirm the boot succeeded, as SYSTEM."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(

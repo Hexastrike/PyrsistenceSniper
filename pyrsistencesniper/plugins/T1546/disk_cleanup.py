@@ -22,10 +22,8 @@ class DiskCleanupHandler(PersistencePlugin):
         technique="Disk Cleanup Handler Hijack",
         mitre_id="T1546.015",
         description=(
-            "Disk Cleanup VolumeCaches handlers are COM objects loaded "
-            "when cleanmgr.exe runs. Replacing the InprocServer32 DLL "
-            "path for a handler CLSID provides code execution as SYSTEM "
-            "during cleanup operations."
+            "Disk Cleanup VolumeCaches handlers are COM objects cleanmgr.exe loads "
+            "when it runs, each through the InprocServer32 DLL its CLSID registers."
         ),
         references=("https://attack.mitre.org/techniques/T1546/015/",),
     )

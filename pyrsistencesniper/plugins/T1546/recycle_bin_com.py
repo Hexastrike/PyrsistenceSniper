@@ -22,10 +22,9 @@ class RecycleBinComExtension(PersistencePlugin):
         technique="Recycle Bin COM Extension Handler",
         mitre_id="T1546.015",
         description=(
-            "Shell verb commands and shell extension handlers on the "
-            "Recycle Bin CLSID ({645FF040-...}) are checked for "
-            "non-standard values, including ContextMenuHandlers and "
-            "DragDropHandlers."
+            "Shell verb commands and shell extension handlers registered on the "
+            "Recycle Bin's CLSID run in Explorer when a user opens, empties or "
+            "right-clicks the Recycle Bin."
         ),
         references=("https://attack.mitre.org/techniques/T1546/015/",),
         targets=(

@@ -28,10 +28,8 @@ class AeDebug(PersistencePlugin):
         technique="AeDebug Debugger Hijack",
         mitre_id="T1546.012",
         description=(
-            "The AeDebug Debugger value specifies the Just-In-Time "
-            "debugger launched on application crashes. Replacing it with "
-            "a malicious binary provides persistence triggered by any "
-            "user-mode crash."
+            "The AeDebug Debugger value names the just-in-time debugger launched when "
+            "a user-mode application crashes."
         ),
         references=("https://attack.mitre.org/techniques/T1546/012/",),
         targets=(
@@ -54,9 +52,8 @@ class AeDebugProtected(PersistencePlugin):
         technique="AeDebug Protected Process Debugger",
         mitre_id="T1546.012",
         description=(
-            "The AeDebugProtected Debugger value targets protected-process "
-            "crash debugging and can be abused identically to AeDebug for "
-            "crash-triggered persistence."
+            "The AeDebugProtected Debugger value names the debugger launched when a "
+            "protected process crashes."
         ),
         references=("https://attack.mitre.org/techniques/T1546/012/",),
         targets=(
@@ -79,9 +76,8 @@ class WerDebugger(PersistencePlugin):
         technique="WER Debugger Hijack",
         mitre_id="T1546",
         description=(
-            "The Windows Error Reporting Debugger value is invoked when "
-            "WER processes an application crash, providing an alternative "
-            "crash-handler persistence vector."
+            "The Windows Error Reporting Debugger value names a program WER launches "
+            "when it handles an application crash."
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
         targets=(
@@ -104,9 +100,8 @@ class WerReflectDebugger(PersistencePlugin):
         technique="WER ReflectDebugger Hijack",
         mitre_id="T1546",
         description=(
-            "The WER ReflectDebugger value is invoked for reflection-based "
-            "crash analysis and can be hijacked for persistence via "
-            "application failures."
+            "The WER ReflectDebugger value names a program WER launches for "
+            "reflection-based crash analysis."
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
         targets=(
@@ -129,9 +124,8 @@ class WerHangs(PersistencePlugin):
         technique="WER Hangs Debugger Hijack",
         mitre_id="T1546",
         description=(
-            "The WER Hangs Debugger value is invoked when Windows detects "
-            "an application hang (not responding), providing persistence "
-            "triggered by UI freezes."
+            "The WER Hangs Debugger value names a program launched when Windows "
+            "detects that an application has stopped responding."
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
         targets=(
@@ -154,9 +148,8 @@ class WerRuntimeExceptionHelperModules(PersistencePlugin):
         technique="WER Runtime Exception Modules",
         mitre_id="T1546",
         description=(
-            "RuntimeExceptionHelperModules are DLLs loaded by WER when "
-            "handling unhandled exceptions. Registering a malicious module "
-            "provides DLL-based persistence via application crashes."
+            "RuntimeExceptionHelperModules lists DLLs WER loads when it handles an "
+            "unhandled exception."
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
     )
@@ -193,9 +186,8 @@ class DotNetDbgManagedDebugger(PersistencePlugin):
         technique=".NET DbgManagedDebugger Hijack",
         mitre_id="T1546",
         description=(
-            "DbgManagedDebugger specifies the debugger for managed (.NET) "
-            "application crashes. Both native and WoW64 paths are checked. "
-            "Abuse provides persistence when any .NET application faults."
+            "DbgManagedDebugger names the debugger launched when a managed (.NET) "
+            "application crashes."
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
         targets=(
@@ -222,9 +214,9 @@ class LsmDebugger(PersistencePlugin):
         technique="LSM Debugger Hijack",
         mitre_id="T1546.012",
         description=(
-            "The SilentProcessExit MonitorProcess for lsm.exe is invoked "
-            "when the Local Session Manager terminates, providing "
-            "persistence tied to session management events."
+            "MonitorProcess under SilentProcessExit\\lsm.exe names a program started "
+            "when the Local Session Manager process exits. Only Windows 7 and earlier "
+            "run it as lsm.exe; later versions host it in svchost.exe."
         ),
         references=("https://attack.mitre.org/techniques/T1546/012/",),
         targets=(

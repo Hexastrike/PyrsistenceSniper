@@ -39,11 +39,9 @@ class OfficeDllOverride(PersistencePlugin):
         technique="Office DLL Override",
         mitre_id="T1137",
         description=(
-            "Office internal DLL values (WwlibtDll for Word, PPCoreTDLL "
-            "for PowerPoint) can be overridden in the registry to load a "
-            "malicious DLL when the respective application starts. The "
-            "machine, ClickToRun and per-user hives are all checked, "
-            "because the per-user key needs no administrator rights."
+            "WwlibtDll (Word) and PPCoreTDLL (PowerPoint) are registry overrides "
+            "naming a DLL the application loads when it starts. The per-user key needs "
+            "no administrator rights."
         ),
         references=("https://attack.mitre.org/techniques/T1137/",),
     )

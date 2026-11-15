@@ -25,10 +25,9 @@ class VbaMonitors(PersistencePlugin):
         technique="VBA Monitor DLL Hijack",
         mitre_id="T1137",
         description=(
-            "The InprocServer32 value of a known VBA monitor CLSID names a "
-            "DLL loaded whenever VBA executes, so hijacking the COM "
-            "registration runs code on every Office macro. The machine and "
-            "per-user hives are both read."
+            "The InprocServer32 value of a known VBA monitor CLSID names a DLL loaded "
+            "whenever VBA executes, so hijacking the COM registration runs code on "
+            "every Office macro."
         ),
         references=("https://attack.mitre.org/techniques/T1137/",),
     )

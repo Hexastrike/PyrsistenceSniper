@@ -20,10 +20,9 @@ class PrintMonitors(PersistencePlugin):
         technique="Print Monitors",
         mitre_id="T1547.010",
         description=(
-            "Print monitor DLLs are loaded by the Print Spooler service "
-            "(spoolsv.exe) at startup with SYSTEM privileges. Default "
-            "monitors include Local Port, Standard TCP/IP Port, USB "
-            "Monitor, WSD Port. Any additional monitor is suspicious."
+            "Print monitor DLLs are loaded by the Print Spooler service (spoolsv.exe) "
+            "at startup, as SYSTEM. The default monitors include Local Port, Standard "
+            "TCP/IP Port, USB Monitor and WSD Port."
         ),
         references=("https://attack.mitre.org/techniques/T1547/010/",),
         targets=(
@@ -46,10 +45,8 @@ class PrintProcessors(PersistencePlugin):
         technique="Print Processors",
         mitre_id="T1547.012",
         description=(
-            "Print processor DLLs are loaded by the Print Spooler "
-            "service at startup with SYSTEM privileges. The only default "
-            "print processor is winprint (winprint.dll). Both x64 and "
-            "x86 architecture paths are checked."
+            "Print processor DLLs are loaded by the Print Spooler service at startup, "
+            "as SYSTEM. The only default print processor is winprint (winprint.dll)."
         ),
         references=("https://attack.mitre.org/techniques/T1547/012/",),
         targets=(

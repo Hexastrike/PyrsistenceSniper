@@ -54,10 +54,9 @@ class KnownDlls(PersistencePlugin):
         technique="Known DLLs",
         mitre_id="T1574.001",
         description=(
-            "The KnownDLLs key forces Windows to load specific DLLs from "
-            "System32. Adding entries causes a malicious DLL to be loaded "
-            "by any process that imports the specified DLL name. Changes "
-            "to DllDirectory values are also flagged."
+            "The KnownDLLs key makes Windows load the listed DLLs from System32 for "
+            "every process that imports them, and its DllDirectory values name that "
+            "directory."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
     )

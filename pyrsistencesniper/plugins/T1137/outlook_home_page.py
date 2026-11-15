@@ -23,11 +23,9 @@ class OutlookHomePage(PersistencePlugin):
         technique="Outlook Home Page Attack",
         mitre_id="T1137.004",
         description=(
-            "An Outlook folder Home Page URL loads as an embedded web page "
-            "inside the folder view and runs arbitrary HTML, JavaScript and "
-            "ActiveX. Every folder under WebView is read, so user-created and "
-            "localized folder names are covered. The feature is deprecated and "
-            "unset in standard deployments."
+            "An Outlook folder Home Page URL loads as an embedded web page inside the "
+            "folder view and runs arbitrary HTML, JavaScript and ActiveX. The feature "
+            "is deprecated and unset in standard deployments."
         ),
         references=("https://attack.mitre.org/techniques/T1137/004/",),
     )

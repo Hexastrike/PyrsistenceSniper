@@ -20,9 +20,8 @@ class ErrorHandlerCmd(PersistencePlugin):
         technique="ErrorHandler.cmd Persistence",
         mitre_id="T1546",
         description=(
-            "ErrorHandler.cmd in System32 is executed by Windows Error "
-            "Reporting on certain crashes. The file does not exist by "
-            "default; its presence indicates persistence or tampering."
+            "ErrorHandler.cmd in System32 is executed by Windows Error Reporting on "
+            "certain crashes. The file does not exist by default."
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
     )

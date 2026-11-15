@@ -37,11 +37,9 @@ class ProtocolHandlerHijack(PersistencePlugin):
         technique="Protocol Handler Hijacking",
         mitre_id="T1546.001",
         description=(
-            "Protocol handler commands specify the executable invoked "
-            "when a protocol URI is opened. Known high-risk protocols, "
-            "custom-registered protocol handlers carrying a URL Protocol "
-            "value, and per-user class keys that shadow a machine-registered "
-            "protocol without carrying that value are checked."
+            "A protocol handler's open command names the executable started when a URI "
+            "of that protocol is opened. A per-user class key can shadow a "
+            "machine-registered protocol even without a URL Protocol value of its own."
         ),
         references=("https://attack.mitre.org/techniques/T1546/001/",),
     )
@@ -209,10 +207,8 @@ class SearchProtocolHandler(PersistencePlugin):
         technique="Search Protocol Handler Hijack",
         mitre_id="T1546.001",
         description=(
-            "The search-ms protocol handler is normally handled by "
-            "explorer.exe. Any modification to this handler is a strong "
-            "indicator of search-ms protocol abuse, as documented in "
-            "Follina-era attacks."
+            "The search-ms protocol handler names the program started when a search-ms "
+            "URI is opened, normally explorer.exe."
         ),
         references=("https://attack.mitre.org/techniques/T1546/001/",),
         targets=(

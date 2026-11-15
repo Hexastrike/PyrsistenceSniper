@@ -43,9 +43,8 @@ class WinlogonShell(PersistencePlugin):
         technique="Winlogon Shell",
         mitre_id="T1547.004",
         description=(
-            "The Winlogon Shell value defines the user-mode shell launched "
-            "after authentication. Replacing the default 'explorer.exe' "
-            "executes an attacker binary at every logon."
+            "The Winlogon Shell value names the shell started after authentication. "
+            "The default is 'explorer.exe'."
         ),
         references=("https://attack.mitre.org/techniques/T1547/004/",),
         targets=(
@@ -67,9 +66,8 @@ class WinlogonUserinit(_CommaSeparatedWinlogonValue):
         technique="Winlogon Userinit",
         mitre_id="T1547.004",
         description=(
-            "The Userinit value is a comma-delimited list of programs run "
-            "immediately after user authentication. Appending entries "
-            "beyond the default userinit.exe is stealthy logon persistence."
+            "The Userinit value is a comma-delimited list of programs run immediately "
+            "after user authentication. The default is userinit.exe alone."
         ),
         references=("https://attack.mitre.org/techniques/T1547/004/",),
         targets=(
@@ -91,9 +89,8 @@ class WinlogonMPNotify(PersistencePlugin):
         technique="Winlogon MPNotify",
         mitre_id="T1547.004",
         description=(
-            "The mpnotify value specifies a notification DLL loaded by "
-            "Winlogon after authentication. Any value present is "
-            "suspicious as this mechanism is rarely used legitimately."
+            "The mpnotify value names the notification program Winlogon starts after "
+            "authentication. The value is rarely set."
         ),
         references=("https://attack.mitre.org/techniques/T1547/004/",),
         targets=(
@@ -164,9 +161,9 @@ class WinlogonSystem(_CommaSeparatedWinlogonValue):
         technique="Winlogon System",
         mitre_id="T1547.004",
         description=(
-            "The System value holds a comma-delimited list of programs "
-            "Winlogon starts in the system context during initialisation, "
-            "and is empty on a default installation."
+            "The System value holds a comma-delimited list of programs Winlogon starts "
+            "in the system context during initialization, and is empty on a default "
+            "installation."
         ),
         references=("https://attack.mitre.org/techniques/T1547/004/",),
         targets=(
@@ -188,9 +185,8 @@ class WinlogonTaskman(PersistencePlugin):
         technique="Winlogon Taskman",
         mitre_id="T1547.004",
         description=(
-            "Taskman names the executable launched in place of Task "
-            "Manager. It is unset by default, so any value redirects a "
-            "trusted user action to an attacker binary."
+            "Taskman names the executable launched in place of Task Manager. It is "
+            "unset by default."
         ),
         references=("https://attack.mitre.org/techniques/T1547/004/",),
         targets=(
@@ -212,9 +208,8 @@ class WinlogonVMApplet(PersistencePlugin):
         technique="Winlogon VMApplet",
         mitre_id="T1547.004",
         description=(
-            "VMApplet names the program Winlogon runs when the system "
-            "runs out of virtual memory. Replacing the default virtual "
-            "memory applet yields SYSTEM execution."
+            "VMApplet names the program Winlogon runs, as SYSTEM, when the system runs "
+            "out of virtual memory."
         ),
         references=("https://attack.mitre.org/techniques/T1547/004/",),
         targets=(

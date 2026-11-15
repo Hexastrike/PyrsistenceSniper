@@ -29,11 +29,9 @@ class AppInitDlls(PersistencePlugin):
         technique="AppInit DLLs",
         mitre_id="T1546.010",
         description=(
-            "AppInit_DLLs are injected into every process that loads "
-            "user32.dll. Both native and WoW64 paths are checked. "
-            "The mechanism is only active when LoadAppInit_DLLs is set "
-            "to 1 and is disabled by default on Windows 8+ with Secure "
-            "Boot enabled."
+            "AppInit_DLLs are loaded into every process that loads user32.dll. The "
+            "mechanism is active only when LoadAppInit_DLLs is 1, and is disabled on "
+            "Windows 8 and later when Secure Boot is on."
         ),
         references=("https://attack.mitre.org/techniques/T1546/010/",),
     )

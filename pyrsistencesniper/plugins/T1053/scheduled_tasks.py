@@ -37,9 +37,9 @@ class ScheduledTaskFiles(PersistencePlugin):
         technique="Scheduled Task (XML Files)",
         mitre_id="T1053.005",
         description=(
-            "Scheduled task XML files under System32\\Tasks define actions "
-            "executed on triggers. Exec actions are reported by command line "
-            "and ComHandler actions by the COM server their CLSID registers."
+            "Scheduled task XML files under System32\\Tasks define the actions a task "
+            "runs on its triggers: an Exec action starts a command line and a "
+            "ComHandler action loads the COM server its CLSID registers."
         ),
         references=("https://attack.mitre.org/techniques/T1053/005/",),
     )

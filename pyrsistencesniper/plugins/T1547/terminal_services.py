@@ -34,13 +34,9 @@ class TsInitialProgram(PersistencePlugin):
         technique="Terminal Services Initial Program",
         mitre_id="T1547.001",
         description=(
-            "The Terminal Services InitialProgram value replaces the "
-            "default shell for RDP sessions. Setting it to a malicious "
-            "binary provides persistence for all incoming RDP connections. "
-            "The Terminal Server Install shadow of the Run keys is checked "
-            "too, and its RunOnceEx half keeps its commands in ordered "
-            "section subkeys, which are descended into rather than read as "
-            "flat values."
+            "The Terminal Services InitialProgram value replaces the default shell for "
+            "every incoming RDP session. The Terminal Server Install key holds a "
+            "shadow copy of the Run, RunOnce and RunOnceEx keys."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
@@ -108,9 +104,8 @@ class RdpWdsStartupPrograms(PersistencePlugin):
         technique="RDP WDS Startup Programs",
         mitre_id="T1547.001",
         description=(
-            "The WDS StartupPrograms value specifies programs launched in "
-            "RDP sessions. The default is 'rdpclip'; any other value "
-            "warrants investigation."
+            "The WDS StartupPrograms value lists programs started in every RDP "
+            "session. The default is 'rdpclip'."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
@@ -160,9 +155,8 @@ class RdpVirtualChannel(PersistencePlugin):
         technique="RDP Virtual Channel DLL",
         mitre_id="T1547.001",
         description=(
-            "RDP Virtual Channel add-in DLLs are loaded during RDP "
-            "sessions, providing DLL-based persistence for remote "
-            "connections."
+            "RDP virtual channel add-in DLLs are loaded by the Remote Desktop client "
+            "during a session."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
     )

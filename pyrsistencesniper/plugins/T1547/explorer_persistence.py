@@ -22,9 +22,8 @@ class ExplorerLoad(PersistencePlugin):
         technique="Explorer Load Value",
         mitre_id="T1547.001",
         description=(
-            "The Load value under Windows\\CurrentVersion\\Windows "
-            "specifies a program run by Explorer at user logon, providing "
-            "user-context persistence."
+            "The Load value under Windows NT\\CurrentVersion\\Windows names a program "
+            "started at user logon, in that user's context."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
@@ -49,10 +48,9 @@ class ExplorerBrowserHelperObjects(PersistencePlugin):
         technique="Browser Helper Objects",
         mitre_id="T1547.001",
         description=(
-            "Browser Helper Objects (BHOs) are COM DLLs registered under "
-            "Explorer\\Browser Helper Objects. Each BHO is loaded into "
-            "Explorer (and historically Internet Explorer), providing "
-            "persistent in-process code execution."
+            "Browser Helper Objects are COM DLLs registered under Explorer\\Browser "
+            "Helper Objects and loaded into Explorer, and historically Internet "
+            "Explorer."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
     )
@@ -97,10 +95,9 @@ class ExplorerAppKey(PersistencePlugin):
         technique="Explorer AppKey Override",
         mitre_id="T1547.001",
         description=(
-            "Explorer AppKey entries map special keyboard keys (mail, "
-            "browser, etc.) to custom programs. Overriding the "
-            "ShellExecute or Association values provides persistence "
-            "triggered by physical key presses."
+            "Explorer AppKey entries bind special keyboard keys, such as the mail and "
+            "browser keys, to a program through their ShellExecute or Association "
+            "value, which runs when the key is pressed."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
     )

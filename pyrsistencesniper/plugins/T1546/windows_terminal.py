@@ -116,9 +116,8 @@ class WindowsTerminal(PersistencePlugin):
         technique="Windows Terminal Custom Profiles",
         mitre_id="T1546",
         description=(
-            "Windows Terminal settings.json can define profiles with "
-            "custom command lines. Non-default profiles may execute "
-            "arbitrary commands when a new terminal tab is opened."
+            "A Windows Terminal settings.json profile carries a command line that runs "
+            "each time a tab is opened with that profile."
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
     )

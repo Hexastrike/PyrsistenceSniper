@@ -20,9 +20,8 @@ class RunServices(PersistencePlugin):
         technique="RunServices (Legacy)",
         mitre_id="T1547.001",
         description=(
-            "RunServices is a deprecated Win9x-era auto-start key that "
-            "still exists in modern Windows. It is always empty on clean "
-            "systems. Any entry is suspicious."
+            "RunServices is a deprecated Win9x-era auto-start key, empty on a clean "
+            "system."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
@@ -43,9 +42,8 @@ class RunServicesOnce(PersistencePlugin):
         technique="RunServicesOnce (Legacy)",
         mitre_id="T1547.001",
         description=(
-            "RunServicesOnce is a deprecated Win9x-era auto-start key "
-            "that still exists in modern Windows. It is always empty on "
-            "clean systems. Any entry is suspicious."
+            "RunServicesOnce is a deprecated Win9x-era auto-start key, empty on a "
+            "clean system."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(

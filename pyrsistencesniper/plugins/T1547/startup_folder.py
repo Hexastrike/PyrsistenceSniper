@@ -54,9 +54,8 @@ class StartupFolder(PersistencePlugin):
         technique="Startup Folder",
         mitre_id="T1547.001",
         description=(
-            "Programs and shortcuts placed in per-user or system-wide "
-            "Startup folders execute automatically at logon, providing "
-            "simple file-drop persistence."
+            "Programs and shortcuts in the per-user and system-wide Startup folders "
+            "run automatically at logon."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
     )

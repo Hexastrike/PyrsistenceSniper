@@ -23,9 +23,8 @@ class NaturalLanguageDevelopmentPlatform(PersistencePlugin):
         technique="NLDP DLL Override",
         mitre_id="T1574.001",
         description=(
-            "The NlsData DllOverridePath specifies a custom DLL loaded by "
-            "the Natural Language Processing subsystem. Any value present "
-            "indicates DLL hijacking persistence."
+            "The NlsData DllOverridePath value names a custom DLL the natural language "
+            "processing subsystem loads."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
@@ -47,9 +46,8 @@ class ChmHelper(PersistencePlugin):
         technique="CHM Helper DLL",
         mitre_id="T1574.001",
         description=(
-            "The CHM helper DLL Location value specifies a DLL loaded when "
-            "rendering compiled HTML help files. Hijacking this provides "
-            "code execution when .chm files are opened."
+            "The HtmlHelp Author Location value names a DLL loaded when a compiled "
+            "HTML help (.chm) file is opened."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
@@ -71,9 +69,8 @@ class HhctrlOcx(PersistencePlugin):
         technique="hhctrl.ocx DLL Override",
         mitre_id="T1574.001",
         description=(
-            "The hhctrl.ocx CLSID InprocServer32 points to the DLL loaded "
-            "for HTML Help controls. Hijacking this COM registration "
-            "provides code execution when any HTML Help content is rendered."
+            "The InprocServer32 of the hhctrl.ocx CLSID names the DLL loaded whenever "
+            "HTML Help content is rendered."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
@@ -99,9 +96,8 @@ class AutodialDll(PersistencePlugin):
         technique="AutodialDLL Override",
         mitre_id="T1574.001",
         description=(
-            "The AutodialDLL value specifies a DLL loaded by the WinSock "
-            "auto-dial feature. A non-OS DLL provides persistent code "
-            "execution in any process that uses WinSock."
+            "The AutodialDLL value names a DLL the WinSock auto-dial feature loads "
+            "into any process that uses WinSock."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
@@ -123,9 +119,8 @@ class LsaExtensions(PersistencePlugin):
         technique="LSA Extensions DLL",
         mitre_id="T1574.001",
         description=(
-            "LSA Extensions are DLLs loaded by the Local Security Authority "
-            "during system startup. A malicious extension can intercept "
-            "credentials and provide SYSTEM-level persistence."
+            "LSA Extensions are DLLs the Local Security Authority loads into lsass.exe "
+            "during system startup."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
@@ -147,9 +142,8 @@ class ServerLevelPluginDll(PersistencePlugin):
         technique="DNS Server Level Plugin DLL",
         mitre_id="T1574.001",
         description=(
-            "The DNS Server ServerLevelPluginDll value specifies a DLL "
-            "loaded by the DNS service at startup. Abuse provides "
-            "SYSTEM-level persistence on domain controllers."
+            "The DNS Server ServerLevelPluginDll value names a DLL the DNS service "
+            "loads at startup, as SYSTEM, typically on a domain controller."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
@@ -171,9 +165,8 @@ class CryptoExpoOffload(PersistencePlugin):
         technique="Crypto ExpoOffload DLL",
         mitre_id="T1574.001",
         description=(
-            "The ExpoOffload value specifies a DLL loaded by the "
-            "cryptography subsystem for exponentiation offloading. Any "
-            "value present indicates potential DLL hijacking persistence."
+            "The ExpoOffload value names a DLL the cryptography subsystem loads for "
+            "exponentiation offloading."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
@@ -195,9 +188,8 @@ class Direct3dDll(PersistencePlugin):
         technique="Direct3D Software Rasterizer DLL",
         mitre_id="T1574.001",
         description=(
-            "The D3D SoftwareRasterizer value specifies the DLL loaded as "
-            "the Direct3D software rasterizer. Hijacking provides code "
-            "execution in any process that initializes Direct3D."
+            "The Direct3D SoftwareRasterizer value names the DLL loaded as the "
+            "software rasterizer by any process that initializes Direct3D."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
@@ -219,9 +211,9 @@ class MsdtcXaDll(PersistencePlugin):
         technique="MSDTC XA DLL",
         mitre_id="T1574.001",
         description=(
-            "MSDTC XA DLLs (OracleXaLib, OracleOciLib) are loaded by the "
-            "Distributed Transaction Coordinator. A malicious DLL executes "
-            "in the SYSTEM context of the MSDTC service."
+            "The OracleXaLib and OracleOciLib values name the XA DLLs the Distributed "
+            "Transaction Coordinator loads into the MSDTC service, which runs as "
+            "Network Service by default."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
@@ -241,16 +233,15 @@ class MsdtcXaDll(PersistencePlugin):
 
 @register_plugin
 class DiagTrackDll(PersistencePlugin):
-    """Detects DiagTrack DLL persistence entries."""
+    """Detects DiagTrack Service ImagePath persistence entries."""
 
     definition = CheckDefinition(
         id="diagtrack_dll",
-        technique="DiagTrack DLL",
+        technique="DiagTrack Service ImagePath",
         mitre_id="T1574.001",
         description=(
-            "The DiagTrack service ImagePath specifies the service binary. "
-            "Replacing it with a non-OS executable provides SYSTEM-level "
-            "persistence triggered by the telemetry service."
+            "The DiagTrack service ImagePath names the binary the service control "
+            "manager starts for the telemetry service, as SYSTEM."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
@@ -272,9 +263,8 @@ class DiagTrackListenerDll(PersistencePlugin):
         technique="DiagTrack Listener DLL",
         mitre_id="T1574.001",
         description=(
-            "The DiagTrack Autologger listener FileName specifies the DLL "
-            "loaded for telemetry collection. Hijacking this value provides "
-            "SYSTEM-level persistence at boot."
+            "The DiagTrack-Listener Autologger FileName value names the DLL loaded for "
+            "telemetry collection at boot, as SYSTEM."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
@@ -296,9 +286,8 @@ class RdpTestDvcPlugin(PersistencePlugin):
         technique="RDP TestDVCPlugin DLL",
         mitre_id="T1574.001",
         description=(
-            "The TestDVCPlugin value specifies a DLL loaded by the RDP "
-            "client for Dynamic Virtual Channel testing. Any value present "
-            "indicates potential DLL-based persistence via RDP sessions."
+            "The TestDVCPlugin value names a DLL the RDP client loads for Dynamic "
+            "Virtual Channel testing."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
@@ -320,9 +309,8 @@ class SearchIndexerDll(PersistencePlugin):
         technique="Search Indexer DLL Override",
         mitre_id="T1574.001",
         description=(
-            "The Windows Search Indexer DllPath value can be overridden to "
-            "load a malicious DLL during indexing operations, providing "
-            "SYSTEM-level persistence."
+            "The Windows Search DllPath value names a DLL the search indexer loads "
+            "during indexing, as SYSTEM."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
@@ -344,9 +332,8 @@ class WuServiceStartupDll(PersistencePlugin):
         technique="Windows Update Service Startup DLL",
         mitre_id="T1574.001",
         description=(
-            "The Windows Update ServiceDll value specifies the DLL loaded "
-            "by the wuauserv service. A non-OS DLL provides SYSTEM-level "
-            "persistence triggered by Windows Update operations."
+            "The Windows Update ServiceDll value names the DLL the wuauserv service "
+            "loads when it starts, as SYSTEM."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
@@ -368,9 +355,8 @@ class KnownManagedDebuggingDlls(PersistencePlugin):
         technique="Known Managed Debugging DLLs",
         mitre_id="T1574.001",
         description=(
-            "KnownManagedDebuggingDlls specifies DLLs loaded by .NET "
-            "managed debuggers. Registering a malicious DLL provides "
-            "code execution whenever managed debugging is initiated."
+            "KnownManagedDebuggingDlls lists DLLs loaded whenever .NET managed "
+            "debugging is started."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
@@ -440,9 +426,8 @@ class Mapi32DllPath(PersistencePlugin):
         mitre_id="T1574.001",
         description=(
             "Every mail client registers its MAPI provider in a subkey of "
-            "Clients Mail, where DLLPathEx (or the legacy DLLPath) names "
-            "the DLL loaded by every process that initialises MAPI. "
-            "Hijacking it provides code execution in Outlook and in any "
+            "Clients\\Mail, where DLLPathEx (or the legacy DLLPath) names the DLL "
+            "loaded by every process that initializes MAPI, such as Outlook or any "
             "application that sends mail."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
@@ -474,9 +459,8 @@ class GpExtensionDlls(PersistencePlugin):
         technique="Group Policy Extension DLLs",
         mitre_id="T1574.001",
         description=(
-            "Group Policy Extension DLLs are loaded by the GP engine "
-            "during policy refresh. A non-OS DLL registered here provides "
-            "SYSTEM-level persistence triggered at every gpupdate cycle."
+            "Group Policy extension DLLs are loaded by the Group Policy engine at "
+            "every policy refresh, as SYSTEM."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
@@ -502,10 +486,9 @@ class WinsockAutoProxy(PersistencePlugin):
         technique="Winsock AutoProxy DLL",
         mitre_id="T1574.001",
         description=(
-            "Winsock NameSpace_Catalog5 provider DLLs are loaded for "
-            "network name resolution. A non-OS library in either the "
-            "32-bit or the 64-bit catalog provides persistent DLL loading "
-            "in any networking process."
+            "Winsock NameSpace_Catalog5 provider DLLs, in the 32-bit and the 64-bit "
+            "catalog, are loaded for name resolution into any process that uses the "
+            "network."
         ),
         references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(

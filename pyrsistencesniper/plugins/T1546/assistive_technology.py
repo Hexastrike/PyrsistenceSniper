@@ -28,14 +28,10 @@ class AssistiveTechnology(PersistencePlugin):
         technique="Accessibility Features",
         mitre_id="T1546.008",
         description=(
-            "Assistive Technology (AT) applications registered under the "
-            "Accessibility ATs key may be launched when accessibility features "
-            "are enabled. The Configuration value lists the ATs Windows "
-            "auto-launches: per user at logon, and in the DEFAULT hive on the "
-            "sign-in desktop before any user authenticates. Registering a "
-            "malicious AT or adding its name to a Configuration list provides "
-            "persistence triggered by accessibility shortcuts, user logon, or "
-            "the lock screen."
+            "Assistive Technology applications registered under the Accessibility ATs "
+            "key start when an accessibility feature is enabled. The Configuration "
+            "value lists the ATs Windows starts by itself: per user at logon, and from "
+            "the DEFAULT hive on the sign-in desktop before any user authenticates."
         ),
         references=(
             "https://attack.mitre.org/techniques/T1546/008/",

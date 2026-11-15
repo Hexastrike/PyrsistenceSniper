@@ -20,9 +20,8 @@ class Screensaver(PersistencePlugin):
         technique="Screensaver Hijack",
         mitre_id="T1546.002",
         description=(
-            "The SCRNSAVE.EXE registry value defines the screensaver binary. "
-            "Replacing it with a non-default executable provides per-user "
-            "persistence triggered by idle timeout."
+            "The SCRNSAVE.EXE value names the screensaver binary, which runs as the "
+            "user once the idle timeout expires."
         ),
         references=("https://attack.mitre.org/techniques/T1546/002/",),
     )

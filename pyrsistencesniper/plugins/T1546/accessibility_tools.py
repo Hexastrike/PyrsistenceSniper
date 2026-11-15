@@ -83,12 +83,10 @@ class AccessibilityTools(PersistencePlugin):
         technique="Accessibility Features Backdoor",
         mitre_id="T1546.008",
         description=(
-            "Accessibility tools (sethc.exe, osk.exe, utilman.exe, etc.) "
-            "execute at the lock screen before authentication. Replacing one "
-            "on disk with a shell, a script host, or an implant provides "
-            "pre-logon SYSTEM access, typically exploited via RDP. A binary "
-            "that is not the Microsoft-signed original, or that is signed but "
-            "identifies itself as a different program, has been replaced."
+            "Accessibility tools such as sethc.exe, osk.exe and utilman.exe run at the "
+            "lock screen before authentication, as SYSTEM. A binary that is not the "
+            "Microsoft-signed original, or that is signed but identifies itself as a "
+            "different program, has been replaced."
         ),
         references=("https://attack.mitre.org/techniques/T1546/008/",),
     )

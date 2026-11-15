@@ -23,9 +23,9 @@ class PowerAutomate(PersistencePlugin):
         technique="Power Automate Desktop Flows",
         mitre_id="T1546",
         description=(
-            "Power Automate Desktop stores flow definitions and scripts "
-            "under the user's AppData. Both the Flows and Scripts "
-            "directories are checked for automation-based persistence."
+            "Power Automate Desktop stores flow definitions and scripts in the Flows "
+            "and Scripts folders under the user's AppData, and a flow runs the actions "
+            "it defines as that user."
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
     )

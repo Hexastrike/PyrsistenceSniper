@@ -52,10 +52,9 @@ class ShellFoldersStartup(PersistencePlugin):
         technique="Shell Folders Startup Redirect",
         mitre_id="T1547.001",
         description=(
-            "Shell Folders and User Shell Folders Startup values define "
-            "the startup folder path. Redirecting to a non-default "
-            "directory lets an attacker populate it with arbitrary "
-            "executables that run at logon."
+            "The Startup values under Shell Folders and User Shell Folders name the "
+            "Startup folder, so redirecting one makes every file in the new directory "
+            "run at logon."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
     )

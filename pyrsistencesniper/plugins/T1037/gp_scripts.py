@@ -87,10 +87,8 @@ class GpScripts(PersistencePlugin):
         technique="Group Policy Scripts",
         mitre_id="T1037.001",
         description=(
-            "Group Policy scripts.ini and psscripts.ini define "
-            "startup/shutdown and logon/logoff scripts, so a CmdLine entry "
-            "runs at boot or at logon. The machine-wide local GPO and every "
-            "per-user local GPO under GroupPolicyUsers are read."
+            "Group Policy scripts.ini and psscripts.ini define startup/shutdown and "
+            "logon/logoff scripts, so a CmdLine entry runs at boot or at logon."
         ),
         references=("https://attack.mitre.org/techniques/T1037/001/",),
     )

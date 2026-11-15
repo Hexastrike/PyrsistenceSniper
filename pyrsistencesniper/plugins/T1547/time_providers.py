@@ -20,10 +20,8 @@ class TimeProviders(PersistencePlugin):
         technique="Time Providers",
         mitre_id="T1547.003",
         description=(
-            "Time provider DLLs are loaded by the W32Time service at "
-            "startup. Default providers are NtpClient, NtpServer, and "
-            "VMICTimeProvider (Hyper-V). Any non-default time provider "
-            "DLL is a strong indicator of persistence."
+            "Time provider DLLs are loaded by the W32Time service at startup. The "
+            "defaults are NtpClient, NtpServer and VMICTimeProvider (Hyper-V)."
         ),
         references=("https://attack.mitre.org/techniques/T1547/003/",),
         targets=(

@@ -38,12 +38,10 @@ class FileAssociationHijack(PersistencePlugin):
         technique="File Association Hijacking",
         mitre_id="T1546.001",
         description=(
-            "Per-user and system-wide file association command handlers "
-            "for high-risk extensions (.txt, .pdf, .doc, .js, .exe, etc.) "
-            "are checked. Both direct extension handlers and progid-"
-            "redirected handlers are examined. Every registered handler is "
-            "reported: a hijack most often repoints the handler at an "
-            "attacker-dropped executable rather than at an interpreter."
+            "The open command registered for a file extension runs whenever a file of "
+            "that type is opened, either directly on the extension or through the "
+            "ProgID it points to. A per-user registration overrides the system-wide "
+            "one."
         ),
         references=("https://attack.mitre.org/techniques/T1546/001/",),
     )

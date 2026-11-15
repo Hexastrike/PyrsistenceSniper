@@ -44,10 +44,8 @@ class SharedTaskScheduler(PersistencePlugin):
         technique="SharedTaskScheduler",
         mitre_id="T1546",
         description=(
-            "SharedTaskScheduler COM objects are loaded by Explorer.exe "
-            "at shell startup, providing early and persistent code "
-            "execution. The key is normally empty on all modern Windows "
-            "installations."
+            "SharedTaskScheduler lists COM objects Explorer.exe loads at shell "
+            "startup. The key is normally empty on modern Windows."
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
         targets=(

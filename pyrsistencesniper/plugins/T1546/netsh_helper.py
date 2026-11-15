@@ -20,10 +20,8 @@ class NetshHelper(PersistencePlugin):
         technique="Netsh Helper DLL",
         mitre_id="T1546.007",
         description=(
-            "Netsh helper DLLs registered under HKLM\\SOFTWARE\\Microsoft"
-            "\\NetSh are loaded every time netsh.exe executes. A malicious "
-            "helper provides persistent code execution in a "
-            "network-administration context."
+            "Netsh helper DLLs registered under HKLM\\SOFTWARE\\Microsoft\\NetSh are "
+            "loaded every time netsh.exe runs."
         ),
         references=("https://attack.mitre.org/techniques/T1546/007/",),
         targets=(

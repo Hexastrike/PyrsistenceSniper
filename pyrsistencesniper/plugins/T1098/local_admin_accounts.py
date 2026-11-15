@@ -127,12 +127,10 @@ class AdministratorsGroupMembership(PersistencePlugin):
         technique="Administrators Group Membership",
         mitre_id="T1098",
         description=(
-            "Adding a SID to the Builtin\\Administrators alias grants admin "
-            "rights without touching any account's own SAM record, so the RID "
-            "checks cannot see it. Every host has legitimate administrators, "
-            "so membership alone is not reportable: only a member hidden from "
-            "the sign-in screen, or a SID naming no account or group the SAM "
-            "contains, is reported."
+            "Adding a SID to the Builtin\\Administrators alias grants administrator "
+            "rights without touching any account's own SAM record. Membership alone is "
+            "normal, so only a member hidden from the sign-in screen, or a SID naming "
+            "no account or group in the SAM, appears here."
         ),
         references=("https://attack.mitre.org/techniques/T1098/",),
     )

@@ -20,10 +20,8 @@ class BootExecute(PersistencePlugin):
         technique="Boot Execute",
         mitre_id="T1547.001",
         description=(
-            "Session Manager BootExecute programs run before the Windows "
-            "subsystem starts. The legitimate default is 'autocheck "
-            "autochk *'; any other entry indicates persistence or "
-            "tampering."
+            "Session Manager BootExecute programs run before the Windows subsystem "
+            "starts. The default is 'autocheck autochk *'."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
@@ -45,9 +43,8 @@ class SetupExecute(PersistencePlugin):
         technique="Setup Execute",
         mitre_id="T1547.001",
         description=(
-            "SetupExecute programs run during early system setup, before "
-            "the graphical shell. Any value present is suspicious outside "
-            "fresh OS installs."
+            "SetupExecute programs run during early system setup, before the graphical "
+            "shell. The value is normally set only while Windows is being installed."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
@@ -69,9 +66,8 @@ class PlatformExecute(PersistencePlugin):
         technique="Platform Execute",
         mitre_id="T1547.001",
         description=(
-            "PlatformExecute programs run during early boot for "
-            "hardware-specific initialization. Values here are uncommon "
-            "and may indicate boot-level persistence."
+            "PlatformExecute programs run during early boot for hardware-specific "
+            "initialization. The value is rarely set."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
@@ -93,9 +89,8 @@ class SessionManagerExecute(PersistencePlugin):
         technique="Session Manager Execute",
         mitre_id="T1547.001",
         description=(
-            "The Session Manager Execute value runs programs during session "
-            "initialization, before user logon. Any value present warrants "
-            "investigation."
+            "The Session Manager Execute value lists programs run during session "
+            "initialization, before user logon."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
@@ -117,9 +112,8 @@ class S0InitialCommand(PersistencePlugin):
         technique="S0 Initial Command",
         mitre_id="T1547.001",
         description=(
-            "S0InitialCommand runs a program during Session 0 "
-            "initialization, before interactive logon. Presence of this "
-            "value is unusual and suggests persistence."
+            "S0InitialCommand names a program run during Session 0 initialization, "
+            "before interactive logon. The value is rarely set."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
@@ -141,8 +135,8 @@ class ServiceControlManagerExtension(PersistencePlugin):
         technique="Service Control Manager Extension",
         mitre_id="T1547.001",
         description=(
-            "ServiceControlManagerExtension values specify DLLs loaded by "
-            "the SCM during boot, executing in a highly privileged context."
+            "ServiceControlManagerExtension values name DLLs the service control "
+            "manager loads during boot, inside its own SYSTEM process."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
@@ -163,10 +157,8 @@ class SessionManagerSubSystems(PersistencePlugin):
         technique="Session Manager SubSystems",
         mitre_id="T1547",
         description=(
-            "The SubSystems\\Windows value specifies the Windows subsystem "
-            "server executable loaded by the Session Manager during boot. "
-            "The default value references csrss.exe. Any modification "
-            "indicates boot-level persistence."
+            "The SubSystems\\Windows value names the Windows subsystem server the "
+            "Session Manager starts during boot. The default references csrss.exe."
         ),
         references=("https://attack.mitre.org/techniques/T1547/",),
         targets=(

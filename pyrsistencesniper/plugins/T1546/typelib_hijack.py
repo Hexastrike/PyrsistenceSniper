@@ -35,12 +35,9 @@ class TypeLibHijack(PersistencePlugin):
         technique="TypeLib COM Hijacking",
         mitre_id="T1546.015",
         description=(
-            "TypeLib entries in per-user hives (HKCU\\Software\\Classes\\"
-            "TypeLib) are reported. HKCU TypeLib entries override HKLM, "
-            "allowing user-level persistence, so every registered library "
-            "path is surfaced: a hijack that names a system directory is "
-            "still a hijack, and known-good publishers are suppressed by "
-            "the detection profile rather than here."
+            "A TypeLib entry under HKCU\\Software\\Classes\\TypeLib overrides the "
+            "machine-wide registration, so a user can repoint a type library at a path "
+            "of their choosing without administrator rights."
         ),
         references=("https://attack.mitre.org/techniques/T1546/015/",),
     )

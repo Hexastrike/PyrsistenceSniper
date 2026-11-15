@@ -34,11 +34,10 @@ class ActiveSetup(PersistencePlugin):
         technique="Active Setup",
         mitre_id="T1547.014",
         description=(
-            "Active Setup StubPath commands run once per user at first "
-            "logon. Adversaries register components under Installed "
-            "Components to achieve per-user persistence with SYSTEM-level "
-            "registry access. The 32-bit component list under Wow6432Node "
-            "is processed independently and is checked as well."
+            "An Active Setup StubPath command registered under Installed Components "
+            "runs once per user at logon. The key is machine-wide, so writing it needs "
+            "administrator rights, and the 32-bit list under Wow6432Node is processed "
+            "separately."
         ),
         references=("https://attack.mitre.org/techniques/T1547/014/",),
     )

@@ -31,10 +31,9 @@ class AmsiProviders(PersistencePlugin):
         technique="AMSI Provider DLL",
         mitre_id="T1546.015",
         description=(
-            "AMSI providers are COM DLLs loaded by the Antimalware Scan "
-            "Interface into every process that invokes AMSI. A malicious "
-            "provider intercepts all scan requests and executes attacker "
-            "code in-process."
+            "AMSI providers are COM DLLs the Antimalware Scan Interface loads into "
+            "every process that invokes AMSI, where a provider sees every scan "
+            "request."
         ),
         references=("https://attack.mitre.org/techniques/T1546/015/",),
     )

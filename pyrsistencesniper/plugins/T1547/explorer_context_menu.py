@@ -36,12 +36,9 @@ class ExplorerContextMenu(PersistencePlugin):
         technique="Explorer Context Menu Handlers",
         mitre_id="T1547.001",
         description=(
-            "Context-menu shell extensions (ContextMenuHandlers) are COM "
-            "DLLs loaded by Explorer on right-click. Registering a "
-            "malicious handler provides DLL-based persistence under SYSTEM "
-            "or the invoking user. Both halves of HKCR are read: the "
-            "machine-wide SOFTWARE\\Classes and each user's UsrClass.dat, "
-            "which wins the merge and needs no administrator rights."
+            "ContextMenuHandlers are COM DLLs Explorer loads on right-click. A handler "
+            "registered in a user's UsrClass.dat wins over the machine-wide "
+            "SOFTWARE\\Classes entry and needs no administrator rights."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
     )

@@ -20,10 +20,9 @@ class ShellLauncher(PersistencePlugin):
         technique="Shell Launcher Override",
         mitre_id="T1547.001",
         description=(
-            "The Shell value under Policies\\System and the IniFileMapping "
-            "boot\\Shell entry override the default Windows shell "
-            "(explorer.exe), executing an attacker-controlled binary at "
-            "every logon."
+            "The Shell value under Policies\\System and the IniFileMapping boot\\Shell "
+            "entry replace the default Windows shell, explorer.exe, with the program "
+            "they name at every logon."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(

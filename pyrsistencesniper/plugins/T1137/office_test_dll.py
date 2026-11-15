@@ -20,11 +20,9 @@ class OfficeTestDll(PersistencePlugin):
         technique="Office Test DLL",
         mitre_id="T1137.002",
         description=(
-            "The undocumented Office Test\\Special\\Perf key specifies a "
-            "DLL loaded by Office applications at startup. Any value "
-            "present indicates persistence, as this key has no legitimate "
-            "use. 32-bit Office reads the WoW64 copy of the key, so both "
-            "registry views are checked."
+            "The undocumented Office Test\\Special\\Perf key names a DLL Office "
+            "applications load at startup; 32-bit Office reads the WoW64 copy. Office "
+            "does not create the key by default."
         ),
         references=("https://attack.mitre.org/techniques/T1137/002/",),
         targets=(

@@ -74,12 +74,9 @@ class IfeoDebugger(PersistencePlugin):
         technique="Image File Execution Options Debugger",
         mitre_id="T1546.012",
         description=(
-            "An IFEO Debugger value causes Windows to launch the specified "
-            "debugger instead of the target executable. Attackers set this "
-            "to redirect execution of common tools to malicious binaries. "
-            "With UseFilter the Debugger lives in a named filter subkey "
-            "below the image key, so the whole subtree is searched, in the "
-            "Wow6432Node view as well as the native one."
+            "An IFEO Debugger value makes Windows start the named debugger in place of "
+            "the target executable. With UseFilter set, the Debugger sits in a named "
+            "filter subkey below the image key."
         ),
         references=("https://attack.mitre.org/techniques/T1546/012/",),
     )
@@ -103,11 +100,9 @@ class IfeoSilentProcessExit(PersistencePlugin):
         technique="Silent Process Exit Monitor",
         mitre_id="T1546.012",
         description=(
-            "SilentProcessExit MonitorProcess is invoked when a target "
-            "process terminates. Configuring this triggers attacker code "
-            "execution on process exit, providing event-driven persistence. "
-            "A 32-bit process configures it through the registry redirector, "
-            "so the Wow6432Node view is read as well."
+            "A SilentProcessExit MonitorProcess value names a program started when the "
+            "monitored process exits. A 32-bit process is configured through the "
+            "Wow6432Node view."
         ),
         references=("https://attack.mitre.org/techniques/T1546/012/",),
     )
@@ -124,19 +119,16 @@ class IfeoSilentProcessExit(PersistencePlugin):
 
 @register_plugin
 class IfeoDelegatedNtdll(PersistencePlugin):
-    """Detects IFEO Delegated NTDLL persistence entries."""
+    """Detects IFEO Verifier DLLs persistence entries."""
 
     definition = CheckDefinition(
         id="ifeo_delegated_ntdll",
-        technique="IFEO Delegated NTDLL",
+        technique="IFEO Verifier DLLs",
         mitre_id="T1546.012",
         description=(
-            "VerifierDlls under IFEO causes a custom DLL to be loaded into "
-            "the target process at startup, providing reliable DLL injection "
-            "persistence. It is armed by GlobalFlag 0x100 (Application "
-            "Verifier), which the loader accepts as either a DWORD or a "
-            "string, so the DLL list is reported on its own merits. Both "
-            "registry views are searched."
+            "VerifierDlls under an IFEO image key names DLLs loaded into that process "
+            "at startup. It is armed by GlobalFlag 0x100 (Application Verifier), which "
+            "the loader accepts as either a DWORD or a string."
         ),
         references=("https://attack.mitre.org/techniques/T1546/012/",),
     )

@@ -20,12 +20,10 @@ class DotNetFrameworkProfiler(PersistencePlugin):
         technique=".NET Framework COR_PROFILER Registry Key",
         mitre_id="T1574.012",
         description=(
-            "COR_PROFILER, COR_PROFILER_PATH, and COR_ENABLE_PROFILING "
-            "values in the .NETFramework registry key cause the CLR to "
-            "load a custom profiler DLL into every managed process. "
-            "The per-user and WoW64 copies of the key are checked too; "
-            "the per-user one needs no administrative rights. "
-            "Profiling is rarely enabled in production environments."
+            "COR_PROFILER, COR_PROFILER_PATH and COR_ENABLE_PROFILING in the "
+            ".NETFramework registry key make the CLR load a profiler DLL into every "
+            "managed process. The per-user copy of the key needs no administrator "
+            "rights."
         ),
         references=("https://attack.mitre.org/techniques/T1574/012/",),
         targets=(

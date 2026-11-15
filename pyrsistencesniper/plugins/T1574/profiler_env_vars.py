@@ -37,11 +37,10 @@ class CorProfiler(PersistencePlugin):
         technique=".NET CLR Profiler Hijack",
         mitre_id="T1574.012",
         description=(
-            "COR_PROFILER environment variables specify a DLL loaded by "
-            "the .NET Framework CLR into every managed process. The "
-            "machine-wide (HKLM), per-service and per-user (HKU) Environment "
-            "values are all checked; the per-service one is the documented "
-            "way to attach a profiler to a single service such as W3SVC."
+            "COR_PROFILER environment variables name a profiler DLL the .NET Framework "
+            "CLR loads into every managed process that inherits them. They can be set "
+            "machine-wide, per user, or per service, the documented way to attach a "
+            "profiler to a single service such as W3SVC."
         ),
         references=("https://attack.mitre.org/techniques/T1574/012/",),
     )
@@ -60,10 +59,9 @@ class CoreClrProfiler(PersistencePlugin):
         technique=".NET Core CLR Profiler Hijack",
         mitre_id="T1574.012",
         description=(
-            "CORECLR_PROFILER environment variables specify a DLL loaded "
-            "by the .NET Core/5+ runtime into every managed process. "
-            "System-wide, per-service and per-user Environment keys are "
-            "checked."
+            "CORECLR_PROFILER environment variables name a profiler DLL the .NET "
+            "Core/5+ runtime loads into every managed process that inherits them, set "
+            "machine-wide, per user or per service."
         ),
         references=("https://attack.mitre.org/techniques/T1574/012/",),
     )

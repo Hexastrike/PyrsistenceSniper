@@ -27,12 +27,8 @@ class RunKeys(PersistencePlugin):
         technique="Registry Run Keys",
         mitre_id="T1547.001",
         description=(
-            "Run, RunOnce, RunEx, and RunOnceEx registry keys execute "
-            "listed programs at user logon. Both native and WoW64 paths "
-            "are checked, including the Policies\\Explorer\\Run override. "
-            "RunEx and RunOnceEx keep their commands in ordered section "
-            "subkeys, which are descended into rather than read as flat "
-            "values."
+            "Run, RunOnce, RunEx and RunOnceEx keys, and the Policies\\Explorer\\Run "
+            "override, start the listed programs at user logon."
         ),
         references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(

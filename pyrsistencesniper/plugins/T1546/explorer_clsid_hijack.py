@@ -20,10 +20,8 @@ class ExplorerClsidHijack(PersistencePlugin):
         technique="Explorer Desktop CLSID Hijack",
         mitre_id="T1546.015",
         description=(
-            "Commonly hijacked Explorer CLSIDs (Desktop, My Computer, "
-            "My Documents) shell command handlers are checked. Hijacking "
-            "these command subkeys executes arbitrary code when a user "
-            "opens the corresponding Explorer namespace."
+            "The shell command registered on the Desktop, My Computer or My Documents "
+            "CLSID runs when a user opens that Explorer namespace."
         ),
         references=("https://attack.mitre.org/techniques/T1546/015/",),
         targets=(

@@ -152,15 +152,12 @@ class GhostTask(PersistencePlugin):
         technique="Ghost Scheduled Task",
         mitre_id="T1053.005",
         description=(
-            "A scheduled task registers itself three times: a TaskCache\\Tree "
-            "key, a TaskCache\\Tasks key and an XML file under System32\\Tasks. "
-            "A Tree key with no XML file keeps running while schtasks.exe and "
-            "the Task Scheduler UI cannot show what it does, and a Tree or "
-            "Tasks key missing its counterpart is the residue of a partially "
-            "planted or partially deleted task. A task hidden by deleting its "
-            "security descriptor is reported by hidden_scheduled_task instead, "
-            "because Windows ships dozens of tasks that trip this check and "
-            "none that trip that one, so the two cannot share an allowlist."
+            "A scheduled task registers itself three times: a TaskCache\\Tree key, a "
+            "TaskCache\\Tasks key and an XML file under System32\\Tasks. A Tree key "
+            "with no XML file keeps running while schtasks.exe and the Task Scheduler "
+            "UI cannot show what it does, and a Tree or Tasks key missing its "
+            "counterpart is the residue of a partially planted or partially deleted "
+            "task."
         ),
         references=("https://attack.mitre.org/techniques/T1053/005/",),
     )
@@ -251,14 +248,11 @@ class HiddenScheduledTask(PersistencePlugin):
         technique="Hidden Scheduled Task",
         mitre_id="T1053.005",
         description=(
-            "Tarrask hides a live scheduled task by deleting the SD value from "
-            "its TaskCache\\Tree key. The task keeps its XML file, its "
-            "TaskCache\\Tasks key, its triggers and its execution, but "
-            "schtasks.exe and the Task Scheduler UI stop listing it. Every "
-            "Tree key that registers a task carries an SD, so an absent or "
-            "empty one is a deletion rather than a default. It is a check of "
-            "its own because the ghost_task allowlist suppresses the "
-            "Microsoft\\Windows folder, which is where a hidden task sits."
+            "Deleting the SD value from a task's TaskCache\\Tree key, as the Tarrask "
+            "malware does, hides a live scheduled task: it keeps its XML file, its "
+            "triggers and its execution, but schtasks.exe and the Task Scheduler UI "
+            "stop listing it. Every Tree key that registers a task carries an SD, so "
+            "an absent or empty one is a deletion rather than a default."
         ),
         references=(
             "https://attack.mitre.org/techniques/T1053/005/",

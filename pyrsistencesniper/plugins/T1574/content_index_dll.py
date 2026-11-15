@@ -23,10 +23,9 @@ class ContentIndexDll(PersistencePlugin):
         technique="NL6 ContentIndex DLL Override",
         mitre_id="T1574",
         description=(
-            "DLLOverridePath under ContentIndex\\Language subkeys "
-            "overrides the default NL6 content indexing DLL. This value "
-            "is normally absent. If present, the specified DLL is loaded "
-            "by the Windows Search indexer when processing content."
+            "DLLOverridePath under a ContentIndex\\Language subkey names a DLL the "
+            "Windows Search indexer loads in place of the default NL6 content indexing "
+            "DLL. The value is normally absent."
         ),
         references=("https://attack.mitre.org/techniques/T1574/",),
     )

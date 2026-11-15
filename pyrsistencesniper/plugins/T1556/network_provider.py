@@ -23,10 +23,10 @@ class NetworkProviderDll(PersistencePlugin):
         technique="Network Provider DLL",
         mitre_id="T1556.008",
         description=(
-            "Network provider DLLs are loaded during logon to handle "
-            "network authentication. Malicious providers intercept "
-            "plaintext credentials. Default providers include "
-            "LanmanWorkstation (ntlanman.dll) and webclient (davclnt.dll)."
+            "Network provider DLLs are loaded during logon to handle network "
+            "authentication, and receive the user's plaintext credentials. The default "
+            "providers include LanmanWorkstation (ntlanman.dll) and webclient "
+            "(davclnt.dll)."
         ),
         references=("https://attack.mitre.org/techniques/T1556/008/",),
     )

@@ -23,9 +23,8 @@ class AppPaths(PersistencePlugin):
         technique="App Paths Hijack",
         mitre_id="T1546",
         description=(
-            "App Paths entries map short executable names to full "
-            "filesystem paths. Registering or hijacking an entry redirects "
-            "legitimate program launches to a malicious binary."
+            "App Paths entries map a short executable name to a full path, so an entry "
+            "decides which binary starts when that name is launched."
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
     )

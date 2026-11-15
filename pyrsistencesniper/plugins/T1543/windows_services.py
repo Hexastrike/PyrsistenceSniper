@@ -78,8 +78,8 @@ class WindowsServiceImagePath(PersistencePlugin):
         technique="Windows Service (ImagePath)",
         mitre_id="T1543.003",
         description=(
-            "Windows services run executables at system start. A non-OS "
-            "ImagePath may indicate a malicious or third-party service."
+            "ImagePath names the executable or driver image Windows loads for a "
+            "service, at boot or when the service is started."
         ),
         references=(
             "https://attack.mitre.org/techniques/T1543/003/",
@@ -150,8 +150,8 @@ class WindowsServiceDll(PersistencePlugin):
         technique="Windows Service (ServiceDll)",
         mitre_id="T1543.003",
         description=(
-            "svchost.exe-hosted services load a ServiceDll. A non-OS DLL "
-            "may indicate a malicious service DLL."
+            "A svchost.exe-hosted service loads the DLL its ServiceDll value names "
+            "when the service starts."
         ),
         references=(
             "https://attack.mitre.org/techniques/T1543/003/",

@@ -20,10 +20,8 @@ class FontDrivers(PersistencePlugin):
         technique="Font Drivers",
         mitre_id="T1547",
         description=(
-            "The Font Drivers key specifies DLLs loaded by the font "
-            "subsystem at boot. This is a legacy mechanism that still "
-            "functions on modern Windows but is never used by legitimate "
-            "software. Any entry is inherently suspicious."
+            "The Font Drivers key names DLLs the font subsystem loads at boot. It is a "
+            "legacy mechanism that still works on modern Windows."
         ),
         references=("https://attack.mitre.org/techniques/T1547/",),
         targets=(

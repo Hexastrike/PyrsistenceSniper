@@ -20,9 +20,8 @@ class CmdAutoRun(PersistencePlugin):
         technique="Command Processor AutoRun",
         mitre_id="T1546",
         description=(
-            "The Command Processor AutoRun value executes a command every "
-            "time cmd.exe launches. This provides persistence triggered "
-            "by any interactive or scripted use of the command prompt."
+            "The Command Processor AutoRun value runs a command every time cmd.exe "
+            "starts, interactively or from a script."
         ),
         references=("https://attack.mitre.org/techniques/T1546/",),
         targets=(

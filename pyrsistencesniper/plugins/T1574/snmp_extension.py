@@ -20,10 +20,9 @@ class SnmpExtensionAgent(PersistencePlugin):
         technique="SNMP Extension Agent DLL",
         mitre_id="T1574",
         description=(
-            "SNMP ExtensionAgents values specify registry paths to DLL "
-            "specifications loaded by the SNMP service. Legitimate "
-            "defaults include inetmib1.dll, snmpmib.dll, hostmib.dll. "
-            "Any non-default agent DLL is suspicious."
+            "SNMP ExtensionAgents values point to registry keys that name the "
+            "extension agent DLLs the SNMP service loads. The defaults include "
+            "inetmib1.dll, snmpmib.dll and hostmib.dll."
         ),
         references=("https://attack.mitre.org/techniques/T1574/",),
         targets=(

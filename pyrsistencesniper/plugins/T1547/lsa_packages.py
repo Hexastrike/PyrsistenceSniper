@@ -20,9 +20,8 @@ class AuthenticationPackages(PersistencePlugin):
         technique="Authentication Packages",
         mitre_id="T1547.002",
         description=(
-            "Authentication Packages are DLLs loaded by LSA at system "
-            "start. A non-default package (beyond 'msv1_0') may intercept "
-            "credentials or provide boot-level persistence."
+            "Authentication Packages are DLLs LSA loads at system start. The default "
+            "is 'msv1_0'."
         ),
         references=("https://attack.mitre.org/techniques/T1547/002/",),
         targets=(
@@ -44,9 +43,8 @@ class SecurityPackages(PersistencePlugin):
         technique="Security Packages",
         mitre_id="T1547.005",
         description=(
-            "Security Support Providers (SSPs) are DLLs loaded by LSA "
-            "into lsass.exe. A malicious SSP captures plaintext "
-            "credentials for every interactive logon."
+            "Security Support Providers (SSPs) are DLLs LSA loads into lsass.exe, "
+            "where an SSP sees the plaintext credentials of every interactive logon."
         ),
         references=("https://attack.mitre.org/techniques/T1547/005/",),
         targets=(

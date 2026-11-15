@@ -24,10 +24,9 @@ class DotNetStartupHooks(PersistencePlugin):
         technique="DOTNET_STARTUP_HOOKS",
         mitre_id="T1574.012",
         description=(
-            "DOTNET_STARTUP_HOOKS specifies assemblies loaded at .NET "
-            "application startup before the Main entry point. Setting "
-            "this system-wide provides persistent code injection across "
-            "all .NET 5+ applications."
+            "DOTNET_STARTUP_HOOKS lists assemblies loaded at .NET application startup, "
+            "before the Main entry point, in every .NET 5+ application that inherits "
+            "the variable."
         ),
         references=("https://attack.mitre.org/techniques/T1574/012/",),
     )

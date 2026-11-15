@@ -76,13 +76,11 @@ class OfficeAddins(PersistencePlugin):
         technique="Office Add-in Registration",
         mitre_id="T1137.006",
         description=(
-            "Office add-in registrations under per-application Addins keys "
-            "load code at application startup, either directly through a "
-            "Manifest, FileName or Path value or, for a classic COM add-in, "
-            "through the ProgID to CLSID to InprocServer32 chain in "
-            "Software\\Classes. LoadBehavior records whether the add-in "
-            "loads automatically. Machine, per-user and ClickToRun hives "
-            "are checked across all Office applications."
+            "Office add-in registrations under per-application Addins keys load code "
+            "at application startup, either directly through a Manifest, FileName or "
+            "Path value or, for a classic COM add-in, through the ProgID to CLSID to "
+            "InprocServer32 chain in Software\\Classes. LoadBehavior records whether "
+            "the add-in loads automatically."
         ),
         references=("https://attack.mitre.org/techniques/T1137/006/",),
     )
@@ -246,9 +244,8 @@ class OfficeAiHijack(PersistencePlugin):
         technique="Office AI Add-in Hijack",
         mitre_id="T1137.006",
         description=(
-            "Office AI add-in registrations under ClickToRun\\REGISTRY "
-            "paths can be hijacked to redirect COM loading to malicious "
-            "DLLs when AI features are invoked."
+            "Values under the ClickToRun Common\\AI key register the COM DLLs Office "
+            "loads when its AI features are invoked."
         ),
         references=("https://attack.mitre.org/techniques/T1137/006/",),
     )

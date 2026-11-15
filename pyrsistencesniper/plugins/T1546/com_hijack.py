@@ -116,10 +116,9 @@ class ComTreatAs(PersistencePlugin):
         technique="COM Object Hijack",
         mitre_id="T1546.015",
         description=(
-            "A TreatAs subkey under a CLSID redirects COM object "
-            "instantiation to a different class. Attackers abuse this to "
-            "hijack legitimate COM objects and gain code execution "
-            "whenever the original CLSID is activated."
+            "A TreatAs subkey under a CLSID redirects activation of that COM class to "
+            "a different one, so the substitute's server runs whenever the original "
+            "CLSID is activated."
         ),
         references=("https://attack.mitre.org/techniques/T1546/015/",),
     )

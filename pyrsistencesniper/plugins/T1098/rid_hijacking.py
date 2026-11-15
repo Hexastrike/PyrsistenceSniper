@@ -92,10 +92,9 @@ class RidSuborner(PersistencePlugin):
         technique="RID Suborner (Hidden Admin Account)",
         mitre_id="T1098",
         description=(
-            "The Suborner technique writes SAM hive entries directly, "
-            "bypassing the account-creation APIs, to leave a hidden account "
-            "carrying RID 500. An account whose F value RID is 500 while its "
-            "subkey RID is not is reported."
+            "The Suborner technique writes SAM hive entries directly, bypassing the "
+            "account-creation APIs, to leave a hidden account whose F value carries "
+            "RID 500 while its subkey RID does not."
         ),
         references=("https://attack.mitre.org/techniques/T1098/",),
     )

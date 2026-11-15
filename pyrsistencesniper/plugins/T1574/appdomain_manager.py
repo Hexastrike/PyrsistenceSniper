@@ -20,10 +20,9 @@ class AppDomainManagerInjection(PersistencePlugin):
         technique="AppDomainManager Injection",
         mitre_id="T1574.014",
         description=(
-            "APPDOMAIN_MANAGER_ASM and APPDOMAIN_MANAGER_TYPE environment "
-            "variables instruct the .NET CLR to load a custom "
-            "AppDomainManager assembly before any .NET application executes. "
-            "These variables are never set in legitimate configurations."
+            "APPDOMAIN_MANAGER_ASM and APPDOMAIN_MANAGER_TYPE environment variables "
+            "make the .NET CLR load a custom AppDomainManager assembly before a .NET "
+            "application's own code runs."
         ),
         references=("https://attack.mitre.org/techniques/T1574/014/",),
         targets=(
