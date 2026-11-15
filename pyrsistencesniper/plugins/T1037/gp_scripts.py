@@ -6,19 +6,26 @@ import codecs
 import re
 from pathlib import Path, PureWindowsPath
 
-from pyrsistencesniper.core.filesystem import safe_is_dir, safe_is_file, safe_iterdir
+from pyrsistencesniper.core.filesystem import (
+    safe_is_dir,
+    safe_is_file,
+    safe_iterdir,
+)
 from pyrsistencesniper.core.models import (
     AccessLevel,
     CheckDefinition,
     Finding,
 )
 from pyrsistencesniper.core.registry import record_artifact_failure
-from pyrsistencesniper.core.windows import _io_path
+from pyrsistencesniper.core.windows import read_bounded
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import PersistencePlugin
 
 _GP_DIR = Path("Windows") / "System32" / "GroupPolicy"
 _GP_USERS_DIR = Path("Windows") / "System32" / "GroupPolicyUsers"
+
+# A scripts.ini is a few hundred bytes; the cap bounds a planted one.
+_MAX_INI_BYTES = 1 << 20
 
 _PER_USER_SCRIPT_FILES: tuple[tuple[Path, str, AccessLevel], ...] = (
     (Path("User") / "Scripts" / "scripts.ini", "User", AccessLevel.USER),
@@ -136,8 +143,8 @@ class GpScripts(PersistencePlugin):
             return
 
         try:
-            raw_bytes = _io_path(ini_file_path).read_bytes()
-        except OSError as error:
+            raw_bytes = read_bounded(ini_file_path, _MAX_INI_BYTES)
+        except (OSError, ValueError) as error:
             record_artifact_failure(self.definition.id, ini_file_path, error)
             return
 

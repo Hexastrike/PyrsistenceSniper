@@ -8,9 +8,9 @@ from pathlib import Path, PureWindowsPath
 
 from pyrsistencesniper.core.registry import record_artifact_failure
 from pyrsistencesniper.core.windows import (
-    _io_path,
     canonicalize_windows_path,
     expand_env_vars,
+    read_bounded,
 )
 
 __all__ = [
@@ -222,11 +222,7 @@ def parse_shell_link(data: bytes) -> ShellLink:
 
 def read_shell_link(path: Path) -> ShellLink:
     """Read and parse a shell link file, raising ValueError when it is not one."""
-    with _io_path(path).open("rb") as link_file:
-        data = link_file.read(_MAX_SHELL_LINK_BYTES + 1)
-    if len(data) > _MAX_SHELL_LINK_BYTES:
-        raise ValueError(f"shell link exceeds {_MAX_SHELL_LINK_BYTES} bytes")
-    return parse_shell_link(data)
+    return parse_shell_link(read_bounded(path, _MAX_SHELL_LINK_BYTES))
 
 
 def resolve_shortcut_target(

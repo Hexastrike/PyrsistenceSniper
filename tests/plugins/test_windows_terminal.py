@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from pyrsistencesniper.core.models import AccessLevel
@@ -269,3 +270,17 @@ def test_absent_over_length_settings_file_is_silent(tmp_path: Path) -> None:
     plugin = _terminal_plugin(tmp_path, _over_length_username(tmp_path))
     assert plugin.run() == []
     assert artifact_failures() == ()
+
+
+def test_oversized_settings_file_reports_lost_coverage(tmp_path: Path) -> None:
+    """A settings.json past the size cap is refused, and the refusal is reported."""
+    plugin = _terminal_plugin(tmp_path)
+    _write_settings(plugin, "user1", _PACKAGED, json.dumps({"profiles": {}}))
+
+    with patch(
+        "pyrsistencesniper.plugins.T1546.windows_terminal._MAX_SETTINGS_BYTES", 4
+    ):
+        assert plugin.run() == []
+
+    (failure,) = artifact_failures()
+    assert "exceeds 4 bytes" in failure.error

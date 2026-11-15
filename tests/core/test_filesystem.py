@@ -8,8 +8,11 @@ from pathlib import Path, PureWindowsPath
 from unittest.mock import patch
 
 import pytest
-from pyrsistencesniper.core.filesystem import FilesystemHelper, safe_iterdir
-from pyrsistencesniper.core.windows import _LONG_PATH_LIMIT, _io_path
+from pyrsistencesniper.core.filesystem import (
+    FilesystemHelper,
+    safe_iterdir,
+)
+from pyrsistencesniper.core.windows import _LONG_PATH_LIMIT, _io_path, read_bounded
 
 
 def test_resolve_strips_drive_letter(tmp_path: Path) -> None:
@@ -300,3 +303,26 @@ def test_over_length_tree_is_readable(tmp_path: Path) -> None:
     assert filesystem.exists(windows_path)
     assert filesystem.sha256(windows_path) == hashlib.sha256(b"persistence").hexdigest()
     assert [entry.name for entry in safe_iterdir(deep)] == ["payload.exe"]
+
+
+def test_read_bounded_returns_a_file_within_the_limit(tmp_path: Path) -> None:
+    """A file no larger than the limit is read whole."""
+    target = tmp_path / "small.bin"
+    target.write_bytes(b"12345678")
+
+    assert read_bounded(target, 8) == b"12345678"
+
+
+def test_read_bounded_refuses_a_file_over_the_limit(tmp_path: Path) -> None:
+    """An image names its own file sizes, so an oversized file is never read whole."""
+    target = tmp_path / "large.bin"
+    target.write_bytes(b"123456789")
+
+    with pytest.raises(ValueError, match="exceeds 8 bytes"):
+        read_bounded(target, 8)
+
+
+def test_read_bounded_leaves_a_missing_file_to_the_caller(tmp_path: Path) -> None:
+    """Absence stays an OSError, so a caller can tell it from an oversized file."""
+    with pytest.raises(FileNotFoundError):
+        read_bounded(tmp_path / "absent.bin", 8)

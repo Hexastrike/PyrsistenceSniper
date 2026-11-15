@@ -11,7 +11,7 @@ from pyrsistencesniper.core.models import (
     Finding,
 )
 from pyrsistencesniper.core.registry import record_artifact_failure
-from pyrsistencesniper.core.windows import _io_path
+from pyrsistencesniper.core.windows import read_bounded
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import PersistencePlugin
 
@@ -24,6 +24,9 @@ _SETTINGS_LOCATIONS = (
 )
 
 _CLOSING_BRACKETS = ("}", "]")
+
+# A settings file is kilobytes; the cap keeps a planted one from being read whole.
+_MAX_SETTINGS_BYTES = 4 << 20
 
 
 def _next_significant(text: str, start: int) -> str:
@@ -140,8 +143,8 @@ class WindowsTerminal(PersistencePlugin):
             return []
 
         try:
-            document = _io_path(host_path).read_text(encoding="utf-8-sig")
-            data = json.loads(strip_jsonc(document))
+            raw_bytes = read_bounded(host_path, _MAX_SETTINGS_BYTES)
+            data = json.loads(strip_jsonc(raw_bytes.decode("utf-8-sig")))
         except (OSError, UnicodeDecodeError, ValueError) as error:
             record_artifact_failure(self.definition.id, host_path, error)
             return []

@@ -20,11 +20,15 @@ from pyrsistencesniper.core.models import (
     HiveStatus,
     KeyProtocol,
 )
-from pyrsistencesniper.core.windows import _io_path
+from pyrsistencesniper.core.windows import _io_path, read_bounded
 
 logger = logging.getLogger(__name__)
 
 _MAX_REGISTRY_DEPTH = 64
+
+# Repair holds the whole hive in memory twice, so a file past this size is left
+# as an open failure rather than copied.
+_MAX_REPAIR_BYTES = 1 << 30
 
 # RunEx and RunOnceEx do not execute their own values: each command sits in an
 # ordered section subkey below the key, so a flat read of these two reports
@@ -450,8 +454,8 @@ class RegistryHelper:
     def _reopen_repaired(path: Path) -> HiveProtocol | None:
         """Reopen a hive from a corrected copy held only in memory."""
         try:
-            data = bytearray(_io_path(path).read_bytes())
-        except OSError:
+            data = bytearray(read_bounded(path, _MAX_REPAIR_BYTES))
+        except (OSError, ValueError):
             logger.debug("Cannot read hive for repair: %s", path, exc_info=True)
             return None
         if not _clamp_bin_list(data):

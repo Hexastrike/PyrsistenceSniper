@@ -23,6 +23,7 @@ __all__ = [
     "is_lolbin",
     "is_representable_windows_path",
     "normalize_windows_path",
+    "read_bounded",
 ]
 
 ENV_VAR_TABLE: dict[str, str] = {
@@ -239,6 +240,18 @@ def _io_path(path: Path) -> Path:
     if text.startswith(_UNC_PREFIX):
         return Path(_LONG_PATH_UNC_PREFIX + text[len(_UNC_PREFIX) :])
     return Path(_LONG_PATH_PREFIX + text)
+
+
+# Every whole-file read of something the image supplies goes through here. A
+# hostile image names its own file sizes, so an uncapped read hands it the
+# scanner's memory.
+def read_bounded(path: Path, limit: int) -> bytes:
+    """Read a whole file, raising ValueError when it is larger than the limit."""
+    with _io_path(path).open("rb") as handle:
+        data = handle.read(limit + 1)
+    if len(data) > limit:
+        raise ValueError(f"file exceeds {limit} bytes")
+    return data
 
 
 def _extract_cmd_target(parts: list[str]) -> str:

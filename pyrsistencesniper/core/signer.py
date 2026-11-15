@@ -14,13 +14,16 @@ from pyrsistencesniper.core.filesystem import (
     safe_is_dir,
     safe_is_file,
 )
-from pyrsistencesniper.core.windows import _io_path
+from pyrsistencesniper.core.windows import read_bounded
 
 logger = logging.getLogger(__name__)
 
 _CATROOT_SUBDIR = "Windows/System32/CatRoot/{F750E6C3-38EE-11D1-85E5-00C04FC295EE}"
 
 _SPC_SP_OPUS_INFO_OID = "1.3.6.1.4.1.311.2.1.12"
+
+# The largest catalogs Windows ships are a few megabytes.
+_MAX_CATALOG_BYTES = 64 << 20
 
 
 def _extract_program_name_from_signed_data(signed_data: Any) -> str:  # noqa: ANN401
@@ -212,8 +215,8 @@ class SignerExtractor:
         logger.info("Building signer index from %d catalogs ...", len(cat_files))
         for cat_path in cat_files:
             try:
-                data = _io_path(cat_path).read_bytes()
-            except OSError:
+                data = read_bounded(cat_path, _MAX_CATALOG_BYTES)
+            except (OSError, ValueError):
                 logger.debug("Cannot read catalog: %s", cat_path, exc_info=True)
                 continue
             signer, hashes = _parse_catalog(data)

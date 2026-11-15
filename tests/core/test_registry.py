@@ -224,6 +224,15 @@ def test_clamp_bin_list_levels_the_sequence_numbers() -> None:
     )
 
 
+def test_oversized_hive_is_not_copied_for_repair(tmp_path: Path) -> None:
+    """Repair holds a hive in memory, so one past the cap is left unopened."""
+    hive_path = tmp_path / "SOFTWARE"
+    hive_path.write_bytes(bytes(_hive_bytes(2, 3 * 4096)))
+
+    with patch.object(registry, "_MAX_REPAIR_BYTES", 16):
+        assert RegistryHelper._reopen_repaired(hive_path) is None
+
+
 def test_clamp_bin_list_refuses_a_hive_with_no_intact_bins() -> None:
     """Nothing is claimed to be recoverable when the first bin is already damaged."""
     data = _hive_bytes(bin_count=0, declared_bins_size=4096 * 3)
