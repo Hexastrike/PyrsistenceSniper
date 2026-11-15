@@ -6,7 +6,7 @@ import struct
 from dataclasses import dataclass
 from pathlib import Path, PureWindowsPath
 
-from pyrsistencesniper.core.registry import record_artifact_failure
+from pyrsistencesniper.core.ledger import record_artifact_failure
 from pyrsistencesniper.core.windows import (
     canonicalize_windows_path,
     expand_env_vars,

@@ -8,8 +8,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
+from pyrsistencesniper.core.ledger import artifact_failures
 from pyrsistencesniper.core.models import AccessLevel
-from pyrsistencesniper.core.registry import artifact_failures
 from pyrsistencesniper.plugins.T1546.wmi_subscriptions import (
     _HEADER_SEARCH,
     _MAX_HEAP_BYTES,

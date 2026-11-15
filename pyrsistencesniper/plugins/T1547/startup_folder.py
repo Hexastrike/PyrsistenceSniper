@@ -10,13 +10,13 @@ from pyrsistencesniper.core.filesystem import (
     safe_is_file,
     safe_iterdir,
 )
+from pyrsistencesniper.core.ledger import record_artifact_failure
 from pyrsistencesniper.core.models import (
     AccessLevel,
     CheckDefinition,
     Finding,
     HiveProtocol,
 )
-from pyrsistencesniper.core.registry import record_artifact_failure
 from pyrsistencesniper.core.shortcut import (
     describe_shortcut_entry,
     resolve_shortcut_target,

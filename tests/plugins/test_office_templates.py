@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from pyrsistencesniper.core.ledger import artifact_failures
 from pyrsistencesniper.core.models import AccessLevel, UserProfile
-from pyrsistencesniper.core.registry import artifact_failures
 from pyrsistencesniper.core.resolver import ResolutionPipeline
 from pyrsistencesniper.plugins.T1137.office_templates import OfficeTemplates
 

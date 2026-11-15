@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from pyrsistencesniper.core.ledger import artifact_failures
 from pyrsistencesniper.core.models import Finding
-from pyrsistencesniper.core.registry import artifact_failures
 from pyrsistencesniper.plugins.T1547.shell_folders import ShellFoldersStartup
 
 from ..core.test_shortcut import build_shell_link

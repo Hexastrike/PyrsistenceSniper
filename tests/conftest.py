@@ -8,8 +8,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import pytest
-from pyrsistencesniper.core.filesystem import reset_skips
-from pyrsistencesniper.core.registry import reset_artifact_failures
+from pyrsistencesniper.core import ledger
 from pyrsistencesniper.core.windows import _io_path
 
 if TYPE_CHECKING:
@@ -19,19 +18,11 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture(autouse=True)
-def _clean_skip_ledger() -> Iterator[None]:
-    """Reset the scan-scoped skipped-path ledger so entries cannot leak forward."""
-    reset_skips()
+def _clean_scan_ledger() -> Iterator[None]:
+    """Empty the scan ledger around every test so entries cannot leak forward."""
+    ledger.reset()
     yield
-    reset_skips()
-
-
-@pytest.fixture(autouse=True)
-def _clean_artifact_ledger() -> Iterator[None]:
-    """Empty the module-level artifact ledger around every test in the suite."""
-    reset_artifact_failures()
-    yield
-    reset_artifact_failures()
+    ledger.reset()
 
 
 def remove_over_length_tree(leaf_path: Path, stop_dir: Path) -> None:

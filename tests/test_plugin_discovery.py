@@ -9,11 +9,10 @@ from pathlib import Path
 
 import pytest
 from pyrsistencesniper import plugins as plugins_package
+from pyrsistencesniper.core import ledger
 from pyrsistencesniper.plugins import (
     _PLUGIN_REGISTRY,
     _discover_plugins,
-    failed_imports,
-    reset_import_failures,
 )
 
 _PROBE_SOURCES: dict[str, str] = {
@@ -74,18 +73,10 @@ def _imported_probe_modules() -> set[str]:
 def _probe_failures() -> set[str]:
     """Return the probe modules the discovery walk recorded as lost coverage."""
     return {
-        modname
-        for modname in failed_imports()
-        if modname.startswith("pyrsistencesniper.plugins.probe_")
+        failure.check_id
+        for failure in ledger.failures()
+        if failure.check_id.startswith("pyrsistencesniper.plugins.probe_")
     }
-
-
-@pytest.fixture(autouse=True)
-def _isolated_import_failures() -> Iterator[None]:
-    """Keep the process-wide import-failure record from leaking between tests."""
-    reset_import_failures()
-    yield
-    reset_import_failures()
 
 
 @pytest.fixture
@@ -113,7 +104,7 @@ def test_broken_package_records_every_module_it_hides() -> None:
 def test_package_raising_non_import_error_does_not_abort_discovery() -> None:
     """A package raising anything other than ImportError must not end the scan."""
     _discover_plugins()
-    assert "pyrsistencesniper.plugins.probe_crashing_package" in failed_imports()
+    assert "pyrsistencesniper.plugins.probe_crashing_package" in _probe_failures()
     assert "pyrsistencesniper.plugins.probe_healthy_module" in sys.modules
 
 
@@ -128,5 +119,5 @@ def test_healthy_modules_beside_broken_ones_stay_quiet() -> None:
 def test_real_plugin_tree_imports_without_failure() -> None:
     """The shipped plugin tree must register its checks and record no lost coverage."""
     _discover_plugins()
-    assert failed_imports() == {}
+    assert ledger.failures() == ()
     assert len(_PLUGIN_REGISTRY) > 100

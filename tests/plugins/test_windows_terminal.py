@@ -7,8 +7,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from pyrsistencesniper.core.ledger import artifact_failures
 from pyrsistencesniper.core.models import AccessLevel
-from pyrsistencesniper.core.registry import artifact_failures
 from pyrsistencesniper.core.windows import _io_path
 from pyrsistencesniper.plugins.T1546.windows_terminal import (
     WindowsTerminal,

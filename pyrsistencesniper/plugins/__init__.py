@@ -7,25 +7,13 @@ import pkgutil
 import sys
 from pathlib import Path
 
+from pyrsistencesniper.core import ledger
 from pyrsistencesniper.plugins.base import PersistencePlugin
 
 logger = logging.getLogger(__name__)
 
 
 _PLUGIN_REGISTRY: dict[str, type[PersistencePlugin]] = {}
-
-# Plugin modules that would not import. Reset per scan by reset_import_failures().
-_import_failures: dict[str, str] = {}
-
-
-def reset_import_failures() -> None:
-    """Forget the plugin import failures recorded by an earlier scan."""
-    _import_failures.clear()
-
-
-def failed_imports() -> dict[str, str]:
-    """Return the plugin modules that failed to import, mapped to why."""
-    return dict(_import_failures)
 
 
 def register_plugin(cls: type[PersistencePlugin]) -> type[PersistencePlugin]:
@@ -51,7 +39,7 @@ def _try_import(modname: str) -> None:
     except Exception as exc:
         logger.warning("Failed to import plugin module %s", modname)
         logger.debug("Plugin import error details:", exc_info=True)
-        _import_failures[modname] = f"{type(exc).__name__}: {exc}"
+        ledger.record_check_failure(modname, exc)
 
 
 def _package_search_paths(modname: str, module_finder: object) -> list[str]:
@@ -96,7 +84,5 @@ def _discover_plugins() -> None:
 __all__ = [
     "_PLUGIN_REGISTRY",
     "_discover_plugins",
-    "failed_imports",
     "register_plugin",
-    "reset_import_failures",
 ]

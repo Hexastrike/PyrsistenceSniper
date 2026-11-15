@@ -11,13 +11,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 from defusedxml.ElementTree import ParseError
 from pyrsistencesniper.cli import main
-from pyrsistencesniper.core.models import CheckFailure, HiveRecord, HiveStatus
-from pyrsistencesniper.core.registry import (
+from pyrsistencesniper.core.ledger import (
     artifact_failures,
     record_artifact_failure,
-    reset_artifact_failures,
+    reset,
 )
-from pyrsistencesniper.detection.pipeline import run_pipeline
+from pyrsistencesniper.core.models import CheckFailure, HiveRecord, HiveStatus
 from pyrsistencesniper.output.console_output import ConsoleOutput
 
 from .conftest import context_with, patched_scan
@@ -103,18 +102,8 @@ def test_two_checks_failing_on_one_artifact_are_both_reported() -> None:
 def test_reset_forgets_an_earlier_scans_artifact_failures() -> None:
     """The ledger is scoped to one scan, so a stale gap cannot leak into the next."""
     record_artifact_failure("scheduled_tasks", Path(_TASK_XML), ValueError("boom"))
-    reset_artifact_failures()
+    reset()
 
-    assert artifact_failures() == ()
-
-
-def test_run_pipeline_starts_from_an_empty_artifact_ledger() -> None:
-    """Every scan clears the previous scan's artifact failures before it runs."""
-    record_artifact_failure("scheduled_tasks", Path(_TASK_XML), ValueError("stale"))
-    profile = MagicMock()
-    profile.policy_for.return_value.enabled = False
-
-    assert run_pipeline(MagicMock(), profile=profile) == []
     assert artifact_failures() == ()
 
 
@@ -222,16 +211,15 @@ def test_scan_that_read_every_artifact_exits_zero(tmp_path: Path) -> None:
     assert kwargs["failures"] == ()
 
 
-def test_scan_forgets_an_earlier_scans_artifact_failures(tmp_path: Path) -> None:
-    """A gap recorded before the scan is never reported as this scan's coverage loss."""
+def test_scan_forgets_an_earlier_scans_artifact_failures(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A gap recorded before the scan is never reported as this scan's loss."""
     record_artifact_failure("scheduled_tasks", Path(_TASK_XML), ValueError("stale"))
-    argv = ["pyrsistencesniper", str(tmp_path)]
+    capsys.readouterr()
+    argv = ["pyrsistencesniper", str(tmp_path), "--format", "csv"]
 
-    with (
-        patch("sys.argv", argv),
-        patched_scan(_scanned_context(), run_pipeline=_intact_scan) as get_renderer,
-    ):
+    with patch("sys.argv", argv), pytest.raises(SystemExit):
         main()
 
-    _args, kwargs = get_renderer.return_value.return_value.render.call_args
-    assert kwargs["failures"] == ()
+    assert "stale" not in capsys.readouterr().err

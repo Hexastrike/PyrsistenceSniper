@@ -9,6 +9,7 @@ import logging
 import os
 from pathlib import Path, PureWindowsPath
 
+from pyrsistencesniper.core import ledger
 from pyrsistencesniper.core.windows import (
     _io_path,
     _on_windows,
@@ -19,19 +20,6 @@ from pyrsistencesniper.core.windows import (
 logger = logging.getLogger(__name__)
 
 _FILE_ATTRIBUTE_REPARSE_POINT = 0x400
-
-# Paths this scan could not read, mapped to why. Reset per scan by reset_skips().
-_skipped: dict[str, str] = {}
-
-
-def reset_skips() -> None:
-    """Forget the skips recorded by an earlier scan."""
-    _skipped.clear()
-
-
-def skipped_paths() -> dict[str, str]:
-    """Return the paths this scan could not read, mapped to the error each gave."""
-    return dict(_skipped)
 
 
 def _is_reparse_point(path: Path) -> bool:
@@ -63,7 +51,7 @@ def _record_skip(path: Path, error: OSError) -> None:
         logger.debug("Reparse point will not open, target read separately: %s", path)
         return
     logger.debug("Cannot read %s", path, exc_info=True)
-    _skipped[str(path)] = f"{type(error).__name__}: {error}"
+    ledger.record_skip(path, error)
 
 
 def safe_is_file(path: Path) -> bool | None:

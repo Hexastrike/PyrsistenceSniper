@@ -6,9 +6,9 @@ import dataclasses
 from typing import TYPE_CHECKING
 
 import pytest
+from pyrsistencesniper.core.ledger import artifact_failures
 from pyrsistencesniper.core.models import FilterRule, Finding, MatchResult, Severity
 from pyrsistencesniper.core.profile import DetectionProfile
-from pyrsistencesniper.core.registry import artifact_failures
 from pyrsistencesniper.core.windows import _io_path
 from pyrsistencesniper.plugins.T1053.scheduled_tasks import ScheduledTaskFiles
 

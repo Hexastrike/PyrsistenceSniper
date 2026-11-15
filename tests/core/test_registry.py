@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 
 from pyrsistencesniper.core import registry
 from pyrsistencesniper.core.context import AnalysisContext
+from pyrsistencesniper.core.ledger import partial_reads
 from pyrsistencesniper.core.models import HiveRecord, HiveStatus
 from pyrsistencesniper.core.registry import (
     _MAX_REGISTRY_DEPTH,
@@ -16,11 +17,9 @@ from pyrsistencesniper.core.registry import (
     _clamp_bin_list,
     _materialize,
     hive_key,
-    partial_reads,
     read_hive_header,
     registry_key_join,
     registry_value_to_str,
-    reset_partial_reads,
 )
 
 
@@ -489,7 +488,6 @@ class _FlakyValue:
 
 def test_damaged_subkey_does_not_discard_its_siblings() -> None:
     """A subkey libregf cannot follow costs only itself, not the whole subtree."""
-    reset_partial_reads()
     key = _FlakyKey(
         "Run",
         children=[
@@ -507,7 +505,6 @@ def test_damaged_subkey_does_not_discard_its_siblings() -> None:
 
 def test_damaged_value_does_not_discard_its_siblings() -> None:
     """An unreadable value cell leaves the key's other values intact."""
-    reset_partial_reads()
     key = _FlakyKey("Run", values={"A": "a.exe", "B": "b.exe"}, bad_value_index=0)
 
     node = _materialize(key)
@@ -517,7 +514,6 @@ def test_damaged_value_does_not_discard_its_siblings() -> None:
 
 def test_damaged_cell_is_recorded_as_a_partial_read() -> None:
     """The gap is recorded so an incomplete read never passes as a complete one."""
-    reset_partial_reads()
     key = _FlakyKey("Run", children=[_FlakyKey("Damaged")], bad_child_index=0)
 
     _materialize(key)
@@ -528,7 +524,6 @@ def test_damaged_cell_is_recorded_as_a_partial_read() -> None:
 
 def test_intact_key_records_no_partial_read() -> None:
     """A key that reads cleanly leaves the partial-read record empty."""
-    reset_partial_reads()
     key = _FlakyKey("Run", values={"A": "a.exe"})
 
     _materialize(key)

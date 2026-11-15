@@ -7,39 +7,24 @@ import logging
 from collections.abc import Callable
 from pathlib import Path
 
+from pyrsistencesniper.core import ledger
 from pyrsistencesniper.core.context import AnalysisContext
 from pyrsistencesniper.core.models import (
     AnnotatedResult,
-    CheckFailure,
     Finding,
     Severity,
 )
 from pyrsistencesniper.core.profile import DetectionProfile
-from pyrsistencesniper.core.registry import reset_artifact_failures
 from pyrsistencesniper.core.resolver import ResolutionPipeline
 from pyrsistencesniper.enrichment import run_enrichments
 from pyrsistencesniper.plugins import (
     _PLUGIN_REGISTRY,
     _discover_plugins,
-    failed_imports,
 )
 from pyrsistencesniper.plugins.base import PersistencePlugin
 from pyrsistencesniper.timeline.executor import TimelineExecutor
 
 logger = logging.getLogger(__name__)
-
-# Checks that raised during this scan. Reset per scan by reset_failures().
-_failures: list[CheckFailure] = []
-
-
-def reset_failures() -> None:
-    """Forget the check failures recorded by an earlier scan."""
-    _failures.clear()
-
-
-def failed_checks() -> tuple[CheckFailure, ...]:
-    """Return the checks that raised during this scan and produced nothing."""
-    return tuple(_failures)
 
 
 def _technique_matches(plugin_cls: type[PersistencePlugin], tokens: set[str]) -> bool:
@@ -57,8 +42,6 @@ def _select_plugins(
 ) -> list[type[PersistencePlugin]]:
     """Discover plugins and filter by profile + technique selection."""
     _discover_plugins()
-    for modname, error in failed_imports().items():
-        _failures.append(CheckFailure(check_id=modname, error=error))
     tokens = set(technique_filter)
 
     return [
@@ -92,12 +75,7 @@ def _execute_plugins(
                 exc,
             )
             logger.debug("Check error details:", exc_info=True)
-            _failures.append(
-                CheckFailure(
-                    check_id=plugin_cls.definition.id,
-                    error=f"{type(exc).__name__}: {exc}",
-                )
-            )
+            ledger.record_check_failure(plugin_cls.definition.id, exc)
 
     return findings
 
@@ -171,8 +149,6 @@ def run_pipeline(
     progress: Callable[[str, int, int], None] | None = None,
 ) -> list[AnnotatedResult]:
     """Run the full detection pipeline and return enriched, classified results."""
-    reset_failures()
-    reset_artifact_failures()
     plugins = _select_plugins(profile, technique_filter)
     if not plugins:
         return []

@@ -7,30 +7,16 @@ import logging
 import sys
 from pathlib import Path
 
+from pyrsistencesniper.core import ledger
 from pyrsistencesniper.core.context import build_context
-from pyrsistencesniper.core.filesystem import reset_skips, skipped_paths
 from pyrsistencesniper.core.log import setup_logging
 from pyrsistencesniper.core.lolbins import download_lolbins
 from pyrsistencesniper.core.models import CheckFailure, HiveRecord, Severity
 from pyrsistencesniper.core.profile import DetectionProfile
-from pyrsistencesniper.core.registry import (
-    artifact_failures,
-    partial_reads,
-    reset_artifact_failures,
-    reset_partial_reads,
-)
 from pyrsistencesniper.core.windows import _io_path
-from pyrsistencesniper.detection.pipeline import (
-    failed_checks,
-    reset_failures,
-    run_pipeline,
-)
+from pyrsistencesniper.detection.pipeline import run_pipeline
 from pyrsistencesniper.output import get_renderer
-from pyrsistencesniper.plugins import (
-    _PLUGIN_REGISTRY,
-    _discover_plugins,
-    reset_import_failures,
-)
+from pyrsistencesniper.plugins import _PLUGIN_REGISTRY, _discover_plugins
 from pyrsistencesniper.ui.banner import print_banner
 from pyrsistencesniper.ui.progress import make_progress_bar
 
@@ -178,11 +164,6 @@ def _run_scan(args: argparse.Namespace) -> None:
 
     try:
         profile = DetectionProfile.load(args.profile)
-        reset_skips()
-        reset_failures()
-        reset_import_failures()
-        reset_partial_reads()
-        reset_artifact_failures()
         context = build_context(args.path, hostname=args.hostname)
 
         progress_bar, on_progress = make_progress_bar()
@@ -198,7 +179,7 @@ def _run_scan(args: argparse.Namespace) -> None:
             )
 
         inventory = context.hive_inventory()
-        failures = failed_checks() + _partial_read_failures() + artifact_failures()
+        failures = ledger.failures()
         renderer_cls = get_renderer(args.format)
         renderer = renderer_cls()
         renderer.render(
@@ -219,7 +200,7 @@ def _run_scan(args: argparse.Namespace) -> None:
 
 def _warn_on_skipped_paths() -> None:
     """Name paths the scan could not read, so an empty report is not read as clean."""
-    skipped = skipped_paths()
+    skipped = ledger.skipped_paths()
     if not skipped:
         return
     shown = sorted(skipped)[:_MAX_SKIPPED_SHOWN]
@@ -228,14 +209,6 @@ def _warn_on_skipped_paths() -> None:
     sys.stderr.write(
         f"Warning: {len(skipped)} path(s) could not be read and were "
         f"skipped: {', '.join(shown)}{more}\n"
-    )
-
-
-def _partial_read_failures() -> tuple[CheckFailure, ...]:
-    """Report partially-read registry keys as coverage the scan did not get."""
-    return tuple(
-        CheckFailure(artifact=f"registry key {key_name}", error=error)
-        for key_name, error in sorted(partial_reads().items())
     )
 
 

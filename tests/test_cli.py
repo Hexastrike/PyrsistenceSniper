@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from pyrsistencesniper.cli import build_parser, main
+from pyrsistencesniper.core import ledger
 from pyrsistencesniper.core.models import CheckFailure, HiveRecord, HiveStatus
 
 from .conftest import context_with, patched_scan
@@ -176,7 +177,7 @@ def test_failed_check_exits_two(
         patch("sys.argv", argv),
         patched_scan(context),
         patch(
-            "pyrsistencesniper.cli.failed_checks",
+            "pyrsistencesniper.cli.ledger.failures",
             return_value=(CheckFailure(check_id="run_keys", error="OSError: bad"),),
         ),
         pytest.raises(SystemExit) as exc,
@@ -192,15 +193,12 @@ def test_partially_read_key_exits_two_and_reaches_the_renderer(
 ) -> None:
     """A key read only in part is lost coverage, named by the key and not a check."""
     context = context_with(HiveRecord(name="SOFTWARE", status=HiveStatus.OPENED))
+    ledger.record_partial_read("Run", "OSError: bad cell")
     argv = ["pyrsistencesniper", str(tmp_path)]
 
     with (
         patch("sys.argv", argv),
         patched_scan(context) as get_renderer,
-        patch(
-            "pyrsistencesniper.cli.partial_reads",
-            return_value={"Run": "OSError: bad cell"},
-        ),
         pytest.raises(SystemExit) as exc,
     ):
         main()
@@ -222,30 +220,13 @@ def test_failed_check_reaches_the_renderer(tmp_path: Path) -> None:
     with (
         patch("sys.argv", argv),
         patched_scan(context) as get_renderer,
-        patch("pyrsistencesniper.cli.failed_checks", return_value=failures),
+        patch("pyrsistencesniper.cli.ledger.failures", return_value=failures),
         pytest.raises(SystemExit),
     ):
         main()
 
     _args, kwargs = get_renderer.return_value.return_value.render.call_args
     assert kwargs["failures"] == failures
-
-
-def test_scan_resets_failure_state_before_running(tmp_path: Path) -> None:
-    """Each scan clears the previous scan's failures so they cannot leak forward."""
-    context = context_with(HiveRecord(name="SOFTWARE", status=HiveStatus.OPENED))
-    argv = ["pyrsistencesniper", str(tmp_path)]
-
-    with (
-        patch("sys.argv", argv),
-        patched_scan(context),
-        patch("pyrsistencesniper.cli.reset_failures") as reset,
-        patch("pyrsistencesniper.cli.reset_import_failures") as reset_imports,
-    ):
-        main()
-
-    reset.assert_called_once()
-    reset_imports.assert_called_once()
 
 
 def test_readable_hives_exit_zero(tmp_path: Path) -> None:

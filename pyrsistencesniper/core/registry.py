@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import errno
 import io
 import logging
 import struct
@@ -13,8 +12,8 @@ from typing import Any
 
 import pyregf
 
+from pyrsistencesniper.core import ledger
 from pyrsistencesniper.core.models import (
-    CheckFailure,
     HiveProtocol,
     HiveRecord,
     HiveStatus,
@@ -260,71 +259,13 @@ def commands_below(
         yield from commands_below(child_node, child_path)
 
 
-# Integrity channel: keys read only in part, so a report can distinguish "found
-# nothing here" from "could not look here". Reset per scan by
-# reset_partial_reads().
-_partial_reads: dict[str, str] = {}
-
-
-def reset_partial_reads() -> None:
-    """Forget the partial registry reads recorded by an earlier scan."""
-    _partial_reads.clear()
-
-
-def partial_reads() -> dict[str, str]:
-    """Return the registry keys that could only be read in part, mapped to why."""
-    return dict(_partial_reads)
-
-
 def _record_partial_read(key_name: object, exc: Exception) -> None:
     """Note that a key lost values or subkeys, so the gap is reportable."""
     name = str(key_name) if key_name else "<unnamed key>"
-    if name in _partial_reads:
+    if not ledger.record_partial_read(name, exc):
         return
-    _partial_reads[name] = _describe_failure(exc)
     logger.warning("Registry key %s could only be read in part: %s", name, exc)
     logger.debug("Registry read error details:", exc_info=True)
-
-
-# The same integrity channel for artifacts a check found but could not parse.
-# Reset by reset_artifact_failures().
-_artifact_failures: dict[str, CheckFailure] = {}
-
-
-def reset_artifact_failures() -> None:
-    """Forget the artifact read failures recorded by an earlier scan."""
-    _artifact_failures.clear()
-
-
-def artifact_failures() -> tuple[CheckFailure, ...]:
-    """Return the artifacts a check found but could not parse, as coverage it lost."""
-    return tuple(
-        _artifact_failures[identity] for identity in sorted(_artifact_failures)
-    )
-
-
-def _describe_failure(reason: BaseException | str) -> str:
-    """Render a parse failure as the single line a report can carry."""
-    if isinstance(reason, BaseException):
-        return f"{type(reason).__name__}: {reason}"
-    return str(reason)
-
-
-def record_artifact_failure(
-    check_id: str, artifact: Path | str, reason: BaseException | str
-) -> None:
-    """Note an artifact that exists but would not parse, so its silence is reported."""
-    # An artifact the image never held is a real negative, not coverage the scan lost.
-    if isinstance(reason, OSError) and reason.errno in (errno.ENOENT, errno.ENOTDIR):
-        return
-    identity = f"{check_id} artifact {artifact}"
-    if identity in _artifact_failures:
-        return
-    error = _describe_failure(reason)
-    _artifact_failures[identity] = CheckFailure(
-        check_id=check_id, artifact=str(artifact), error=error
-    )
-    logger.warning("Check %s could not read artifact %s: %s", check_id, artifact, error)
 
 
 def _count_or_zero(key: KeyProtocol, counter: str, name: str) -> int:
@@ -435,7 +376,7 @@ class RegistryHelper:
             reg_file = pyregf.file()
             reg_file.open(str(_io_path(path)))
         except Exception as exc:
-            error = _describe_failure(exc)
+            error = ledger.describe_failure(exc)
         else:
             return reg_file, HiveStatus.OPENED, ""
 

@@ -8,13 +8,13 @@ from pathlib import Path, PureWindowsPath
 from typing import TYPE_CHECKING
 
 from pyrsistencesniper.core.filesystem import safe_is_file
+from pyrsistencesniper.core.ledger import record_artifact_failure
 from pyrsistencesniper.core.models import (
     AccessLevel,
     CheckDefinition,
     FileWriteTime,
     Finding,
 )
-from pyrsistencesniper.core.registry import record_artifact_failure
 from pyrsistencesniper.core.windows import _io_path
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import PersistencePlugin

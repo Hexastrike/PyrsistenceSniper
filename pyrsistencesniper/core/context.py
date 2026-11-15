@@ -9,6 +9,7 @@ import logging
 from collections.abc import Iterator
 from pathlib import Path
 
+from pyrsistencesniper.core import ledger
 from pyrsistencesniper.core.filesystem import (
     FilesystemHelper,
     safe_exists,
@@ -360,6 +361,8 @@ class AnalysisContext:
 
 def build_context(path: Path, *, hostname: str = "") -> AnalysisContext:
     """Build an AnalysisContext from a directory or standalone hive file."""
+    # A context is one scan, so the ledger of what that scan lost starts here.
+    ledger.reset()
     try:
         resolved = path.resolve()
     except OSError:

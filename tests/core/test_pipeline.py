@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import ClassVar
 from unittest.mock import MagicMock, PropertyMock, create_autospec, patch
 
+from pyrsistencesniper.core import ledger
 from pyrsistencesniper.core.context import AnalysisContext
 from pyrsistencesniper.core.filesystem import FilesystemHelper
 from pyrsistencesniper.core.models import CheckDefinition, FilterRule, Finding, Severity
@@ -16,8 +17,6 @@ from pyrsistencesniper.core.profile import CheckPolicy, DetectionProfile
 from pyrsistencesniper.core.registry import RegistryHelper
 from pyrsistencesniper.detection.pipeline import (
     _technique_matches,
-    failed_checks,
-    reset_failures,
     run_pipeline,
 )
 from pyrsistencesniper.plugins.base import PersistencePlugin
@@ -244,50 +243,13 @@ def test_run_pipeline_plugin_exception_isolated(tmp_path: Path) -> None:
 def test_run_pipeline_records_failed_check(tmp_path: Path) -> None:
     """A check that raises is recorded, so its silence can be reported and costed."""
     context = _make_context(tmp_path)
-    reset_failures()
 
     with _patched_pipeline({"stub_a": _StubPluginA, "exploding": _ExplodingPlugin}):
         run_pipeline(context, profile=DetectionProfile())
 
-    failures = failed_checks()
+    failures = ledger.failures()
     assert [failure.check_id for failure in failures] == ["exploding"]
     assert failures[0].error
-
-
-def test_reset_failures_clears_previous_scan(tmp_path: Path) -> None:
-    """Failures from an earlier scan do not leak into the next one."""
-    context = _make_context(tmp_path)
-    reset_failures()
-
-    with _patched_pipeline({"exploding": _ExplodingPlugin}):
-        run_pipeline(context, profile=DetectionProfile())
-
-    assert failed_checks()
-    reset_failures()
-    assert failed_checks() == ()
-
-
-def test_run_pipeline_records_plugin_import_failure(tmp_path: Path) -> None:
-    """A plugin module that would not import is reported as lost coverage."""
-    context = _make_context(tmp_path)
-    reset_failures()
-
-    with _patched_pipeline(
-        {"stub_a": _StubPluginA},
-        extra=[
-            patch(
-                "pyrsistencesniper.detection.pipeline.failed_imports",
-                return_value={
-                    "pyrsistencesniper.plugins.T1546.broken": "ImportError: boom"
-                },
-            )
-        ],
-    ):
-        run_pipeline(context, profile=DetectionProfile())
-
-    assert [failure.check_id for failure in failed_checks()] == [
-        "pyrsistencesniper.plugins.T1546.broken"
-    ]
 
 
 def test_run_pipeline_progress_callback(tmp_path: Path) -> None:

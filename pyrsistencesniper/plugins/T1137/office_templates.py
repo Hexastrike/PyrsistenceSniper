@@ -6,12 +6,12 @@ import logging
 from pathlib import Path
 
 from pyrsistencesniper.core.filesystem import safe_is_dir, safe_is_file, safe_iterdir
+from pyrsistencesniper.core.ledger import record_artifact_failure
 from pyrsistencesniper.core.models import (
     AccessLevel,
     CheckDefinition,
     Finding,
 )
-from pyrsistencesniper.core.registry import record_artifact_failure
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import PersistencePlugin
 

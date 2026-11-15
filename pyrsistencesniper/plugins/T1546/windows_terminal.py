@@ -5,12 +5,12 @@ from __future__ import annotations
 import json
 
 from pyrsistencesniper.core.filesystem import safe_is_file
+from pyrsistencesniper.core.ledger import record_artifact_failure
 from pyrsistencesniper.core.models import (
     AccessLevel,
     CheckDefinition,
     Finding,
 )
-from pyrsistencesniper.core.registry import record_artifact_failure
 from pyrsistencesniper.core.windows import read_bounded
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import PersistencePlugin

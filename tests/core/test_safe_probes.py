@@ -11,13 +11,12 @@ import pytest
 from pyrsistencesniper.core.filesystem import (
     FilesystemHelper,
     _is_reparse_point,
-    reset_skips,
     safe_exists,
     safe_is_dir,
     safe_is_file,
     safe_iterdir,
-    skipped_paths,
 )
+from pyrsistencesniper.core.ledger import reset, skipped_paths
 
 # The failure that ended a whole scan of an FTK-mounted image: four legacy
 # reparse points answered every probe with it, and pathlib re-raises errno 22.
@@ -187,14 +186,14 @@ def test_reparse_point_records_no_skip(tmp_path: Path) -> None:
     assert skipped_paths() == {}
 
 
-def test_reset_skips_empties_the_ledger(tmp_path: Path) -> None:
+def test_reset_empties_the_ledger(tmp_path: Path) -> None:
     """Each scan reports its own coverage, so the ledger starts every scan empty."""
     target = tmp_path / "corrupt.lnk"
     target.write_bytes(b"")
     with patch.object(Path, "is_file", side_effect=_corruption_error()):
         safe_is_file(target)
     assert skipped_paths() != {}
-    reset_skips()
+    reset()
     assert skipped_paths() == {}
 
 
