@@ -131,11 +131,10 @@ PyrsistenceSniper auto-detects standalone mode and runs only the checks that app
 PyrsistenceSniper runs each finding through a multi-stage pipeline:
 
 1. **Plugin execution**: Each check scans registry hives, filesystem artifacts, scheduled task XMLs, or WMI repositories for persistence indicators.
-2. **Resolution**: Findings are enriched with file existence, SHA-256 hash, Authenticode signer, LOLBin classification, and OS directory detection.
+2. **Resolution**: Findings are enriched with file existence, SHA-256 hash, Authenticode signer, LOLBin classification, OS directory detection, and short triage notes.
 3. **Severity classification**: Each finding is classified as `HIGH` (block rule match), `MEDIUM` (no rules match), `LOW` (partial allow match), or `INFO` (full allow match), then filtered by `--min-severity`. Plugins also reject invalid data (empty values, non-executable flags) unconditionally. In most environments this cuts output by 80 to 90%.
 4. **Change timeline**: Each finding gets an approximate last-change timestamp from `$MFT` records and event logs.
-5. **Enrichment**: Optional enrichment plugins attach additional metadata before output.
-6. **Output**: Findings are rendered in the requested format.
+5. **Output**: Findings are rendered in the requested format.
 
 Each finding carries:
 
@@ -167,7 +166,7 @@ The LOLBin set is the LOLBAS project's list plus the shells LOLBAS deliberately 
 binary repurposed to do something it was not built for; for persistence triage a payload
 launched through PowerShell is exactly as notable as one launched through `mshta`.
 
-Console output groups findings by MITRE technique and warns when a hive or check produced nothing because it failed. CSV and XLSX include all fields plus dynamic enrichment columns. HTML produces a standalone report: searchable, sortable, with a chevron on every row that expands the full finding and every timestamp candidate that was considered.
+Console output groups findings by MITRE technique and warns when a hive or check produced nothing because it failed. CSV and XLSX include all fields. HTML produces a standalone report: searchable, sortable, with a chevron on every row that expands the full finding and every timestamp candidate that was considered.
 
 ### Last change timestamps
 
@@ -283,7 +282,6 @@ pyrsistencesniper/
                       #   detection profiles, logging
   data/               # Bundled data files (LOLBin list)
   detection/          # Pipeline orchestration and the declarative check engine
-  enrichment/         # Optional enrichment plugins
   output/             # Console, CSV, HTML, XLSX renderers
   plugins/            # Detection plugins, grouped by MITRE ATT&CK technique
     __init__.py       # Plugin discovery and registration

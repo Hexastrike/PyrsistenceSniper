@@ -22,6 +22,11 @@ from pyrsistencesniper.core.windows import (
 
 logger = logging.getLogger(__name__)
 
+_LOLBIN = "Target is a living off the land binary abused to proxy execution"
+_MISSING_TARGET = "Referenced binary was not found at the resolved path"
+_UNSIGNED = "Binary carries no usable signature; compare its hash against known good"
+_OUTSIDE_OS = "Binary runs from outside the OS directories"
+
 _PATH_LIKE_RE = re.compile(r"[\\/]|\.[A-Za-z0-9]{1,4}$")
 
 
@@ -43,6 +48,21 @@ class _FileFacts:
     is_lolbin: bool
     is_builtin: bool
     is_in_os_directory: bool
+
+
+def _triage_notes(facts: _FileFacts, is_lolbin_entry: bool) -> str:
+    """State the resolution facts a defender would otherwise derive by hand."""
+    notes: list[str] = []
+    if is_lolbin_entry:
+        notes.append(_LOLBIN)
+    if facts.exists is False:
+        notes.append(_MISSING_TARGET)
+    elif facts.exists is True:
+        if not facts.signer:
+            notes.append(_UNSIGNED)
+        if not facts.is_in_os_directory:
+            notes.append(_OUTSIDE_OS)
+    return "; ".join(notes)
 
 
 class ResolutionPipeline:
@@ -104,6 +124,9 @@ class ResolutionPipeline:
         exe_path = extract_executable_from_cmdline(finding.value) or finding.value
         exe_path = canonicalize_windows_path(expand_env_vars(exe_path))
         facts = self._facts(self._select_target(finding, exe_path))
+        # A payload run through a LOLBin is the technique; classifying only
+        # the payload would make adding an argument hide the launcher.
+        runs_lolbin = facts.is_lolbin or (bool(launcher) and is_lolbin(launcher))
         return dataclasses.replace(
             finding,
             exists=facts.exists,
@@ -112,7 +135,6 @@ class ResolutionPipeline:
             is_builtin=facts.is_builtin,
             is_in_os_directory=facts.is_in_os_directory,
             launcher=launcher,
-            # A payload run through a LOLBin is the technique; classifying only
-            # the payload would make adding an argument hide the launcher.
-            is_lolbin=facts.is_lolbin or (bool(launcher) and is_lolbin(launcher)),
+            is_lolbin=runs_lolbin,
+            triage_notes=_triage_notes(facts, runs_lolbin),
         )

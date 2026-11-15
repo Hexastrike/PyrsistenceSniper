@@ -14,7 +14,6 @@ from openpyxl import Workbook, load_workbook
 from pyrsistencesniper.core.models import (
     AccessLevel,
     CheckFailure,
-    Enrichment,
     Finding,
     HiveRecord,
     HiveStatus,
@@ -26,11 +25,9 @@ from pyrsistencesniper.output.html_output import HtmlOutput
 from pyrsistencesniper.output.xlsx_output import XlsxOutput
 
 
-def _make_result(
-    path: str = "HKLM\\Run", value: str = "test.exe"
-) -> tuple[Finding, tuple[Enrichment, ...]]:
-    """Build one result pair with every core Finding field set and no enrichments."""
-    finding = Finding(
+def _make_result(path: str = "HKLM\\Run", value: str = "test.exe") -> Finding:
+    """Build one finding with every core field set."""
+    return Finding(
         path=path,
         value=value,
         technique="Test",
@@ -40,7 +37,6 @@ def _make_result(
         hostname="HOST",
         check_id="test_check",
     )
-    return (finding, ())
 
 
 def _dated_finding() -> Finding:
@@ -140,21 +136,9 @@ def test_label_for_core_field() -> None:
     assert label_for("mitre_id") == "MITRE ID"
 
 
-def test_label_for_enrichment_field() -> None:
-    """Enrichment keys render as title-cased provider and key."""
-    assert label_for("enrichment.triage.notes") == "Triage Notes"
-
-
 def test_label_for_unknown_field_passthrough() -> None:
     """Unknown fields fall back to the raw name."""
     assert label_for("custom_column") == "custom_column"
-
-
-def test_html_labels_enrichment_column() -> None:
-    """The HTML report labels enrichment columns, not their raw dotted keys."""
-    finding = Finding(path="HKLM\\Run", value="test.exe", check_id="test_check")
-    enrichment = Enrichment(provider="triage", data={"notes": "check it"})
-    assert "Triage Notes" in _html([(finding, (enrichment,))])
 
 
 def test_html_autoescaping_value() -> None:
@@ -203,15 +187,6 @@ def test_xlsx_survives_illegal_control_character() -> None:
     assert "\x01" not in str(_cell_under(sheet, "Value").value)
 
 
-def test_xlsx_enrichment_columns() -> None:
-    """Provider data reaches the workbook as its own column, not as a lost field."""
-    enrichment = Enrichment(provider="vt", data={"score": "5/70"})
-    finding, _ = _make_result()
-    sheet = _workbook([(finding, (enrichment,))]).active
-    assert "Vt Score" in _headers(sheet)
-    assert _cell_under(sheet, "Vt Score").value == "5/70"
-
-
 def test_xlsx_empty_results() -> None:
     """A scan that found nothing still yields a readable workbook, not an empty file."""
     sheet = _workbook([]).active
@@ -227,27 +202,27 @@ def test_html_renders_change_candidates() -> None:
         check_id="test_check",
         change_candidates=("2026-07-20 12:00:00 - event log - x",),
     )
-    assert "2026-07-20 12:00:00 - event log - x" in _html([(finding, ())])
+    assert "2026-07-20 12:00:00 - event log - x" in _html([finding])
 
 
 def test_html_includes_column_help() -> None:
     """The report embeds COLUMN_HELP carrying the Last Change guidance text."""
     finding = Finding(path="HKLM\\Run", value="test.exe", check_id="test_check")
-    html = _html([(finding, ())])
+    html = _html([finding])
     assert "COLUMN_HELP" in html
     assert "survives collection" in html
 
 
 def test_html_renders_change_columns() -> None:
     """last_change and change_source populate the row payload."""
-    html = _html([(_dated_finding(), ())])
+    html = _html([_dated_finding()])
     assert "2026-07-20 12:00:00" in html
     assert "$MFT" in html
 
 
 def test_csv_includes_change_columns() -> None:
     """CSV header and rows carry the two timeline columns."""
-    csv_text = _csv([(_dated_finding(), ())])
+    csv_text = _csv([_dated_finding()])
     assert "Last Change" in csv_text
     assert "Change Source" in csv_text
     assert "2026-07-20 12:00:00" in csv_text
@@ -255,7 +230,7 @@ def test_csv_includes_change_columns() -> None:
 
 def test_xlsx_includes_change_columns() -> None:
     """XLSX header carries the Last Change and Change Source columns with values."""
-    sheet = _workbook([(_dated_finding(), ())]).active
+    sheet = _workbook([_dated_finding()]).active
     assert "Change Source" in _headers(sheet)
     assert _cell_under(sheet, "Last Change").value == "2026-07-20 12:00:00"
 
@@ -299,7 +274,7 @@ def test_console_stays_quiet_when_every_check_ran() -> None:
 def test_html_carries_a_failed_check_as_an_error_row() -> None:
     """A failed check is a row of the table, so the report is not read as clean."""
     rows = _html_rows(
-        [(Finding(path="p", value="v"), ())],
+        [Finding(path="p", value="v")],
         failures=(CheckFailure(check_id="com_hijack", error="OSError: bad cell"),),
     )
 
@@ -311,7 +286,7 @@ def test_html_carries_a_failed_check_as_an_error_row() -> None:
 def test_xlsx_carries_a_failed_check_as_an_error_row() -> None:
     """The findings sheet leads with the check that produced nothing."""
     sheet = _workbook(
-        [(Finding(path="p", value="v"), ())],
+        [Finding(path="p", value="v")],
         failures=(CheckFailure(check_id="ghost_task", error="ValueError: boom"),),
     ).active
 
@@ -323,7 +298,7 @@ def test_xlsx_carries_a_failed_check_as_an_error_row() -> None:
 def test_xlsx_writes_a_failed_check_sheet(tmp_path: Path) -> None:
     """The workbook carries a sheet naming every check that produced nothing."""
     workbook = _workbook(
-        [(Finding(path="p", value="v"), ())],
+        [Finding(path="p", value="v")],
         tmp_path / "report.xlsx",
         failures=(CheckFailure(check_id="ghost_task", error="ValueError: boom"),),
     )
@@ -336,7 +311,7 @@ def test_xlsx_writes_a_failed_check_sheet(tmp_path: Path) -> None:
 def test_html_carries_an_unreadable_hive_as_an_error_row() -> None:
     """The hive that was never read travels with the report, as a row of its table."""
     rows = _html_rows(
-        [(Finding(path="p", value="v"), ())],
+        [Finding(path="p", value="v")],
         inventory=(_hive("SYSTEM", HiveStatus.OPEN_FAILED, error="OSError: bad hive"),),
     )
 
@@ -348,7 +323,7 @@ def test_html_carries_an_unreadable_hive_as_an_error_row() -> None:
 def test_html_holds_only_findings_when_every_hive_was_read() -> None:
     """A clean report carries its findings and no row about the scan itself."""
     rows = _html_rows(
-        [(Finding(path="p", value="v"), ())],
+        [Finding(path="p", value="v")],
         inventory=(_hive("SOFTWARE", HiveStatus.OPENED),),
     )
 
@@ -358,7 +333,7 @@ def test_html_holds_only_findings_when_every_hive_was_read() -> None:
 def test_html_carries_a_dirty_hive_as_an_error_row() -> None:
     """A hive that was read but is dirty is named in the table, with its caveat."""
     rows = _html_rows(
-        [(Finding(path="p", value="v"), ())],
+        [Finding(path="p", value="v")],
         inventory=(_hive("SOFTWARE", HiveStatus.OPENED, dirty=True),),
     )
 
@@ -370,7 +345,7 @@ def test_html_carries_a_dirty_hive_as_an_error_row() -> None:
 def test_html_reports_gaps_in_the_table_and_nowhere_else() -> None:
     """No error text is printed above the table; the rows are the only channel."""
     html = _html(
-        [(Finding(path="p", value="v"), ())],
+        [Finding(path="p", value="v")],
         inventory=(_hive("SYSTEM", HiveStatus.OPEN_FAILED, error="OSError: bad hive"),),
         failures=(CheckFailure(check_id="com_hijack", error="OSError: bad cell"),),
     )
@@ -384,7 +359,7 @@ def test_html_reports_gaps_in_the_table_and_nowhere_else() -> None:
 def test_html_counts_gaps_apart_from_findings() -> None:
     """Total counts findings only, so an error row cannot inflate what was found."""
     html = _html(
-        [(Finding(path="p", value="v"), ())],
+        [Finding(path="p", value="v")],
         failures=(CheckFailure(check_id="run_keys", error="OSError: bad cell"),),
     )
 
@@ -397,7 +372,7 @@ def test_html_filters_every_column_rather_than_a_fixed_four() -> None:
     # Asserted at string level because the machinery only runs in a browser; the
     # names checked absent are the hardcoded severity, technique, MITRE ID and
     # access-level controls this replaced.
-    html = _html([(Finding(path="HKLM\\Run", value="a.exe"), ())])
+    html = _html([Finding(path="HKLM\\Run", value="a.exe")])
 
     assert "col-filter-btn" in html
     assert "openFilterMenu" in html
@@ -410,7 +385,7 @@ def test_html_filters_every_column_rather_than_a_fixed_four() -> None:
 
 def test_html_shows_active_filters_as_chips() -> None:
     """An active filter is visible without opening the menu that set it."""
-    html = _html([(Finding(path="HKLM\\Run", value="a.exe"), ())])
+    html = _html([Finding(path="HKLM\\Run", value="a.exe")])
 
     assert 'id="filter-chips"' in html
     assert "renderChips" in html
@@ -419,7 +394,7 @@ def test_html_shows_active_filters_as_chips() -> None:
 def test_csv_carries_an_unreadable_hive_as_an_error_row() -> None:
     """A gap rides in the findings' own columns, so a parser meets one table shape."""
     csv_text = _csv(
-        [(Finding(path="p", value="v"), ())],
+        [Finding(path="p", value="v")],
         inventory=(_hive("SYSTEM", HiveStatus.OPEN_FAILED, error="OSError: bad"),),
         hostname="HOST",
     )
@@ -463,7 +438,7 @@ def test_csv_quotes_a_formula_trigger_in_an_error_row() -> None:
 def test_xlsx_appends_a_hive_sheet(tmp_path: Path) -> None:
     """The workbook gains a Hives sheet without disturbing the findings grid."""
     workbook = _workbook(
-        [(Finding(path="p", value="v"), ())],
+        [Finding(path="p", value="v")],
         tmp_path / "report.xlsx",
         inventory=(_hive("SYSTEM", HiveStatus.OPEN_FAILED, error="OSError: bad"),),
     )
@@ -476,6 +451,6 @@ def test_xlsx_appends_a_hive_sheet(tmp_path: Path) -> None:
 
 def test_xlsx_without_inventory_has_only_the_findings_sheet(tmp_path: Path) -> None:
     """The default keeps the workbook byte-compatible with existing consumers."""
-    workbook = _workbook([(Finding(path="p", value="v"), ())], tmp_path / "report.xlsx")
+    workbook = _workbook([Finding(path="p", value="v")], tmp_path / "report.xlsx")
 
     assert workbook.sheetnames == ["Findings"]

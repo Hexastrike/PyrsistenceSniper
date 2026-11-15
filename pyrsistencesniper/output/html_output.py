@@ -7,8 +7,9 @@ from typing import IO, Any
 
 from jinja2 import Environment
 
-from pyrsistencesniper.core.models import AnnotatedResult, CheckFailure, HiveRecord
+from pyrsistencesniper.core.models import CheckFailure, Finding, HiveRecord
 from pyrsistencesniper.output.base import (
+    CORE_FIELDS,
     ERROR_LEVEL,
     OutputBase,
     integrity_rows,
@@ -60,7 +61,7 @@ class HtmlOutput(OutputBase):
 
     def _write(
         self,
-        results: list[AnnotatedResult],
+        results: list[Finding],
         out: IO[str],
         *,
         inventory: tuple[HiveRecord, ...] = (),
@@ -70,8 +71,9 @@ class HtmlOutput(OutputBase):
         environment = Environment(autoescape=True)
         environment.policies["json.dumps_kwargs"] = {"default": str}
         template = environment.from_string(_HTML_TEMPLATE)
-        findings, fieldnames = self._flatten_results(results)
-        for (finding, _enrichments), row in zip(results, findings, strict=True):
+        fieldnames = list(CORE_FIELDS)
+        findings = self._flatten_results(results)
+        for finding, row in zip(results, findings, strict=True):
             row["_change_candidates"] = list(finding.change_candidates)
         rows = [*integrity_rows(inventory, failures, hostname), *findings]
         labels = {field: label_for(field) for field in fieldnames}

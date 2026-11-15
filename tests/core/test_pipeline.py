@@ -24,12 +24,9 @@ from pyrsistencesniper.plugins.base import PersistencePlugin
 _PLUGIN_REGISTRY = "pyrsistencesniper.detection.pipeline._PLUGIN_REGISTRY"
 _DISCOVER_PLUGINS = "pyrsistencesniper.detection.pipeline._discover_plugins"
 _RESOLVER_CLS = "pyrsistencesniper.detection.pipeline.ResolutionPipeline"
-_RUN_ENRICHMENTS = "pyrsistencesniper.detection.pipeline.run_enrichments"
 _TIMELINE_CLS = "pyrsistencesniper.detection.pipeline.TimelineExecutor"
 
-_EnrichResult = list[tuple[Finding, list[object]]]
 _FindingStub = Callable[[Finding], Finding]
-_EnrichStub = Callable[..., _EnrichResult]
 
 
 class _StubPluginA(PersistencePlugin):
@@ -96,11 +93,6 @@ def _unchanged(finding: Finding) -> Finding:
     return finding
 
 
-def _enrich_unchanged(findings: list[Finding], **_kwargs: object) -> _EnrichResult:
-    """Enrichment stand-in pairing every finding with no enrichments."""
-    return [(finding, []) for finding in findings]
-
-
 def _resolve_os_binary(finding: Finding) -> Finding:
     """Resolver stand-in: an OS-directory file, not a LOLBin, no signer."""
     return dataclasses.replace(
@@ -113,7 +105,6 @@ def _patched_pipeline(
     plugins: dict[str, type[PersistencePlugin]],
     *,
     resolve: _FindingStub = _unchanged,
-    enrich: _EnrichStub = _enrich_unchanged,
     stub_timeline: bool = False,
     timestamp: _FindingStub = _unchanged,
     extra: Sequence[object] = (),
@@ -126,7 +117,6 @@ def _patched_pipeline(
         stack.enter_context(patch(_DISCOVER_PLUGINS))
         resolver_cls = stack.enter_context(patch(_RESOLVER_CLS))
         resolver_cls.return_value.resolve.side_effect = resolve
-        stack.enter_context(patch(_RUN_ENRICHMENTS, side_effect=enrich))
         for patcher in extra:
             stack.enter_context(patcher)
         timeline_cls = MagicMock()
@@ -163,7 +153,7 @@ def test_run_pipeline_sequential(tmp_path: Path) -> None:
     with _patched_pipeline({"stub_a": _StubPluginA, "stub_b": _StubPluginB}):
         results = run_pipeline(context, profile=DetectionProfile())
 
-    assert {finding.path for finding, _enrichments in results} == {
+    assert {finding.path for finding in results} == {
         "stub_a_path",
         "stub_b_path",
     }
@@ -237,7 +227,7 @@ def test_run_pipeline_plugin_exception_isolated(tmp_path: Path) -> None:
         results = run_pipeline(context, profile=DetectionProfile())
 
     assert len(results) == 1
-    assert results[0][0].path == "stub_a_path"
+    assert results[0].path == "stub_a_path"
 
 
 def test_run_pipeline_records_failed_check(tmp_path: Path) -> None:
@@ -287,7 +277,7 @@ def test_run_pipeline_min_severity_info_includes_all(tmp_path: Path) -> None:
         )
 
     assert len(results) == 1
-    assert results[0][0].is_in_os_directory is True
+    assert results[0].is_in_os_directory is True
 
 
 def test_run_pipeline_allow_rule_suppression(tmp_path: Path) -> None:
@@ -326,7 +316,7 @@ def test_run_pipeline_allow_rule_suppression(tmp_path: Path) -> None:
         results = run_pipeline(context, profile=profile, min_severity=Severity.INFO)
 
     assert len(results) == 1
-    assert results[0][0].severity is Severity.INFO
+    assert results[0].severity is Severity.INFO
 
 
 def test_run_pipeline_partial_allow_match_low(tmp_path: Path) -> None:
@@ -365,7 +355,7 @@ def test_run_pipeline_partial_allow_match_low(tmp_path: Path) -> None:
         results = run_pipeline(context, profile=profile, min_severity=Severity.LOW)
 
     assert len(results) == 1
-    assert results[0][0].severity is Severity.LOW
+    assert results[0].severity is Severity.LOW
 
 
 def test_run_pipeline_block_rule_high(tmp_path: Path) -> None:
@@ -392,7 +382,7 @@ def test_run_pipeline_block_rule_high(tmp_path: Path) -> None:
         results = run_pipeline(context, profile=profile)
 
     assert len(results) == 1
-    assert results[0][0].severity is Severity.HIGH
+    assert results[0].severity is Severity.HIGH
 
 
 def test_run_pipeline_no_rules_medium(tmp_path: Path) -> None:
@@ -403,7 +393,7 @@ def test_run_pipeline_no_rules_medium(tmp_path: Path) -> None:
         results = run_pipeline(context, profile=DetectionProfile())
 
     assert len(results) == 1
-    assert results[0][0].severity is Severity.MEDIUM
+    assert results[0].severity is Severity.MEDIUM
 
 
 def test_run_pipeline_lolbin_partial_allow(tmp_path: Path) -> None:
@@ -438,8 +428,8 @@ def test_run_pipeline_lolbin_partial_allow(tmp_path: Path) -> None:
         results = run_pipeline(context, profile=profile)
 
     assert len(results) == 1
-    assert results[0][0].is_lolbin is True
-    assert results[0][0].severity is Severity.MEDIUM
+    assert results[0].is_lolbin is True
+    assert results[0].severity is Severity.MEDIUM
 
 
 def test_run_pipeline_timeline_invokes_executor(tmp_path: Path) -> None:
@@ -481,36 +471,6 @@ def test_run_pipeline_threads_mft_path_to_executor(tmp_path: Path) -> None:
 
     _args, kwargs = timeline_cls.call_args
     assert kwargs["mft_path"] == mft
-
-
-def test_run_pipeline_timeline_runs_after_classify_before_enrich(
-    tmp_path: Path,
-) -> None:
-    """The timestamp stage runs after classification and before enrichment."""
-    context = _make_context(tmp_path)
-    order: list[str] = []
-
-    def _timestamp(finding: Finding) -> Finding:
-        """Record the call order and stamp the finding so enrichment can see it."""
-        order.append("timestamp")
-        return dataclasses.replace(finding, last_change="STAMPED")
-
-    def _enrich(findings: list[Finding], **_kwargs: object) -> _EnrichResult:
-        """Record the call order and assert the timestamp stage already ran."""
-        order.append("enrich")
-        assert all(finding.last_change == "STAMPED" for finding in findings)
-        return [(finding, []) for finding in findings]
-
-    with _patched_pipeline(
-        {"stub_a": _StubPluginA},
-        enrich=_enrich,
-        stub_timeline=True,
-        timestamp=_timestamp,
-    ):
-        results = run_pipeline(context, profile=DetectionProfile())
-
-    assert order == ["timestamp", "enrich"]
-    assert results[0][0].last_change == "STAMPED"
 
 
 def test_run_pipeline_timeline_receives_only_surviving_findings(

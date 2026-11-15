@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import IO, Any
 
 from pyrsistencesniper.core.models import (
-    AnnotatedResult,
     ChangeEvidence,
     CheckFailure,
     Finding,
@@ -57,13 +56,8 @@ def _console_stream() -> IO[str]:
 
 
 def label_for(field: str) -> str:
-    """Return the column label, deriving one for enrichment keys."""
-    label = Finding.FIELDS.get(field)
-    if label is not None:
-        return label
-    if field.startswith("enrichment."):
-        return " ".join(part.capitalize() for part in field.split(".")[1:])
-    return field
+    """Return the column label of a finding field."""
+    return Finding.FIELDS.get(field, field)
 
 
 # Findings carry attacker-controlled registry data: an unquoted leading formula
@@ -142,7 +136,7 @@ class OutputBase(ABC):
 
     def render(
         self,
-        results: list[AnnotatedResult],
+        results: list[Finding],
         output: Path | IO[str] | None = None,
         *,
         inventory: tuple[HiveRecord, ...] = (),
@@ -185,7 +179,7 @@ class OutputBase(ABC):
     @abstractmethod
     def _write(
         self,
-        results: list[AnnotatedResult],
+        results: list[Finding],
         out: IO[str],
         *,
         inventory: tuple[HiveRecord, ...] = (),
@@ -207,9 +201,8 @@ class OutputBase(ABC):
     # Unresolved fields stay empty instead of collapsing to False: on a forensic
     # report, "not checked" must not read as "checked and absent".
     @staticmethod
-    def result_to_dict(result: AnnotatedResult) -> dict[str, Any]:
-        """Flatten an AnnotatedResult into one row dict."""
-        finding, enrichments = result
+    def result_to_dict(finding: Finding) -> dict[str, Any]:
+        """Flatten a finding into one row dict."""
         row: dict[str, Any] = {}
         for name in Finding.FIELDS:
             raw = getattr(finding, name)
@@ -221,25 +214,12 @@ class OutputBase(ABC):
                 row[name] = ""
             else:
                 row[name] = raw
-        for enrichment in enrichments:
-            for key, value in enrichment.data.items():
-                row[f"enrichment.{enrichment.provider}.{key}"] = value
         return row
 
     @staticmethod
-    def _flatten_results(
-        results: list[AnnotatedResult],
-    ) -> tuple[list[dict[str, Any]], list[str]]:
-        """Convert results to flat dicts; return rows and fieldnames."""
-        rows: list[dict[str, Any]] = []
-        enrichment_keys: set[str] = set()
-        for result in results:
-            row = OutputBase.result_to_dict(result)
-            rows.append(row)
-            for key in row:
-                if key.startswith("enrichment."):
-                    enrichment_keys.add(key)
-        return rows, [*CORE_FIELDS, *sorted(enrichment_keys)]
+    def _flatten_results(results: list[Finding]) -> list[dict[str, Any]]:
+        """Convert findings to the flat rows every tabular format writes."""
+        return [OutputBase.result_to_dict(finding) for finding in results]
 
     # NOT_FOUND is claimed only when resolution ran and came back empty handed,
     # never when the target was left unresolved.

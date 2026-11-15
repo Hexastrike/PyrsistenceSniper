@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import IO
 
 from pyrsistencesniper.core.models import (
-    AnnotatedResult,
     CheckFailure,
     Finding,
     HiveRecord,
@@ -25,7 +24,7 @@ class ConsoleOutput(OutputBase):
 
     def _write(
         self,
-        results: list[AnnotatedResult],
+        results: list[Finding],
         out: IO[str],
         *,
         inventory: tuple[HiveRecord, ...] = (),
@@ -39,11 +38,10 @@ class ConsoleOutput(OutputBase):
             out.write("No findings.\n")
             return
 
-        grouped: dict[str, list[AnnotatedResult]] = {}
-        for result in results:
-            finding = result[0]
+        grouped: dict[str, list[Finding]] = {}
+        for finding in results:
             key = f"[{finding.mitre_id}] {finding.technique}"
-            grouped.setdefault(key, []).append(result)
+            grouped.setdefault(key, []).append(finding)
 
         field_labels = Finding.FIELDS
         total = 0
@@ -51,8 +49,8 @@ class ConsoleOutput(OutputBase):
             out.write(f"\n{'=' * 60}\n")
             out.write(f"{technique} ({len(items)} finding(s))\n")
             out.write(f"{'=' * 60}\n")
-            for result in items:
-                row = self.result_to_dict(result)
+            for finding in items:
+                row = self.result_to_dict(finding)
                 if row["hostname"]:
                     out.write(f"{field_labels['hostname']}: {row['hostname']}\n")
                 out.write(f"{field_labels['path']}: {row['path']}\n")

@@ -15,7 +15,6 @@ LAYERS: dict[str, int] = {
     "core": 1,
     "detection": 2,
     "plugins": 2,
-    "enrichment": 2,
     "timeline": 2,
     "output": 3,
     "ui": 3,
@@ -157,7 +156,6 @@ def test_core_registry_is_pure() -> None:
         "pyrsistencesniper.core.filesystem",
         "pyrsistencesniper.detection",
         "pyrsistencesniper.plugins",
-        "pyrsistencesniper.enrichment",
         "pyrsistencesniper.output",
         "pyrsistencesniper.ui",
     )

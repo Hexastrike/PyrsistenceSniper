@@ -329,3 +329,51 @@ def test_resolve_records_no_launcher_for_a_direct_image(
     resolved = pipeline.resolve(Finding(value=r"C:\Program Files\App\app.exe --flag"))
     assert resolved.launcher == ""
     assert resolved.is_lolbin is False
+
+
+@patch("pyrsistencesniper.core.signer.SignerExtractor.extract", return_value="")
+def test_resolve_leaves_no_triage_note_for_an_unresolved_value(
+    _mock_signer: MagicMock,
+) -> None:
+    """A value that names no file gives the analyst nothing to triage."""
+    resolved = _make_pipeline().resolve(Finding(value="{00000000-0000-0000-0000-0000}"))
+    assert resolved.triage_notes == ""
+
+
+@patch("pyrsistencesniper.core.signer.SignerExtractor.extract", return_value="")
+def test_resolve_notes_a_missing_binary_without_signature_claims(
+    _mock_signer: MagicMock,
+) -> None:
+    """An absent binary is flagged as missing, never also as unsigned."""
+    resolved = _make_pipeline(exists=False).resolve(Finding(value="C:\\Temp\\gone.exe"))
+    assert "not found" in resolved.triage_notes
+    assert "signature" not in resolved.triage_notes
+
+
+@patch("pyrsistencesniper.core.signer.SignerExtractor.extract", return_value="")
+def test_resolve_notes_an_unsigned_binary_outside_the_os(
+    _mock_signer: MagicMock,
+) -> None:
+    """A present binary with no signer, outside the OS directories, earns both notes."""
+    resolved = _make_pipeline(exists=True).resolve(Finding(value="C:\\Temp\\evil.exe"))
+    assert "no usable signature" in resolved.triage_notes
+    assert "outside the OS directories" in resolved.triage_notes
+
+
+@patch(
+    "pyrsistencesniper.core.signer.SignerExtractor.extract",
+    return_value="Microsoft Windows",
+)
+def test_resolve_stays_quiet_for_a_signed_os_binary(_mock_signer: MagicMock) -> None:
+    """A signed binary in System32 that is no LOLBin needs no triage note."""
+    resolved = _make_pipeline(exists=True).resolve(
+        Finding(value="C:\\Windows\\System32\\spoolsv.exe")
+    )
+    assert resolved.triage_notes == ""
+
+
+@patch("pyrsistencesniper.core.signer.SignerExtractor.extract", return_value="")
+def test_resolve_notes_a_lolbin(_mock_signer: MagicMock) -> None:
+    """A living off the land binary is called out by name of the technique."""
+    resolved = _make_pipeline().resolve(Finding(value="mshta.exe"))
+    assert "living off the land" in resolved.triage_notes

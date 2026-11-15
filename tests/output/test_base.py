@@ -10,7 +10,6 @@ from typing import Any
 from pyrsistencesniper.core.models import (
     AccessLevel,
     CheckFailure,
-    Enrichment,
     Finding,
     HiveRecord,
     HiveStatus,
@@ -42,7 +41,7 @@ def _make_finding(**kwargs: object) -> Finding:
 
 def _row(**kwargs: object) -> dict[str, Any]:
     """Build the report row a renderer would emit for one Finding."""
-    return OutputBase.result_to_dict((_make_finding(**kwargs), ()))
+    return OutputBase.result_to_dict(_make_finding(**kwargs))
 
 
 def test_result_to_dict_enum_to_value() -> None:
@@ -73,13 +72,6 @@ def test_build_flags_omits_not_found_when_existence_unknown() -> None:
 def test_build_flags_reports_not_found_when_resolution_missed() -> None:
     """A target the resolver looked for and did not find is flagged NOT_FOUND."""
     assert "NOT_FOUND" in OutputBase.build_flags(_row(exists=False))
-
-
-def test_result_to_dict_enrichment_keys() -> None:
-    """Enrichment data is flattened into the row dict with dotted keys."""
-    enrichment = Enrichment(provider="vt", data={"score": "5/70"})
-    row = OutputBase.result_to_dict((_make_finding(), (enrichment,)))
-    assert row["enrichment.vt.score"] == "5/70"
 
 
 def test_build_flags_lolbin() -> None:

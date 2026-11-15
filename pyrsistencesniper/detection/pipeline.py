@@ -10,13 +10,11 @@ from pathlib import Path
 from pyrsistencesniper.core import ledger
 from pyrsistencesniper.core.context import AnalysisContext
 from pyrsistencesniper.core.models import (
-    AnnotatedResult,
     Finding,
     Severity,
 )
 from pyrsistencesniper.core.profile import DetectionProfile
 from pyrsistencesniper.core.resolver import ResolutionPipeline
-from pyrsistencesniper.enrichment import run_enrichments
 from pyrsistencesniper.plugins import (
     _PLUGIN_REGISTRY,
     _discover_plugins,
@@ -147,8 +145,8 @@ def run_pipeline(
     mft_path: Path | None = None,
     timeline: bool = True,
     progress: Callable[[str, int, int], None] | None = None,
-) -> list[AnnotatedResult]:
-    """Run the full detection pipeline and return enriched, classified results."""
+) -> list[Finding]:
+    """Run the full detection pipeline and return resolved, classified findings."""
     plugins = _select_plugins(profile, technique_filter)
     if not plugins:
         return []
@@ -170,4 +168,4 @@ def run_pipeline(
             TimelineExecutor(context, mft_path=mft_path).timestamp,
             progress,
         )
-    return run_enrichments(classified, progress=progress)
+    return classified

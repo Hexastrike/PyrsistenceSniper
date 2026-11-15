@@ -5,8 +5,9 @@ from __future__ import annotations
 import csv
 from typing import IO, Any
 
-from pyrsistencesniper.core.models import AnnotatedResult, CheckFailure, HiveRecord
+from pyrsistencesniper.core.models import CheckFailure, Finding, HiveRecord
 from pyrsistencesniper.output.base import (
+    CORE_FIELDS,
     OutputBase,
     integrity_rows,
     label_for,
@@ -23,7 +24,7 @@ class CsvOutput(OutputBase):
 
     def _write(
         self,
-        results: list[AnnotatedResult],
+        results: list[Finding],
         out: IO[str],
         *,
         inventory: tuple[HiveRecord, ...] = (),
@@ -33,8 +34,10 @@ class CsvOutput(OutputBase):
         """Write one table: the scan's gaps first, then its findings."""
         # This format exists to be parsed, so a gap shares the findings' columns
         # and is told apart by its Severity cell, never by a second table shape.
-        findings, fieldnames = self._flatten_results(results)
-        rows = [*integrity_rows(inventory, failures, hostname), *findings]
+        rows = [
+            *integrity_rows(inventory, failures, hostname),
+            *self._flatten_results(results),
+        ]
         if not rows:
             return
 
@@ -43,6 +46,6 @@ class CsvOutput(OutputBase):
             for row in rows
         ]
         writer = csv.writer(out)
-        writer.writerow([label_for(field) for field in fieldnames])
+        writer.writerow([label_for(field) for field in CORE_FIELDS])
         for row in sanitized:
-            writer.writerow([row.get(field, "") for field in fieldnames])
+            writer.writerow([row.get(field, "") for field in CORE_FIELDS])

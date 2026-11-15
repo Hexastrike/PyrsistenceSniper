@@ -21,7 +21,7 @@ def test_finding_defaults() -> None:
 
 
 def test_finding_is_frozen() -> None:
-    """A produced finding cannot be edited later by enrichment or output code."""
+    """A produced finding cannot be edited later by resolution or output code."""
     finding = Finding(path="HKLM\\Software\\Run")
     with pytest.raises(AttributeError):
         finding.path = "something"  # type: ignore[misc]

@@ -142,6 +142,7 @@ class Finding:
         "hostname": "Hostname",
         "check_id": "Check ID",
         "references": "References",
+        "triage_notes": "Triage Notes",
     }
 
     path: str = ""
@@ -161,6 +162,8 @@ class Finding:
     hostname: str = ""
     check_id: str = ""
     references: tuple[str, ...] = field(default_factory=tuple)
+    # Why the resolved target deserves a second look, empty when nothing does
+    triage_notes: str = ""
     severity: Severity = Severity.MEDIUM
     last_change: str = ""
     change_source: str = ""
@@ -171,14 +174,6 @@ class Finding:
     time_evidence: tuple[TimeEvidence, ...] = field(default_factory=tuple)
     # Not in FIELDS: every candidate considered, HTML tooltip only
     change_candidates: tuple[str, ...] = field(default_factory=tuple)
-
-
-@dataclass(frozen=True, slots=True)
-class Enrichment:
-    """Key-value data attached to a finding by an enrichment plugin."""
-
-    provider: str = ""
-    data: dict[str, str] = field(default_factory=dict)
 
 
 class MatchResult(enum.Enum):
@@ -248,9 +243,6 @@ class FilterRule:
     def matches(self, finding: Finding) -> bool:
         """Return True if all non-empty rule fields match the finding (AND logic)."""
         return self.match_result(finding) == MatchResult.FULL
-
-
-AnnotatedResult: TypeAlias = tuple[Finding, tuple[Enrichment, ...]]
 
 
 class KeyProtocol(Protocol):

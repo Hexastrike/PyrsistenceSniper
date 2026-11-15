@@ -11,8 +11,9 @@ from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.worksheet import Worksheet
 
-from pyrsistencesniper.core.models import AnnotatedResult, CheckFailure, HiveRecord
+from pyrsistencesniper.core.models import CheckFailure, Finding, HiveRecord
 from pyrsistencesniper.output.base import (
+    CORE_FIELDS,
     OutputBase,
     integrity_rows,
     label_for,
@@ -45,7 +46,7 @@ class XlsxOutput(OutputBase):
 
     def render(
         self,
-        results: list[AnnotatedResult],
+        results: list[Finding],
         output: Path | IO[bytes] | None = None,  # type: ignore[override]
         *,
         inventory: tuple[HiveRecord, ...] = (),
@@ -56,8 +57,11 @@ class XlsxOutput(OutputBase):
             msg = "XLSX output requires a file path or binary stream"
             raise ValueError(msg)
 
-        findings, fieldnames = self._flatten_results(results)
-        rows = [*integrity_rows(inventory, failures, hostname), *findings]
+        fieldnames = list(CORE_FIELDS)
+        rows = [
+            *integrity_rows(inventory, failures, hostname),
+            *self._flatten_results(results),
+        ]
 
         workbook = Workbook()
         sheet = workbook.active
@@ -121,7 +125,7 @@ class XlsxOutput(OutputBase):
 
     def _write(
         self,
-        results: list[AnnotatedResult],
+        results: list[Finding],
         out: IO[str],
         *,
         inventory: tuple[HiveRecord, ...] = (),
