@@ -25,7 +25,6 @@ _SETTINGS_LOCATIONS = (
 
 _CLOSING_BRACKETS = ("}", "]")
 
-# A settings file is kilobytes; the cap keeps a planted one from being read whole.
 _MAX_SETTINGS_BYTES = 4 << 20
 
 

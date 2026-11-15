@@ -22,7 +22,6 @@ _CATROOT_SUBDIR = "Windows/System32/CatRoot/{F750E6C3-38EE-11D1-85E5-00C04FC295E
 
 _SPC_SP_OPUS_INFO_OID = "1.3.6.1.4.1.311.2.1.12"
 
-# The largest catalogs Windows ships are a few megabytes.
 _MAX_CATALOG_BYTES = 64 << 20
 
 

@@ -24,7 +24,6 @@ from pyrsistencesniper.plugins.base import PersistencePlugin
 _GP_DIR = Path("Windows") / "System32" / "GroupPolicy"
 _GP_USERS_DIR = Path("Windows") / "System32" / "GroupPolicyUsers"
 
-# A scripts.ini is a few hundred bytes; the cap bounds a planted one.
 _MAX_INI_BYTES = 1 << 20
 
 _PER_USER_SCRIPT_FILES: tuple[tuple[Path, str, AccessLevel], ...] = (

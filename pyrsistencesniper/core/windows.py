@@ -217,7 +217,7 @@ def is_representable_windows_path(path: str) -> bool:
 def on_windows() -> bool:
     """Report whether this process is running on Windows itself."""
     # The one place the host OS is read. A test reaching the Win32-only branches
-    # patches this instead of os.name, which on Python 3.10 and 3.11 also decides
+    # patches this instead of os.name, which on Python 3.11 also decides
     # what pathlib.Path() builds and makes any bare Path() on POSIX raise.
     return os.name == "nt"
 

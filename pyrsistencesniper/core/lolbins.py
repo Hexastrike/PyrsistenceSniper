@@ -25,7 +25,6 @@ _BACKOFF_BASE_S = 0.5
 _BACKOFF_CAP_S = 8.0
 _JITTER_S = 0.25
 
-# The list is about a megabyte; the cap bounds what a hostile mirror can send.
 _MAX_PAYLOAD_BYTES = 16 << 20
 
 
@@ -56,7 +55,6 @@ def _load_cache() -> frozenset[str] | None:
 
 def _fetch_payload() -> object:
     """Fetch the LOLBAS list and decode it, raising on any failure."""
-    # The URL is a module constant with an https scheme, never caller input.
     with urllib.request.urlopen(LOLBAS_URL, timeout=_TIMEOUT_S) as response:
         body = response.read(_MAX_PAYLOAD_BYTES + 1)
     if len(body) > _MAX_PAYLOAD_BYTES:
