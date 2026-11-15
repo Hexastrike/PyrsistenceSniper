@@ -12,7 +12,7 @@ from pyrsistencesniper.core.filesystem import (
     FilesystemHelper,
     safe_iterdir,
 )
-from pyrsistencesniper.core.windows import _LONG_PATH_LIMIT, _io_path, read_bounded
+from pyrsistencesniper.core.windows import _LONG_PATH_LIMIT, io_path, read_bounded
 
 
 def test_resolve_strips_drive_letter(tmp_path: Path) -> None:
@@ -210,59 +210,59 @@ def _over_limit(prefix: str) -> str:
     return text
 
 
-# _io_path is a pure string transformation, so PureWindowsPath exercises the
+# io_path is a pure string transformation, so PureWindowsPath exercises the
 # Windows semantics on the Linux and macOS CI runners too.
 
 
 def test_io_path_leaves_short_path_alone(monkeypatch: pytest.MonkeyPatch) -> None:
     """Ordinary paths pass through untouched, so the prefix never reaches logs."""
-    monkeypatch.setattr("pyrsistencesniper.core.windows._on_windows", lambda: True)
+    monkeypatch.setattr("pyrsistencesniper.core.windows.on_windows", lambda: True)
     path = PureWindowsPath(r"C:\Windows\System32\cmd.exe")
-    assert _io_path(path) is path
+    assert io_path(path) is path
 
 
 def test_io_path_prefixes_long_absolute_path(monkeypatch: pytest.MonkeyPatch) -> None:
     """Past the limit the prefix is what keeps Win32 from reporting the file absent."""
-    monkeypatch.setattr("pyrsistencesniper.core.windows._on_windows", lambda: True)
-    prefixed = _io_path(PureWindowsPath(_over_limit("C:")))
+    monkeypatch.setattr("pyrsistencesniper.core.windows.on_windows", lambda: True)
+    prefixed = io_path(PureWindowsPath(_over_limit("C:")))
     assert str(prefixed).startswith("\\\\?\\C:")
 
 
 def test_io_path_leaves_relative_path_alone(monkeypatch: pytest.MonkeyPatch) -> None:
     """The prefix only means anything on a fully qualified path."""
-    monkeypatch.setattr("pyrsistencesniper.core.windows._on_windows", lambda: True)
+    monkeypatch.setattr("pyrsistencesniper.core.windows.on_windows", lambda: True)
     path = PureWindowsPath(_over_limit("relative"))
-    assert _io_path(path) is path
+    assert io_path(path) is path
 
 
 def test_io_path_leaves_dot_dot_path_alone(monkeypatch: pytest.MonkeyPatch) -> None:
     """The prefix disables normalization, so ".." would stop being resolved."""
-    monkeypatch.setattr("pyrsistencesniper.core.windows._on_windows", lambda: True)
+    monkeypatch.setattr("pyrsistencesniper.core.windows.on_windows", lambda: True)
     path = PureWindowsPath(_over_limit("C:") + "\\..\\payload.exe")
-    assert _io_path(path) is path
+    assert io_path(path) is path
 
 
 def test_io_path_is_idempotent(monkeypatch: pytest.MonkeyPatch) -> None:
     """Prefixing twice would produce an invalid path, so the call is repeatable."""
-    monkeypatch.setattr("pyrsistencesniper.core.windows._on_windows", lambda: True)
-    once = _io_path(PureWindowsPath(_over_limit("C:")))
-    assert _io_path(once) is once
+    monkeypatch.setattr("pyrsistencesniper.core.windows.on_windows", lambda: True)
+    once = io_path(PureWindowsPath(_over_limit("C:")))
+    assert io_path(once) is once
 
 
 def test_io_path_uses_the_unc_form_for_network_paths(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A share needs the UNC spelling; the plain prefix would name a missing drive."""
-    monkeypatch.setattr("pyrsistencesniper.core.windows._on_windows", lambda: True)
-    prefixed = _io_path(PureWindowsPath(_over_limit("\\\\server\\share")))
+    monkeypatch.setattr("pyrsistencesniper.core.windows.on_windows", lambda: True)
+    prefixed = io_path(PureWindowsPath(_over_limit("\\\\server\\share")))
     assert str(prefixed).startswith("\\\\?\\UNC\\server\\share")
 
 
 def test_io_path_is_a_no_op_off_windows(monkeypatch: pytest.MonkeyPatch) -> None:
     """Only Win32 has the limit, and the prefix would corrupt a POSIX path."""
-    monkeypatch.setattr("pyrsistencesniper.core.windows._on_windows", lambda: False)
+    monkeypatch.setattr("pyrsistencesniper.core.windows.on_windows", lambda: False)
     path = PureWindowsPath(_over_limit("C:"))
-    assert _io_path(path) is path
+    assert io_path(path) is path
 
 
 def _long_paths_enabled() -> bool:

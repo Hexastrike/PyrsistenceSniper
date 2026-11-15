@@ -6,7 +6,7 @@ import re
 
 from pyrsistencesniper.core.models import Finding, Severity
 from pyrsistencesniper.core.profile import DetectionProfile
-from pyrsistencesniper.plugins import _PLUGIN_REGISTRY, _discover_plugins
+from pyrsistencesniper.plugins import PLUGIN_REGISTRY, discover_plugins
 
 _MITRE_ID_RE = re.compile(r"^T\d{4}(\.\d{3})?$")
 
@@ -15,9 +15,9 @@ _MITRE_ID_RE = re.compile(r"^T\d{4}(\.\d{3})?$")
 # broken import would leave the scan silently smaller. The exact count is the guard.
 def test_exactly_130_plugins_registered() -> None:
     """Every one of the 130 plugins registers."""
-    _discover_plugins()
-    assert len(_PLUGIN_REGISTRY) == 130, (
-        f"Expected 130 registered plugins, got {len(_PLUGIN_REGISTRY)}. "
+    discover_plugins()
+    assert len(PLUGIN_REGISTRY) == 130, (
+        f"Expected 130 registered plugins, got {len(PLUGIN_REGISTRY)}. "
         "Update this count when adding or removing a check; otherwise a "
         "registration was lost or duplicated."
     )
@@ -25,8 +25,8 @@ def test_exactly_130_plugins_registered() -> None:
 
 def test_all_plugins_have_complete_definitions() -> None:
     """Every registered plugin has complete CheckDefinition metadata."""
-    _discover_plugins()
-    for check_id, plugin_cls in _PLUGIN_REGISTRY.items():
+    discover_plugins()
+    for check_id, plugin_cls in PLUGIN_REGISTRY.items():
         definition = plugin_cls.definition
         assert definition.id, f"{check_id}: missing id"
         assert definition.technique, f"{check_id}: missing technique"

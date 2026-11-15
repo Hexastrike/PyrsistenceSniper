@@ -11,10 +11,10 @@ from pathlib import Path, PureWindowsPath
 
 from pyrsistencesniper.core import ledger
 from pyrsistencesniper.core.windows import (
-    _io_path,
-    _on_windows,
     canonicalize_windows_path,
+    io_path,
     is_representable_windows_path,
+    on_windows,
 )
 
 logger = logging.getLogger(__name__)
@@ -28,10 +28,10 @@ def _is_reparse_point(path: Path) -> bool:
     # its target stays enumerable under its real name, so failing to read one
     # costs no coverage. The attribute lives in the parent's directory index,
     # which is why this never touches the entry itself.
-    if not _on_windows():
+    if not on_windows():
         return False
     try:
-        with os.scandir(_io_path(path.parent)) as entries:
+        with os.scandir(io_path(path.parent)) as entries:
             for entry in entries:
                 if entry.name.lower() == path.name.lower():
                     attributes = getattr(
@@ -60,7 +60,7 @@ def safe_is_file(path: Path) -> bool | None:
     # versus one the image does not contain. Collapsing them would let an
     # unreadable path be reported as evidence of absence.
     try:
-        return _io_path(path).is_file()
+        return io_path(path).is_file()
     except OSError as error:
         _record_skip(path, error)
         return None
@@ -69,7 +69,7 @@ def safe_is_file(path: Path) -> bool | None:
 def safe_is_dir(path: Path) -> bool | None:
     """Report whether a path is a directory, or None when undeterminable."""
     try:
-        return _io_path(path).is_dir()
+        return io_path(path).is_dir()
     except OSError as error:
         _record_skip(path, error)
         return None
@@ -78,7 +78,7 @@ def safe_is_dir(path: Path) -> bool | None:
 def safe_exists(path: Path) -> bool | None:
     """Report whether a path exists at all, or None when undeterminable."""
     try:
-        return _io_path(path).exists()
+        return io_path(path).exists()
     except OSError as error:
         _record_skip(path, error)
         return None
@@ -89,7 +89,7 @@ def safe_iterdir(directory: Path) -> list[Path]:
     try:
         # Children of a prefixed directory carry the prefix; rebuild them under
         # the caller's path so it never leaks into logs or comparisons.
-        return [directory / child.name for child in _io_path(directory).iterdir()]
+        return [directory / child.name for child in io_path(directory).iterdir()]
     except OSError as error:
         # No traceback here: _record_skip logs one where the cause warrants it,
         # and a directory that is merely absent does not warrant one at all.
@@ -167,7 +167,7 @@ class FilesystemHelper:
         resolved = self.resolve(windows_path)
         try:
             hasher = hashlib.sha256()
-            with _io_path(resolved).open("rb") as file_handle:
+            with io_path(resolved).open("rb") as file_handle:
                 for chunk in iter(lambda: file_handle.read(65536), b""):
                     hasher.update(chunk)
             return hasher.hexdigest()

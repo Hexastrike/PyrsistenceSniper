@@ -10,7 +10,7 @@ import pyrsistencesniper
 import pytest
 from pyrsistencesniper.core.models import AccessLevel, Finding, Severity
 from pyrsistencesniper.core.profile import CheckPolicy, DetectionProfile
-from pyrsistencesniper.plugins import _PLUGIN_REGISTRY, _discover_plugins
+from pyrsistencesniper.plugins import PLUGIN_REGISTRY, discover_plugins
 
 _OFFICE_EXCEL_SOURCE = "{00020810-0000-0000-C000-000000000046}"
 _OFFICE_EXCEL_TARGET = "{00020820-0000-0000-C000-000000000046}"
@@ -51,9 +51,9 @@ def test_no_check_is_configured_twice() -> None:
 
 def test_every_configured_check_exists() -> None:
     """No profile block names a check that no longer exists."""
-    _discover_plugins()
+    discover_plugins()
     configured = set(DetectionProfile.load(None).checks)
-    unknown = configured - set(_PLUGIN_REGISTRY)
+    unknown = configured - set(PLUGIN_REGISTRY)
 
     assert not unknown, (
         f"profile configures checks that do not exist: {sorted(unknown)}"

@@ -13,13 +13,13 @@ from pyrsistencesniper.plugins.base import PersistencePlugin
 logger = logging.getLogger(__name__)
 
 
-_PLUGIN_REGISTRY: dict[str, type[PersistencePlugin]] = {}
+PLUGIN_REGISTRY: dict[str, type[PersistencePlugin]] = {}
 
 
 def register_plugin(cls: type[PersistencePlugin]) -> type[PersistencePlugin]:
     """Class decorator that adds a plugin to the global plugin registry."""
     check_id = cls.definition.id
-    existing = _PLUGIN_REGISTRY.get(check_id)
+    existing = PLUGIN_REGISTRY.get(check_id)
     # Overwriting a duplicate id would silently drop the replaced check from scans.
     if existing is not None and existing is not cls:
         msg = (
@@ -28,7 +28,7 @@ def register_plugin(cls: type[PersistencePlugin]) -> type[PersistencePlugin]:
             f"{cls.__module__}.{cls.__qualname__}"
         )
         raise ValueError(msg)
-    _PLUGIN_REGISTRY[check_id] = cls
+    PLUGIN_REGISTRY[check_id] = cls
     return cls
 
 
@@ -75,14 +75,14 @@ def _import_module_tree(
         _import_module_tree(child_paths, modname + ".", visited_paths)
 
 
-def _discover_plugins() -> None:
+def discover_plugins() -> None:
     """Walk and import all plugin submodules to trigger registration decorators."""
     search_paths = [str(search_path) for search_path in __path__]
     _import_module_tree(search_paths, __name__ + ".", set(search_paths))
 
 
 __all__ = [
-    "_PLUGIN_REGISTRY",
-    "_discover_plugins",
+    "PLUGIN_REGISTRY",
+    "discover_plugins",
     "register_plugin",
 ]

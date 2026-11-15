@@ -21,8 +21,8 @@ from pyrsistencesniper.detection.pipeline import (
 )
 from pyrsistencesniper.plugins.base import PersistencePlugin
 
-_PLUGIN_REGISTRY = "pyrsistencesniper.detection.pipeline._PLUGIN_REGISTRY"
-_DISCOVER_PLUGINS = "pyrsistencesniper.detection.pipeline._discover_plugins"
+PLUGIN_REGISTRY = "pyrsistencesniper.detection.pipeline.PLUGIN_REGISTRY"
+_DISCOVER_PLUGINS = "pyrsistencesniper.detection.pipeline.discover_plugins"
 _RESOLVER_CLS = "pyrsistencesniper.detection.pipeline.ResolutionPipeline"
 _TIMELINE_CLS = "pyrsistencesniper.detection.pipeline.TimelineExecutor"
 
@@ -113,7 +113,7 @@ def _patched_pipeline(
     # The executor is stubbed only on request, so the tests that do not name it
     # keep exercising the real timeline stage.
     with ExitStack() as stack:
-        stack.enter_context(patch(_PLUGIN_REGISTRY, plugins))
+        stack.enter_context(patch(PLUGIN_REGISTRY, plugins))
         stack.enter_context(patch(_DISCOVER_PLUGINS))
         resolver_cls = stack.enter_context(patch(_RESOLVER_CLS))
         resolver_cls.return_value.resolve.side_effect = resolve

@@ -9,7 +9,7 @@ from unittest.mock import patch
 import pytest
 from pyrsistencesniper.core.ledger import artifact_failures
 from pyrsistencesniper.core.models import AccessLevel
-from pyrsistencesniper.core.windows import _io_path
+from pyrsistencesniper.core.windows import io_path
 from pyrsistencesniper.plugins.T1546.windows_terminal import (
     WindowsTerminal,
     strip_jsonc,
@@ -254,8 +254,8 @@ def test_settings_beyond_the_win32_path_limit_is_parsed(tmp_path: Path) -> None:
     )
 
     try:
-        _io_path(settings_path.parent).mkdir(parents=True, exist_ok=True)
-        _io_path(settings_path).write_text(document, encoding="utf-8")
+        io_path(settings_path.parent).mkdir(parents=True, exist_ok=True)
+        io_path(settings_path).write_text(document, encoding="utf-8")
 
         findings = plugin.run()
         assert len(findings) == 1

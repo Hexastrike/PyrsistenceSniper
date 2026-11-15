@@ -11,7 +11,7 @@ import Evtx.Evtx as EvtxReader
 from defusedxml import ElementTree
 
 from pyrsistencesniper.core.filesystem import FilesystemHelper, safe_is_file
-from pyrsistencesniper.core.windows import _io_path
+from pyrsistencesniper.core.windows import io_path
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +101,7 @@ class EvtxIndex:
         # None and [] must stay distinct to the caller: a log that could not be
         # read, versus a log that was read and holds none of the wanted ids.
         try:
-            if _io_path(path).stat().st_size > _MAX_LOG_BYTES:
+            if io_path(path).stat().st_size > _MAX_LOG_BYTES:
                 logger.warning("Skipping oversized event log %s", path.name)
                 return None
         except OSError:
@@ -110,7 +110,7 @@ class EvtxIndex:
         records: list[tuple[datetime, int, int, dict[str, str]]] = []
         unreadable = 0
         try:
-            with EvtxReader.Evtx(str(_io_path(path))) as log:
+            with EvtxReader.Evtx(str(io_path(path))) as log:
                 header = log.get_file_header()
                 if (
                     header.chunk_count() <= 1

@@ -13,10 +13,10 @@ from pyrsistencesniper.core.log import setup_logging
 from pyrsistencesniper.core.lolbins import download_lolbins
 from pyrsistencesniper.core.models import CheckFailure, HiveRecord, Severity
 from pyrsistencesniper.core.profile import DetectionProfile
-from pyrsistencesniper.core.windows import _io_path
+from pyrsistencesniper.core.windows import io_path
 from pyrsistencesniper.detection.pipeline import run_pipeline
 from pyrsistencesniper.output import get_renderer
-from pyrsistencesniper.plugins import _PLUGIN_REGISTRY, _discover_plugins
+from pyrsistencesniper.plugins import PLUGIN_REGISTRY, discover_plugins
 from pyrsistencesniper.ui.banner import print_banner
 from pyrsistencesniper.ui.progress import make_progress_bar
 
@@ -158,7 +158,7 @@ def _run_scan(args: argparse.Namespace) -> None:
         sys.stderr.write("Error: --mft cannot be combined with --no-timeline\n")
         sys.exit(1)
 
-    if args.mft is not None and not _io_path(args.mft).is_file():
+    if args.mft is not None and not io_path(args.mft).is_file():
         sys.stderr.write(f"Error: $MFT file does not exist: {args.mft}\n")
         sys.exit(1)
 
@@ -240,11 +240,11 @@ def _exit_on_incomplete_scan(
 
 def _list_checks() -> None:
     """Discover all plugins and print their IDs, MITRE mappings, and technique names."""
-    _discover_plugins()
-    if not _PLUGIN_REGISTRY:
+    discover_plugins()
+    if not PLUGIN_REGISTRY:
         sys.stdout.write("No checks registered.\n")
         return
-    for _check_id, plugin_cls in sorted(_PLUGIN_REGISTRY.items()):
+    for _check_id, plugin_cls in sorted(PLUGIN_REGISTRY.items()):
         definition = plugin_cls.definition
         sys.stdout.write(
             f"{definition.id:<30s} [{definition.mitre_id}] {definition.technique}\n"

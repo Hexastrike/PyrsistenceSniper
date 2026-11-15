@@ -214,7 +214,7 @@ def is_representable_windows_path(path: str) -> bool:
     )
 
 
-def _on_windows() -> bool:
+def on_windows() -> bool:
     """Report whether this process is running on Windows itself."""
     # The one place the host OS is read. A test reaching the Win32-only branches
     # patches this instead of os.name, which on Python 3.10 and 3.11 also decides
@@ -222,7 +222,7 @@ def _on_windows() -> bool:
     return os.name == "nt"
 
 
-def _io_path(path: Path) -> Path:
+def io_path(path: Path) -> Path:
     """Return the path to hand a syscall, prefixed where Windows needs it."""
     # With LongPathsEnabled at 0, Win32 reports a path at or over MAX_PATH as
     # "not found", which a scanner cannot tell from an absent file. The prefix
@@ -230,7 +230,7 @@ def _io_path(path: Path) -> Path:
     # absolute path with no relative segment, and only where the result goes
     # straight to the OS. Never use it for a path that is logged or compared
     # against the image root, which is why resolve() does not.
-    if not _on_windows():
+    if not on_windows():
         return path
     text = str(path)
     if len(text) < _LONG_PATH_LIMIT or text.startswith(_LONG_PATH_PREFIX):
@@ -247,7 +247,7 @@ def _io_path(path: Path) -> Path:
 # scanner's memory.
 def read_bounded(path: Path, limit: int) -> bytes:
     """Read a whole file, raising ValueError when it is larger than the limit."""
-    with _io_path(path).open("rb") as handle:
+    with io_path(path).open("rb") as handle:
         data = handle.read(limit + 1)
     if len(data) > limit:
         raise ValueError(f"file exceeds {limit} bytes")

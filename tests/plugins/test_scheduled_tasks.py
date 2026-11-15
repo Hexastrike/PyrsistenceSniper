@@ -9,7 +9,7 @@ import pytest
 from pyrsistencesniper.core.ledger import artifact_failures
 from pyrsistencesniper.core.models import FilterRule, Finding, MatchResult, Severity
 from pyrsistencesniper.core.profile import DetectionProfile
-from pyrsistencesniper.core.windows import _io_path
+from pyrsistencesniper.core.windows import io_path
 from pyrsistencesniper.plugins.T1053.scheduled_tasks import ScheduledTaskFiles
 
 from ..conftest import remove_over_length_tree
@@ -48,8 +48,8 @@ def _com_handler(clsid: str) -> str:
 def _write_task(tmp_path: Path, task_name: str, xml: str) -> Path:
     """Create one task XML file under the image root's Tasks directory."""
     task_file = tmp_path / "Windows" / "System32" / "Tasks" / task_name
-    _io_path(task_file.parent).mkdir(parents=True, exist_ok=True)
-    _io_path(task_file).write_text(xml, encoding="utf-8")
+    io_path(task_file.parent).mkdir(parents=True, exist_ok=True)
+    io_path(task_file).write_text(xml, encoding="utf-8")
     return task_file
 
 

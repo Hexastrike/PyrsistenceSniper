@@ -15,7 +15,7 @@ from pyrsistencesniper.core.models import (
     FileWriteTime,
     Finding,
 )
-from pyrsistencesniper.core.windows import _io_path
+from pyrsistencesniper.core.windows import io_path
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import PersistencePlugin
 
@@ -246,8 +246,8 @@ class WmiEventSubscription(PersistencePlugin):
         already_named: set[tuple[str, str]] = set()
 
         try:
-            repository_bytes = _io_path(cim_path).stat().st_size
-            with _io_path(cim_path).open("rb") as handle:
+            repository_bytes = io_path(cim_path).stat().st_size
+            with io_path(cim_path).open("rb") as handle:
                 for window, cutoff in _iter_windows(handle):
                     # The budget is spent as each window is appended rather than
                     # checked afterwards: one 4 MiB window holds far more records

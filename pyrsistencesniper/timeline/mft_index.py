@@ -11,7 +11,7 @@ from pyrsistencesniper.core.filesystem import (
     safe_is_dir,
     safe_is_file,
 )
-from pyrsistencesniper.core.windows import _io_path
+from pyrsistencesniper.core.windows import io_path
 from pyrsistencesniper.timeline.mft import MftEntry, parse_mft
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,7 @@ class MftIndex:
         """Parse an $MFT file into entries keyed by casefolded path."""
         entries: dict[str, MftEntry] = {}
         try:
-            with _io_path(source).open("rb") as handle:
+            with io_path(source).open("rb") as handle:
                 for entry in parse_mft(handle):
                     entries[entry.path.casefold()] = entry
         except OSError:
@@ -91,7 +91,7 @@ class MftIndex:
             return None
         try:
             children = sorted(
-                directory / child.name for child in _io_path(directory).iterdir()
+                directory / child.name for child in io_path(directory).iterdir()
             )
         except OSError:
             logger.debug("Cannot search for $MFT under %s", directory, exc_info=True)

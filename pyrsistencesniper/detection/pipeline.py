@@ -16,8 +16,8 @@ from pyrsistencesniper.core.models import (
 from pyrsistencesniper.core.profile import DetectionProfile
 from pyrsistencesniper.core.resolver import ResolutionPipeline
 from pyrsistencesniper.plugins import (
-    _PLUGIN_REGISTRY,
-    _discover_plugins,
+    PLUGIN_REGISTRY,
+    discover_plugins,
 )
 from pyrsistencesniper.plugins.base import PersistencePlugin
 from pyrsistencesniper.timeline.executor import TimelineExecutor
@@ -39,12 +39,12 @@ def _select_plugins(
     technique_filter: tuple[str, ...],
 ) -> list[type[PersistencePlugin]]:
     """Discover plugins and filter by profile + technique selection."""
-    _discover_plugins()
+    discover_plugins()
     tokens = set(technique_filter)
 
     return [
         plugin_cls
-        for plugin_cls in _PLUGIN_REGISTRY.values()
+        for plugin_cls in PLUGIN_REGISTRY.values()
         if profile.policy_for(plugin_cls.definition.id).enabled
         and (not tokens or _technique_matches(plugin_cls, tokens))
     ]

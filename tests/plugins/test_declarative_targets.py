@@ -13,7 +13,7 @@ from pyrsistencesniper.core.models import (
     UserProfile,
 )
 from pyrsistencesniper.core.windows import normalize_windows_path
-from pyrsistencesniper.plugins import _PLUGIN_REGISTRY, _discover_plugins
+from pyrsistencesniper.plugins import PLUGIN_REGISTRY, discover_plugins
 from pyrsistencesniper.plugins.base import PersistencePlugin
 
 from .conftest import make_node, make_plugin, setup_keys, setup_usrclass_only
@@ -33,10 +33,10 @@ _REDIRECTED_HIVE = "SOFTWARE"
 
 def _declarative_checks() -> list[tuple[str, type[PersistencePlugin]]]:
     """Return every registered check that relies on the declarative engine."""
-    _discover_plugins()
+    discover_plugins()
     return sorted(
         (check_id, cls)
-        for check_id, cls in _PLUGIN_REGISTRY.items()
+        for check_id, cls in PLUGIN_REGISTRY.items()
         if cls.run is PersistencePlugin.run and cls.definition.targets
     )
 
@@ -142,10 +142,10 @@ def test_undeclared_key_produces_nothing(
 
 def _handwritten_checks() -> list[tuple[str, type[PersistencePlugin]]]:
     """Return every registered check that implements its own run()."""
-    _discover_plugins()
+    discover_plugins()
     return sorted(
         (check_id, cls)
-        for check_id, cls in _PLUGIN_REGISTRY.items()
+        for check_id, cls in PLUGIN_REGISTRY.items()
         if cls.run is not PersistencePlugin.run
     )
 
@@ -177,10 +177,10 @@ def test_handwritten_check_ignores_an_undeclared_key(
 
 def test_every_declarative_check_is_covered() -> None:
     """The sweep above must actually cover the declarative checks in the registry."""
-    _discover_plugins()
+    discover_plugins()
     declarative = {
         check_id
-        for check_id, cls in _PLUGIN_REGISTRY.items()
+        for check_id, cls in PLUGIN_REGISTRY.items()
         if cls.run is PersistencePlugin.run and cls.definition.targets
     }
 

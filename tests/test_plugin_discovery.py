@@ -11,8 +11,8 @@ import pytest
 from pyrsistencesniper import plugins as plugins_package
 from pyrsistencesniper.core import ledger
 from pyrsistencesniper.plugins import (
-    _PLUGIN_REGISTRY,
-    _discover_plugins,
+    PLUGIN_REGISTRY,
+    discover_plugins,
 )
 
 _PROBE_SOURCES: dict[str, str] = {
@@ -96,14 +96,14 @@ def probe_tree(tmp_path: Path) -> Iterator[None]:
 @pytest.mark.usefixtures("probe_tree")
 def test_broken_package_records_every_module_it_hides() -> None:
     """A package whose __init__ raises must report each check it takes down with it."""
-    _discover_plugins()
+    discover_plugins()
     assert _probe_failures() == _EXPECTED_PROBE_FAILURES
 
 
 @pytest.mark.usefixtures("probe_tree")
 def test_package_raising_non_import_error_does_not_abort_discovery() -> None:
     """A package raising anything other than ImportError must not end the scan."""
-    _discover_plugins()
+    discover_plugins()
     assert "pyrsistencesniper.plugins.probe_crashing_package" in _probe_failures()
     assert "pyrsistencesniper.plugins.probe_healthy_module" in sys.modules
 
@@ -111,13 +111,13 @@ def test_package_raising_non_import_error_does_not_abort_discovery() -> None:
 @pytest.mark.usefixtures("probe_tree")
 def test_healthy_modules_beside_broken_ones_stay_quiet() -> None:
     """Modules that import cleanly must be loaded and must record no failure."""
-    _discover_plugins()
+    discover_plugins()
     assert _imported_probe_modules() == _EXPECTED_PROBE_IMPORTS
     assert not _probe_failures() & _EXPECTED_PROBE_IMPORTS
 
 
 def test_real_plugin_tree_imports_without_failure() -> None:
     """The shipped plugin tree must register its checks and record no lost coverage."""
-    _discover_plugins()
+    discover_plugins()
     assert ledger.failures() == ()
-    assert len(_PLUGIN_REGISTRY) > 100
+    assert len(PLUGIN_REGISTRY) > 100

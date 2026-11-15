@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from pyrsistencesniper.core import ledger
-from pyrsistencesniper.core.windows import _io_path
+from pyrsistencesniper.core.windows import io_path
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -27,11 +27,11 @@ def _clean_scan_ledger() -> Iterator[None]:
 
 def remove_over_length_tree(leaf_path: Path, stop_dir: Path) -> None:
     """Delete an over-length tree bottom-up, which rmtree cannot reach."""
-    _io_path(leaf_path).unlink(missing_ok=True)
+    io_path(leaf_path).unlink(missing_ok=True)
     folder = leaf_path.parent
     while folder != stop_dir:
         with contextlib.suppress(OSError):
-            _io_path(folder).rmdir()
+            io_path(folder).rmdir()
         folder = folder.parent
 
 

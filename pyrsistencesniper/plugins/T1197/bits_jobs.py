@@ -16,7 +16,7 @@ from pyrsistencesniper.core.models import (
     FileWriteTime,
     Finding,
 )
-from pyrsistencesniper.core.windows import _io_path
+from pyrsistencesniper.core.windows import io_path
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import PersistencePlugin
 
@@ -217,7 +217,7 @@ class BitsNotifyCommand(PersistencePlugin):
         jobs: list[_BitsJob] = []
         already_seen: set[tuple[str, str, str]] = set()
         try:
-            with _io_path(state_path).open("rb") as handle:
+            with io_path(state_path).open("rb") as handle:
                 for window in _iter_windows(handle):
                     for job in _iter_jobs(window):
                         identity = (job.job_id, job.program, job.parameters)

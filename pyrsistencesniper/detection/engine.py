@@ -150,30 +150,18 @@ def _machine_view_paths(
     """Return the key paths a machine-hive target is read from, native view first."""
     if not include_wow64 or hive_name.upper() != _REDIRECTED_HIVE:
         return [key_path]
-    return [key_path, _machine_wow64_path(key_path)]
+    redirected = _insert_after_prefix(key_path, _MACHINE_CLASSES_ROOT, _WOW64_KEY)
+    if redirected is None:
+        redirected = registry_key_join(_WOW64_KEY, key_path.strip("\\"))
+    return [key_path, redirected]
 
 
 def _user_view_paths(key_path: str, include_wow64: bool) -> list[str]:
     """Return the key paths a per-user target is read from, native view first."""
     if not include_wow64:
         return [key_path]
-    redirected = _user_wow64_path(key_path)
-    if redirected is None:
-        return [key_path]
-    return [key_path, redirected]
-
-
-def _machine_wow64_path(key_path: str) -> str:
-    """Redirect a SOFTWARE-hive key path into the 32-bit registry view."""
-    redirected = _insert_after_prefix(key_path, _MACHINE_CLASSES_ROOT, _WOW64_KEY)
-    if redirected is None:
-        return registry_key_join(_WOW64_KEY, key_path.strip("\\"))
-    return redirected
-
-
-def _user_wow64_path(key_path: str) -> str | None:
-    """Redirect a per-user key path into the 32-bit view, or None if unredirected."""
-    return _insert_after_prefix(key_path, _USER_CLASSES_ROOT, _WOW64_KEY)
+    redirected = _insert_after_prefix(key_path, _USER_CLASSES_ROOT, _WOW64_KEY)
+    return [key_path] if redirected is None else [key_path, redirected]
 
 
 def _insert_after_prefix(key_path: str, prefix: str, inserted: str) -> str | None:

@@ -19,7 +19,7 @@ from pyrsistencesniper.core.models import (
     HiveStatus,
     KeyProtocol,
 )
-from pyrsistencesniper.core.windows import _io_path, read_bounded
+from pyrsistencesniper.core.windows import io_path, read_bounded
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +105,7 @@ def hive_key(path: Path) -> str:
 def read_hive_header(path: Path) -> HiveHeader | None:
     """Parse a REGF base block, returning None when the file is not a hive."""
     try:
-        with _io_path(path).open("rb") as hive_file:
+        with io_path(path).open("rb") as hive_file:
             block = hive_file.read(_HEADER_SIZE)
     except OSError:
         logger.debug("Cannot read hive header: %s", path, exc_info=True)
@@ -374,7 +374,7 @@ class RegistryHelper:
         """Open a hive, repairing an inconsistent bin list before giving up."""
         try:
             reg_file = pyregf.file()
-            reg_file.open(str(_io_path(path)))
+            reg_file.open(str(io_path(path)))
         except Exception as exc:
             error = ledger.describe_failure(exc)
         else:
@@ -410,14 +410,9 @@ class RegistryHelper:
         repaired: HiveProtocol = reg_file
         return repaired
 
-    @staticmethod
-    def _normalize_key_path(key_path: str) -> str:
-        """Strip leading backslash for pyregf compatibility."""
-        return key_path.lstrip("\\")
-
     def load_subtree(self, hive: HiveProtocol, key_path: str) -> RegistryNode | None:
         """Build and cache a RegistryNode tree for the given key path via DFS."""
-        norm = self._normalize_key_path(key_path)
+        norm = key_path.lstrip("\\")
         cache_key = (id(hive), norm.lower())
         if cache_key in self._subtree_cache:
             return self._subtree_cache[cache_key]
@@ -440,8 +435,7 @@ class RegistryHelper:
     def _resolve_key(hive: HiveProtocol, key_path: str) -> KeyProtocol | None:
         """Resolve a key path to a pyregf key, or None when it cannot be followed."""
         try:
-            norm = RegistryHelper._normalize_key_path(key_path)
-            return hive.get_key_by_path(norm)
+            return hive.get_key_by_path(key_path.lstrip("\\"))
         except Exception as exc:
             logger.debug("Could not resolve key %s", key_path, exc_info=True)
             _record_partial_read(key_path, exc)

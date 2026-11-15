@@ -294,7 +294,7 @@ def test_is_reparse_point_false_when_scandir_raises(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """The parent may be as unreadable as the child; that is not a licence to skip."""
-    monkeypatch.setattr("pyrsistencesniper.core.filesystem._on_windows", lambda: True)
+    monkeypatch.setattr("pyrsistencesniper.core.filesystem.on_windows", lambda: True)
     with patch.object(os, "scandir", side_effect=_corruption_error()):
         assert _is_reparse_point(tmp_path / "corrupt.lnk") is False
 

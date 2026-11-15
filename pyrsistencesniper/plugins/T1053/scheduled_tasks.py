@@ -19,7 +19,7 @@ from pyrsistencesniper.core.models import (
     FileWriteTime,
     Finding,
 )
-from pyrsistencesniper.core.windows import _io_path
+from pyrsistencesniper.core.windows import io_path
 from pyrsistencesniper.plugins import register_plugin
 from pyrsistencesniper.plugins.base import PersistencePlugin
 
@@ -81,7 +81,7 @@ class ScheduledTaskFiles(PersistencePlugin):
     ) -> None:
         """Extract every Exec and ComHandler action from one task XML file."""
         try:
-            tree = DefusedET.parse(_io_path(path))
+            tree = DefusedET.parse(io_path(path))
         except Exception as exc:
             record_artifact_failure(self.definition.id, path, exc)
             return
