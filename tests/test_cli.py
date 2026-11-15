@@ -205,8 +205,8 @@ def test_partially_read_key_exits_two_and_reaches_the_renderer(
 
     assert exc.value.code == 2
     assert "registry key Run: OSError: bad cell" in capsys.readouterr().err
-    _args, kwargs = get_renderer.return_value.return_value.render.call_args
-    assert kwargs["failures"] == (
+    args, _kwargs = get_renderer.return_value.return_value.render.call_args
+    assert args[0].failures == (
         CheckFailure(artifact="registry key Run", error="OSError: bad cell"),
     )
 
@@ -225,8 +225,8 @@ def test_failed_check_reaches_the_renderer(tmp_path: Path) -> None:
     ):
         main()
 
-    _args, kwargs = get_renderer.return_value.return_value.render.call_args
-    assert kwargs["failures"] == failures
+    args, _kwargs = get_renderer.return_value.return_value.render.call_args
+    assert args[0].failures == failures
 
 
 def test_readable_hives_exit_zero(tmp_path: Path) -> None:
@@ -272,8 +272,8 @@ def test_renderer_receives_the_hive_inventory(tmp_path: Path) -> None:
     with patch("sys.argv", argv), patched_scan(context) as get_renderer:
         main()
 
-    _args, kwargs = get_renderer.return_value.return_value.render.call_args
-    assert kwargs["inventory"] == records
+    args, _kwargs = get_renderer.return_value.return_value.render.call_args
+    assert args[0].inventory == records
 
 
 def test_renderer_receives_the_hostname(tmp_path: Path) -> None:
@@ -285,5 +285,5 @@ def test_renderer_receives_the_hostname(tmp_path: Path) -> None:
     with patch("sys.argv", argv), patched_scan(context) as get_renderer:
         main()
 
-    _args, kwargs = get_renderer.return_value.return_value.render.call_args
-    assert kwargs["hostname"] == "HOST1"
+    args, _kwargs = get_renderer.return_value.return_value.render.call_args
+    assert args[0].hostname == "HOST1"

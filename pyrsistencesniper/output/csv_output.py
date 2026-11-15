@@ -5,7 +5,7 @@ from __future__ import annotations
 import csv
 from typing import IO, Any
 
-from pyrsistencesniper.core.models import CheckFailure, Finding, HiveRecord
+from pyrsistencesniper.core.models import ScanReport
 from pyrsistencesniper.output.base import (
     CORE_FIELDS,
     OutputBase,
@@ -22,21 +22,13 @@ class CsvOutput(OutputBase):
         """Let the csv writer control line endings itself."""
         return {"newline": ""}
 
-    def _write(
-        self,
-        results: list[Finding],
-        out: IO[str],
-        *,
-        inventory: tuple[HiveRecord, ...] = (),
-        failures: tuple[CheckFailure, ...] = (),
-        hostname: str = "",
-    ) -> None:
+    def _write(self, report: ScanReport, out: IO[Any]) -> None:
         """Write one table: the scan's gaps first, then its findings."""
         # This format exists to be parsed, so a gap shares the findings' columns
         # and is told apart by its Severity cell, never by a second table shape.
         rows = [
-            *integrity_rows(inventory, failures, hostname),
-            *self._flatten_results(results),
+            *integrity_rows(report),
+            *self._flatten_results(report.findings),
         ]
         if not rows:
             return

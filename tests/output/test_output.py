@@ -17,6 +17,7 @@ from pyrsistencesniper.core.models import (
     Finding,
     HiveRecord,
     HiveStatus,
+    ScanReport,
 )
 from pyrsistencesniper.output.base import label_for, sanitize_cell
 from pyrsistencesniper.output.console_output import ConsoleOutput
@@ -58,7 +59,7 @@ def _hive(name: str, status: HiveStatus, **kwargs: object) -> HiveRecord:
 def _html(results: list[Any], **kwargs: Any) -> str:
     """Render the HTML report and return the artifact text."""
     out = io.StringIO()
-    HtmlOutput()._write(results, out, **kwargs)
+    HtmlOutput()._write(ScanReport(results, **kwargs), out)
     return out.getvalue()
 
 
@@ -75,21 +76,21 @@ def _html_rows(results: list[Any], **kwargs: Any) -> list[dict[str, Any]]:
 def _csv(results: list[Any], **kwargs: Any) -> str:
     """Render the CSV report and return the artifact text."""
     out = io.StringIO()
-    CsvOutput()._write(results, out, **kwargs)
+    CsvOutput()._write(ScanReport(results, **kwargs), out)
     return out.getvalue()
 
 
 def _console(results: list[Any], **kwargs: Any) -> str:
     """Render the console report and return the text an analyst reads."""
     out = io.StringIO()
-    ConsoleOutput()._write(results, out, **kwargs)
+    ConsoleOutput()._write(ScanReport(results, **kwargs), out)
     return out.getvalue()
 
 
 def _workbook(results: list[Any], output: Any = None, **kwargs: Any) -> Workbook:
     """Render the workbook and load it back; the default target is held in memory."""
     target = io.BytesIO() if output is None else output
-    XlsxOutput().render(results, output=target, **kwargs)
+    XlsxOutput().render(ScanReport(results, **kwargs), output=target)
     if isinstance(target, io.BytesIO):
         target.seek(0)
     return load_workbook(target)
@@ -170,7 +171,7 @@ def test_xlsx_produces_valid_workbook() -> None:
 def test_xlsx_raises_without_output() -> None:
     """A workbook has no console form, so a missing target fails loudly not silently."""
     with pytest.raises(ValueError, match="requires a file path"):
-        XlsxOutput().render([_make_result()])
+        XlsxOutput().render(ScanReport([_make_result()]))
 
 
 def test_xlsx_neutralizes_formula_injection() -> None:

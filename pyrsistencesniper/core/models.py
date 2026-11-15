@@ -176,6 +176,16 @@ class Finding:
     change_candidates: tuple[str, ...] = field(default_factory=tuple)
 
 
+@dataclass(frozen=True, slots=True)
+class ScanReport:
+    """Everything one scan hands a renderer: findings and what the scan lost."""
+
+    findings: list[Finding] = field(default_factory=list)
+    inventory: tuple[HiveRecord, ...] = ()
+    failures: tuple[CheckFailure, ...] = ()
+    hostname: str = ""
+
+
 class MatchResult(enum.Enum):
     """How well a FilterRule matches a Finding."""
 

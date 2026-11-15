@@ -16,7 +16,12 @@ from pyrsistencesniper.core.ledger import (
     record_artifact_failure,
     reset,
 )
-from pyrsistencesniper.core.models import CheckFailure, HiveRecord, HiveStatus
+from pyrsistencesniper.core.models import (
+    CheckFailure,
+    HiveRecord,
+    HiveStatus,
+    ScanReport,
+)
 from pyrsistencesniper.output.console_output import ConsoleOutput
 
 from .conftest import context_with, patched_scan
@@ -114,7 +119,7 @@ def test_console_names_the_artifact_that_would_not_parse() -> None:
     )
     out = io.StringIO()
 
-    ConsoleOutput()._write([], out, failures=artifact_failures())
+    ConsoleOutput()._write(ScanReport(failures=artifact_failures()), out)
     text = out.getvalue()
 
     assert "SCAN INCOMPLETE" in text
@@ -128,7 +133,7 @@ def test_console_stays_quiet_when_every_artifact_parsed() -> None:
     """A scan that read every artifact gets no integrity banner."""
     out = io.StringIO()
 
-    ConsoleOutput()._write([], out, failures=())
+    ConsoleOutput()._write(ScanReport(), out)
 
     assert "SCAN INCOMPLETE" not in out.getvalue()
 
@@ -167,8 +172,8 @@ def test_unparseable_artifact_reaches_the_renderer(tmp_path: Path) -> None:
     ):
         main()
 
-    _args, kwargs = get_renderer.return_value.return_value.render.call_args
-    assert kwargs["failures"] == (
+    args, _kwargs = get_renderer.return_value.return_value.render.call_args
+    assert args[0].failures == (
         CheckFailure(
             check_id="scheduled_tasks",
             artifact=_TASK_XML,
@@ -207,8 +212,8 @@ def test_scan_that_read_every_artifact_exits_zero(tmp_path: Path) -> None:
     ):
         main()
 
-    _args, kwargs = get_renderer.return_value.return_value.render.call_args
-    assert kwargs["failures"] == ()
+    args, _kwargs = get_renderer.return_value.return_value.render.call_args
+    assert args[0].failures == ()
 
 
 def test_scan_forgets_an_earlier_scans_artifact_failures(

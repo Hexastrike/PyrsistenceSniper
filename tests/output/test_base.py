@@ -13,6 +13,7 @@ from pyrsistencesniper.core.models import (
     Finding,
     HiveRecord,
     HiveStatus,
+    ScanReport,
 )
 from pyrsistencesniper.output.base import (
     CORE_FIELDS,
@@ -131,14 +132,12 @@ def test_file_report_survives_an_unencodable_name(tmp_path: Path) -> None:
     """One name UTF-8 cannot encode must not destroy the whole report file."""
 
     class _Renderer(OutputBase):
-        def _write(
-            self, results, out, *, inventory=(), failures=(), hostname=""
-        ) -> None:
+        def _write(self, report, out) -> None:
             out.write(_SURROGATE_NAME + "\n")
             out.write("the finding after it\n")
 
     target = tmp_path / "report.txt"
-    _Renderer().render([], output=target)
+    _Renderer().render(ScanReport(), output=target)
 
     written = target.read_text(encoding="utf-8")
     assert "the finding after it" in written, "later findings must survive"
@@ -152,16 +151,27 @@ def test_sanitize_cell_replaces_a_lone_surrogate() -> None:
     assert cleaned.startswith("evil")
 
 
+def _gap_rows(
+    inventory: tuple[HiveRecord, ...] = (),
+    failures: tuple[CheckFailure, ...] = (),
+    hostname: str = "",
+) -> list[dict[str, Any]]:
+    """Build the rows a renderer would emit for what one scan lost."""
+    return integrity_rows(
+        ScanReport(inventory=inventory, failures=failures, hostname=hostname)
+    )
+
+
 def test_integrity_rows_are_empty_for_a_clean_scan() -> None:
     """A scan that read everything adds no row about itself."""
     inventory = (HiveRecord(name="SOFTWARE", status=HiveStatus.OPENED),)
 
-    assert integrity_rows(inventory, ()) == []
+    assert _gap_rows(inventory, ()) == []
 
 
 def test_integrity_row_carries_every_findings_column() -> None:
     """A gap row has the findings' exact columns, so no format needs a second shape."""
-    (row,) = integrity_rows(
+    (row,) = _gap_rows(
         (), (CheckFailure(check_id="run_keys", error="OSError: bad cell"),), "HOST"
     )
 
@@ -172,7 +182,7 @@ def test_integrity_row_carries_every_findings_column() -> None:
 
 def test_integrity_row_claims_nothing_a_gap_cannot_know() -> None:
     """A gap gained no access and names no binary, so those cells stay empty."""
-    (row,) = integrity_rows(
+    (row,) = _gap_rows(
         (), (CheckFailure(check_id="run_keys", error="OSError: bad cell"),)
     )
 
@@ -184,7 +194,7 @@ def test_integrity_row_claims_nothing_a_gap_cannot_know() -> None:
 
 def test_integrity_row_splits_a_lost_artifact_from_its_check() -> None:
     """The check and the file it lost land in their own columns."""
-    (row,) = integrity_rows(
+    (row,) = _gap_rows(
         (),
         (
             CheckFailure(
@@ -207,7 +217,7 @@ def test_integrity_row_names_a_user_hive_with_its_owner() -> None:
         error="OSError: bad hive",
     )
 
-    (row,) = integrity_rows((hive,), ())
+    (row,) = _gap_rows((hive,), ())
 
     assert row["path"] == "NTUSER.DAT [alice]"
     assert row["value"] == "OPEN_FAILED: OSError: bad hive"
@@ -217,7 +227,7 @@ def test_integrity_row_for_an_uncollected_hive_states_the_status_alone() -> None
     """A hive the image never held has no error text to invent."""
     hive = HiveRecord(name="SYSTEM", status=HiveStatus.NOT_COLLECTED)
 
-    (row,) = integrity_rows((hive,), ())
+    (row,) = _gap_rows((hive,), ())
 
     assert row["value"] == "NOT_COLLECTED"
 
@@ -226,7 +236,7 @@ def test_integrity_rows_report_a_dirty_hive_that_was_read() -> None:
     """Uncommitted transactions get a row of their own, naming the hive."""
     hive = HiveRecord(name="SOFTWARE", status=HiveStatus.REPAIRED, dirty=True)
 
-    (row,) = integrity_rows((hive,), ())
+    (row,) = _gap_rows((hive,), ())
 
     assert row["severity"] == "ERROR"
     assert row["path"] == "SOFTWARE"
@@ -237,7 +247,7 @@ def test_integrity_rows_ignore_the_dirty_flag_of_a_hive_that_never_opened() -> N
     """An unread hive is reported once, as lost, never also as merely dirty."""
     hive = HiveRecord(name="SYSTEM", status=HiveStatus.OPEN_FAILED, dirty=True)
 
-    (row,) = integrity_rows((hive,), ())
+    (row,) = _gap_rows((hive,), ())
 
     assert row["value"] == "OPEN_FAILED"
 
@@ -250,6 +260,6 @@ def test_integrity_rows_put_lost_coverage_before_dirty_hives() -> None:
     )
     failures = (CheckFailure(check_id="run_keys", error="boom"),)
 
-    values = [row["value"] for row in integrity_rows(inventory, failures)]
+    values = [row["value"] for row in _gap_rows(inventory, failures)]
 
     assert values == ["OPEN_FAILED", "boom", "Uncommitted transactions"]

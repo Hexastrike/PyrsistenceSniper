@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from typing import IO
+from typing import IO, Any
 
 from pyrsistencesniper.core.models import (
     CheckFailure,
     Finding,
     HiveRecord,
+    ScanReport,
 )
 from pyrsistencesniper.output.base import OutputBase
 
@@ -22,24 +23,15 @@ def _write_incomplete_banner(out: IO[str], headline: str) -> None:
 class ConsoleOutput(OutputBase):
     """Renders findings as grouped, human-readable text to a stream."""
 
-    def _write(
-        self,
-        results: list[Finding],
-        out: IO[str],
-        *,
-        inventory: tuple[HiveRecord, ...] = (),
-        failures: tuple[CheckFailure, ...] = (),
-        hostname: str = "",
-    ) -> None:
-        del hostname
-        self._write_scan_integrity(out, inventory)
-        self._write_failed_checks(out, failures)
-        if not results:
+    def _write(self, report: ScanReport, out: IO[Any]) -> None:
+        self._write_scan_integrity(out, report.inventory)
+        self._write_failed_checks(out, report.failures)
+        if not report.findings:
             out.write("No findings.\n")
             return
 
         grouped: dict[str, list[Finding]] = {}
-        for finding in results:
+        for finding in report.findings:
             key = f"[{finding.mitre_id}] {finding.technique}"
             grouped.setdefault(key, []).append(finding)
 

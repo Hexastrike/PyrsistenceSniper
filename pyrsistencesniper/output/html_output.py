@@ -7,7 +7,7 @@ from typing import IO, Any
 
 from jinja2 import Environment
 
-from pyrsistencesniper.core.models import CheckFailure, Finding, HiveRecord
+from pyrsistencesniper.core.models import ScanReport
 from pyrsistencesniper.output.base import (
     CORE_FIELDS,
     ERROR_LEVEL,
@@ -59,23 +59,15 @@ def _count_severities(rows: list[dict[str, Any]]) -> dict[str, int]:
 class HtmlOutput(OutputBase):
     """Renders findings into a dark-mode interactive HTML report."""
 
-    def _write(
-        self,
-        results: list[Finding],
-        out: IO[str],
-        *,
-        inventory: tuple[HiveRecord, ...] = (),
-        failures: tuple[CheckFailure, ...] = (),
-        hostname: str = "",
-    ) -> None:
+    def _write(self, report: ScanReport, out: IO[Any]) -> None:
         environment = Environment(autoescape=True)
         environment.policies["json.dumps_kwargs"] = {"default": str}
         template = environment.from_string(_HTML_TEMPLATE)
         fieldnames = list(CORE_FIELDS)
-        findings = self._flatten_results(results)
-        for finding, row in zip(results, findings, strict=True):
+        findings = self._flatten_results(report.findings)
+        for finding, row in zip(report.findings, findings, strict=True):
             row["_change_candidates"] = list(finding.change_candidates)
-        rows = [*integrity_rows(inventory, failures, hostname), *findings]
+        rows = [*integrity_rows(report), *findings]
         labels = {field: label_for(field) for field in fieldnames}
         out.write(
             template.render(

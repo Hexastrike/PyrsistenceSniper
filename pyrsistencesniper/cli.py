@@ -11,7 +11,12 @@ from pyrsistencesniper.core import ledger
 from pyrsistencesniper.core.context import build_context
 from pyrsistencesniper.core.log import setup_logging
 from pyrsistencesniper.core.lolbins import download_lolbins
-from pyrsistencesniper.core.models import CheckFailure, HiveRecord, Severity
+from pyrsistencesniper.core.models import (
+    CheckFailure,
+    HiveRecord,
+    ScanReport,
+    Severity,
+)
 from pyrsistencesniper.core.profile import DetectionProfile
 from pyrsistencesniper.core.windows import io_path
 from pyrsistencesniper.detection.pipeline import run_pipeline
@@ -183,11 +188,13 @@ def _run_scan(args: argparse.Namespace) -> None:
         renderer_cls = get_renderer(args.format)
         renderer = renderer_cls()
         renderer.render(
-            results,
+            ScanReport(
+                findings=results,
+                inventory=inventory,
+                failures=failures,
+                hostname=context.hostname,
+            ),
             output=args.output,
-            inventory=inventory,
-            failures=failures,
-            hostname=context.hostname,
         )
     except KeyboardInterrupt:
         sys.exit(130)

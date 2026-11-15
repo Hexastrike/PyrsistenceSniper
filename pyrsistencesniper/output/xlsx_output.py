@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from pathlib import Path
-from typing import IO
+from typing import IO, Any
 
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.worksheet import Worksheet
 
-from pyrsistencesniper.core.models import CheckFailure, Finding, HiveRecord
+from pyrsistencesniper.core.models import CheckFailure, HiveRecord, ScanReport
 from pyrsistencesniper.output.base import (
     CORE_FIELDS,
     OutputBase,
@@ -44,23 +43,13 @@ def _write_rows(sheet: Worksheet, rows: Iterable[Sequence[object]]) -> None:
 class XlsxOutput(OutputBase):
     """Writes findings as a styled XLSX workbook."""
 
-    def render(
-        self,
-        results: list[Finding],
-        output: Path | IO[bytes] | None = None,  # type: ignore[override]
-        *,
-        inventory: tuple[HiveRecord, ...] = (),
-        failures: tuple[CheckFailure, ...] = (),
-        hostname: str = "",
-    ) -> None:
-        if output is None:
-            msg = "XLSX output requires a file path or binary stream"
-            raise ValueError(msg)
+    binary = True
 
+    def _write(self, report: ScanReport, out: IO[Any]) -> None:
         fieldnames = list(CORE_FIELDS)
         rows = [
-            *integrity_rows(inventory, failures, hostname),
-            *self._flatten_results(results),
+            *integrity_rows(report),
+            *self._flatten_results(report.findings),
         ]
 
         workbook = Workbook()
@@ -70,15 +59,12 @@ class XlsxOutput(OutputBase):
         _write_rows(sheet, ([row.get(name, "") for name in fieldnames] for row in rows))
         self._fit_columns(sheet, fieldnames, len(rows))
 
-        if inventory:
-            self._write_hive_sheet(workbook, inventory)
-        if failures:
-            self._write_failure_sheet(workbook, failures)
+        if report.inventory:
+            self._write_hive_sheet(workbook, report.inventory)
+        if report.failures:
+            self._write_failure_sheet(workbook, report.failures)
 
-        if isinstance(output, Path):
-            workbook.save(str(output))
-        else:
-            workbook.save(output)
+        workbook.save(out)
 
     @staticmethod
     def _fit_columns(sheet: Worksheet, fieldnames: list[str], row_count: int) -> None:
@@ -122,15 +108,3 @@ class XlsxOutput(OutputBase):
         sheet = workbook.create_sheet("Failed Checks")
         _write_header_row(sheet, ("Check", "Error"))
         _write_rows(sheet, [(failure.label, failure.error) for failure in failures])
-
-    def _write(
-        self,
-        results: list[Finding],
-        out: IO[str],
-        *,
-        inventory: tuple[HiveRecord, ...] = (),
-        failures: tuple[CheckFailure, ...] = (),
-        hostname: str = "",
-    ) -> None:
-        msg = "XLSX is binary; use render() directly"
-        raise NotImplementedError(msg)

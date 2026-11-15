@@ -8,14 +8,14 @@ import re
 import sys
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import IO, Any
+from typing import IO, Any, ClassVar
 
 from pyrsistencesniper.core.models import (
     ChangeEvidence,
-    CheckFailure,
     Finding,
     HiveRecord,
     HiveStatus,
+    ScanReport,
 )
 
 CORE_FIELDS: tuple[str, ...] = tuple(Finding.FIELDS.keys())
@@ -89,12 +89,9 @@ def _integrity_row(level: str, hostname: str, **cells: str) -> dict[str, Any]:
 # Scan gaps are shaped into rows here instead of being modelled as findings. A
 # finding passes allow rules and --min-severity, either of which could hide a
 # gap, and it always states an access level, which a gap does not have.
-def integrity_rows(
-    inventory: tuple[HiveRecord, ...],
-    failures: tuple[CheckFailure, ...],
-    hostname: str = "",
-) -> list[dict[str, Any]]:
+def integrity_rows(report: ScanReport) -> list[dict[str, Any]]:
     """Shape what the scan lost, then what it must caveat, into report rows."""
+    inventory, failures, hostname = report.inventory, report.failures, report.hostname
     rows = [
         _integrity_row(
             ERROR_LEVEL,
@@ -134,58 +131,37 @@ def integrity_rows(
 class OutputBase(ABC):
     """Base class that all output renderers must extend."""
 
-    def render(
-        self,
-        results: list[Finding],
-        output: Path | IO[str] | None = None,
-        *,
-        inventory: tuple[HiveRecord, ...] = (),
-        failures: tuple[CheckFailure, ...] = (),
-        hostname: str = "",
-    ) -> None:
-        """Write results to a file path, open stream, or stdout."""
+    # Set by a renderer whose format is bytes, which has no console form.
+    binary: ClassVar[bool] = False
+
+    def render(self, report: ScanReport, output: Path | IO[Any] | None = None) -> None:
+        """Write the report to a file path, an open stream, or stdout."""
         if isinstance(output, Path):
-            # Same escape handler as the console stream: a name the image
-            # carries but UTF-8 cannot encode (a lone surrogate from a
-            # non-UTF-8 filename) would otherwise raise mid-write and take
-            # every later finding in the report with it.
-            with output.open(
-                "w", encoding="utf-8", errors="backslashreplace", **self._open_kwargs()
-            ) as stream:
-                self._write(
-                    results,
-                    stream,
-                    inventory=inventory,
-                    failures=failures,
-                    hostname=hostname,
-                )
+            with self._open(output) as stream:
+                self._write(report, stream)
         elif output is not None:
-            self._write(
-                results,
-                output,
-                inventory=inventory,
-                failures=failures,
-                hostname=hostname,
-            )
+            self._write(report, output)
+        elif self.binary:
+            msg = "This format requires a file path or binary stream"
+            raise ValueError(msg)
         else:
-            self._write(
-                results,
-                _console_stream(),
-                inventory=inventory,
-                failures=failures,
-                hostname=hostname,
-            )
+            self._write(report, _console_stream())
+
+    def _open(self, output: Path) -> IO[Any]:
+        """Open the report file in the mode this renderer writes."""
+        if self.binary:
+            return output.open("wb")
+        # Same escape handler as the console stream: a name the image carries
+        # but UTF-8 cannot encode (a lone surrogate from a non-UTF-8 filename)
+        # would otherwise raise mid-write and take every later finding in the
+        # report with it.
+        stream: IO[Any] = output.open(
+            "w", encoding="utf-8", errors="backslashreplace", **self._open_kwargs()
+        )
+        return stream
 
     @abstractmethod
-    def _write(
-        self,
-        results: list[Finding],
-        out: IO[str],
-        *,
-        inventory: tuple[HiveRecord, ...] = (),
-        failures: tuple[CheckFailure, ...] = (),
-        hostname: str = "",
-    ) -> None: ...
+    def _write(self, report: ScanReport, out: IO[Any]) -> None: ...
 
     @staticmethod
     def unreadable_hives(
