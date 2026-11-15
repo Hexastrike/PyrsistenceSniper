@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import functools
 import io
 import logging
 import struct
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -197,17 +198,30 @@ def _pyregf_extract_data(pyregf_value: Any) -> object:  # noqa: ANN401
 class RegistryNode:
     """In-memory registry key with dict-based value and child lookups."""
 
-    __slots__ = ("_children", "_values", "name")
+    __slots__ = ("_children", "_read_children", "_values", "name")
 
+    # A hive key can carry tens of thousands of descendants a check never looks
+    # at, so subkeys are read on first use: a node built from a hive is handed a
+    # reader in place of its children, and a node built by hand gets them whole.
     def __init__(
         self,
         name: str,
         values: dict[str, tuple[str, object]],
-        children: dict[str, RegistryNode],
+        children: dict[str, RegistryNode] | None = None,
+        read_children: Callable[[], dict[str, RegistryNode]] | None = None,
     ) -> None:
         self.name = name
         self._values = values
         self._children = children
+        self._read_children = read_children
+
+    def _subkeys(self) -> dict[str, RegistryNode]:
+        """Return the child nodes, reading them from the hive the first time."""
+        if self._children is None:
+            reader = self._read_children
+            self._children = reader() if reader is not None else {}
+            self._read_children = None
+        return self._children
 
     def get(self, value_name: str) -> object | None:
         """Return a value by name (case-insensitive)."""
@@ -219,11 +233,11 @@ class RegistryNode:
 
     def child(self, name: str) -> RegistryNode | None:
         """Return a child subkey by name (case-insensitive), or None."""
-        return self._children.get(name.lower())
+        return self._subkeys().get(name.lower())
 
     def children(self) -> Iterator[tuple[str, RegistryNode]]:
         """Yield (name, node) pairs for all child subkeys."""
-        for node in self._children.values():
+        for node in self._subkeys().values():
             yield (node.name, node)
 
     def values(self) -> Iterator[tuple[str, object]]:
@@ -302,8 +316,23 @@ def _child_at(
         return None
 
 
+def _read_subkeys(key: KeyProtocol, name: str, depth: int) -> dict[str, RegistryNode]:
+    """Read the subkeys of one key, each with its own subkeys still unread."""
+    children: dict[str, RegistryNode] = {}
+    if depth < _MAX_REGISTRY_DEPTH:
+        for child_index in range(_count_or_zero(key, "get_number_of_sub_keys", name)):
+            child_entry = _child_at(key, child_index, name, depth)
+            if child_entry is not None:
+                children[child_entry[0]] = child_entry[1]
+    elif _count_or_zero(key, "get_number_of_sub_keys", name):
+        _record_partial_read(
+            name, RecursionError(f"registry depth limit {_MAX_REGISTRY_DEPTH} reached")
+        )
+    return children
+
+
 def _materialize(key: KeyProtocol, depth: int = 0) -> RegistryNode:
-    """Convert a pyregf key and its children into a RegistryNode tree."""
+    """Convert a pyregf key into a RegistryNode whose subkeys are read on demand."""
     # A cell libregf cannot follow costs only its own value or subkey. Letting
     # it escape would unwind the whole check and report a damaged hive as clean.
     try:
@@ -318,18 +347,9 @@ def _materialize(key: KeyProtocol, depth: int = 0) -> RegistryNode:
         if value_entry is not None:
             values[value_entry[0]] = value_entry[1]
 
-    children: dict[str, RegistryNode] = {}
-    if depth < _MAX_REGISTRY_DEPTH:
-        for child_index in range(_count_or_zero(key, "get_number_of_sub_keys", name)):
-            child_entry = _child_at(key, child_index, name, depth)
-            if child_entry is not None:
-                children[child_entry[0]] = child_entry[1]
-    elif _count_or_zero(key, "get_number_of_sub_keys", name):
-        _record_partial_read(
-            name, RecursionError(f"registry depth limit {_MAX_REGISTRY_DEPTH} reached")
-        )
-
-    return RegistryNode(name, values, children)
+    return RegistryNode(
+        name, values, read_children=functools.partial(_read_subkeys, key, name, depth)
+    )
 
 
 class RegistryHelper:

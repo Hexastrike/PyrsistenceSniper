@@ -114,9 +114,9 @@ def test_materialize_depth_limit() -> None:
 
     depth = 0
     current = node
-    while current._children:
+    while children := list(current.children()):
         depth += 1
-        current = next(iter(current._children.values()))
+        current = children[0][1]
     assert depth == _MAX_REGISTRY_DEPTH
 
 
@@ -516,7 +516,7 @@ def test_damaged_cell_is_recorded_as_a_partial_read() -> None:
     """The gap is recorded so an incomplete read never passes as a complete one."""
     key = _FlakyKey("Run", children=[_FlakyKey("Damaged")], bad_child_index=0)
 
-    _materialize(key)
+    list(_materialize(key).children())
 
     assert "Run" in partial_reads()
     assert "unable to retrieve sub key" in partial_reads()["Run"]
@@ -528,4 +528,15 @@ def test_intact_key_records_no_partial_read() -> None:
 
     _materialize(key)
 
+    assert partial_reads() == {}
+
+
+def test_subkeys_are_read_only_when_asked_for() -> None:
+    """A flat value read must not pay for a subtree it never looks at."""
+    key = _FlakyKey("Run", values={"A": "a.exe"}, children=[_FlakyKey("Damaged")])
+    key.bad_child_index = 0
+
+    node = _materialize(key)
+
+    assert node.get("A") == "a.exe"
     assert partial_reads() == {}
