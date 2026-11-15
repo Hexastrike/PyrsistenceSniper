@@ -1,6 +1,78 @@
 # CHANGELOG
 
 
+## v0.10.0 (2026-11-15)
+
+### Bug Fixes
+
+- **core**: Cap every whole-file read of an image-supplied file
+  ([`fea78d8`](https://github.com/Hexastrike/PyrsistenceSniper/commit/fea78d8b6d0930301dc9ff0679fdd2ebaf15db1f))
+
+- **plugins**: Tighten check descriptions and correct two technique names
+  ([`6cd59d4`](https://github.com/Hexastrike/PyrsistenceSniper/commit/6cd59d43b9529af60bb316050ce28aa2d868ddc8))
+
+### Build System
+
+- Drop python 3.10 and clear the dependabot alerts
+  ([`ebae90b`](https://github.com/Hexastrike/PyrsistenceSniper/commit/ebae90b5093550118256cf20db8495f56419a5e4))
+
+- Fetch the lolbas list with the standard library
+  ([`475b223`](https://github.com/Hexastrike/PyrsistenceSniper/commit/475b22330407c8779cbfefe0b0c0c051d38de707))
+
+### Documentation
+
+- Correct stale and inaccurate comments
+  ([`71452e4`](https://github.com/Hexastrike/PyrsistenceSniper/commit/71452e41b9c734110bf2a2fff863cd95c4628a1b))
+
+- **core**: Drop comments that restate a constant and fix a stale one
+  ([`f065f03`](https://github.com/Hexastrike/PyrsistenceSniper/commit/f065f03b619e7e1715bd57d65f1757dedf5599fa))
+
+### Features
+
+- **output**: Report scan errors as rows in every report format
+  ([`4e50bc5`](https://github.com/Hexastrike/PyrsistenceSniper/commit/4e50bc56a19c0ece0d936ff5934e0a1589f61e1b))
+
+### Performance Improvements
+
+- **core**: Read registry subkeys on first use
+  ([`f37d05f`](https://github.com/Hexastrike/PyrsistenceSniper/commit/f37d05fa9487037856ec8b4ddfa56f67e0e28d2a))
+
+- **core**: Resolve the image root once and probe each file once
+  ([`fa9e67b`](https://github.com/Hexastrike/PyrsistenceSniper/commit/fa9e67b1f1ef5341092c5253e5b5c742482b3037))
+
+### Refactoring
+
+- **checks**: Group the telemetry controller rules under T1546
+  ([`6e5ea41`](https://github.com/Hexastrike/PyrsistenceSniper/commit/6e5ea41d4b92869a3686efebf9d6f59d1730bff1))
+
+- **core**: Drop the dead optional-import guards in the signer
+  ([`63f49a7`](https://github.com/Hexastrike/PyrsistenceSniper/commit/63f49a7282f2151633fee293e1146a4184e30ece))
+
+- **core**: Fill resolution fields from one cached record
+  ([`88dbfd8`](https://github.com/Hexastrike/PyrsistenceSniper/commit/88dbfd817ccafb1c9b85abcc79ccd6afa6562ece))
+
+- **core**: Keep what a scan lost in one ledger
+  ([`a629aa1`](https://github.com/Hexastrike/PyrsistenceSniper/commit/a629aa14f1ade99b974ba2bf31fd35164344e19a))
+
+- **core**: Publish the shared helpers and inline one-line wrappers
+  ([`aaa1bee`](https://github.com/Hexastrike/PyrsistenceSniper/commit/aaa1bee546e7f9e66993b5d4065bd56700706e96))
+
+- **detection**: Run the per-finding stages through one loop
+  ([`f579180`](https://github.com/Hexastrike/PyrsistenceSniper/commit/f579180bb90fa0c96bf97d1dd9bb781820096e2b))
+
+- **output**: Carry triage notes on the finding
+  ([`be4fbae`](https://github.com/Hexastrike/PyrsistenceSniper/commit/be4fbae06383f5a9cef4fce4f1ab37a0e2b44ae1))
+
+- **output**: Hand renderers one scan report
+  ([`8b26d3c`](https://github.com/Hexastrike/PyrsistenceSniper/commit/8b26d3c3036914464363d11e6eb4efc2ea29c103))
+
+- **plugins**: Derive the mitre link from the technique id
+  ([`658da95`](https://github.com/Hexastrike/PyrsistenceSniper/commit/658da9584e51f4890466628f41aec54f698f03b8))
+
+- **plugins**: Move two checks onto the engine and share duplicated helpers
+  ([`d82b261`](https://github.com/Hexastrike/PyrsistenceSniper/commit/d82b261d3a2da7be4630a52cf7aab1339b23a70f))
+
+
 ## v0.9.1 (2026-09-04)
 
 ### Bug Fixes
