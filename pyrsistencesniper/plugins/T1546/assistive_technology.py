@@ -34,7 +34,6 @@ class AssistiveTechnology(PersistencePlugin):
             "the DEFAULT hive on the sign-in desktop before any user authenticates."
         ),
         references=(
-            "https://attack.mitre.org/techniques/T1546/008/",
             "https://www.hexacorn.com/blog/2016/07/22/beyond-good-ol-run-key-part-42/",
         ),
     )

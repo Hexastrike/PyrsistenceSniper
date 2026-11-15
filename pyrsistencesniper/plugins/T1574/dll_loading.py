@@ -26,7 +26,6 @@ class NaturalLanguageDevelopmentPlatform(PersistencePlugin):
             "The NlsData DllOverridePath value names a custom DLL the natural language "
             "processing subsystem loads."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\NlsData",
@@ -49,7 +48,6 @@ class ChmHelper(PersistencePlugin):
             "The HtmlHelp Author Location value names a DLL loaded when a compiled "
             "HTML help (.chm) file is opened."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\HtmlHelp Author",
@@ -72,7 +70,6 @@ class HhctrlOcx(PersistencePlugin):
             "The InprocServer32 of the hhctrl.ocx CLSID names the DLL loaded whenever "
             "HTML Help content is rendered."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=(
@@ -99,7 +96,6 @@ class AutodialDll(PersistencePlugin):
             "The AutodialDLL value names a DLL the WinSock auto-dial feature loads "
             "into any process that uses WinSock."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Services\WinSock2\Parameters",
@@ -122,7 +118,6 @@ class LsaExtensions(PersistencePlugin):
             "LSA Extensions are DLLs the Local Security Authority loads into lsass.exe "
             "during system startup."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\LsaExtensionConfig\LsaSrv",
@@ -145,7 +140,6 @@ class ServerLevelPluginDll(PersistencePlugin):
             "The DNS Server ServerLevelPluginDll value names a DLL the DNS service "
             "loads at startup, as SYSTEM, typically on a domain controller."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Services\DNS\Parameters",
@@ -168,7 +162,6 @@ class CryptoExpoOffload(PersistencePlugin):
             "The ExpoOffload value names a DLL the cryptography subsystem loads for "
             "exponentiation offloading."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Cryptography\Offload",
@@ -191,7 +184,6 @@ class Direct3dDll(PersistencePlugin):
             "The Direct3D SoftwareRasterizer value names the DLL loaded as the "
             "software rasterizer by any process that initializes Direct3D."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Direct3D\Drivers",
@@ -215,7 +207,6 @@ class MsdtcXaDll(PersistencePlugin):
             "Transaction Coordinator loads into the MSDTC service, which runs as "
             "Network Service by default."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\MSDTC\MTxOCI",
@@ -243,7 +234,6 @@ class DiagTrackDll(PersistencePlugin):
             "The DiagTrack service ImagePath names the binary the service control "
             "manager starts for the telemetry service, as SYSTEM."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Services\DiagTrack",
@@ -266,7 +256,6 @@ class DiagTrackListenerDll(PersistencePlugin):
             "The DiagTrack-Listener Autologger FileName value names the DLL loaded for "
             "telemetry collection at boot, as SYSTEM."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\WMI\Autologger\DiagTrack-Listener",
@@ -289,7 +278,6 @@ class RdpTestDvcPlugin(PersistencePlugin):
             "The TestDVCPlugin value names a DLL the RDP client loads for Dynamic "
             "Virtual Channel testing."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Terminal Server Client",
@@ -312,7 +300,6 @@ class SearchIndexerDll(PersistencePlugin):
             "The Windows Search DllPath value names a DLL the search indexer loads "
             "during indexing, as SYSTEM."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows Search",
@@ -335,7 +322,6 @@ class WuServiceStartupDll(PersistencePlugin):
             "The Windows Update ServiceDll value names the DLL the wuauserv service "
             "loads when it starts, as SYSTEM."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Services\wuauserv\Parameters",
@@ -358,7 +344,6 @@ class KnownManagedDebuggingDlls(PersistencePlugin):
             "KnownManagedDebuggingDlls lists DLLs loaded whenever .NET managed "
             "debugging is started."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\.NETFramework",
@@ -383,7 +368,6 @@ class MiniDumpAuxiliaryDlls(PersistencePlugin):
             "module is present. The auxiliary DLL runs during every crash "
             "dump, so registering one here provides code execution."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
     )
 
     def run(self) -> list[Finding]:
@@ -430,7 +414,6 @@ class Mapi32DllPath(PersistencePlugin):
             "loaded by every process that initializes MAPI, such as Outlook or any "
             "application that sends mail."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Clients\Mail",
@@ -462,7 +445,6 @@ class GpExtensionDlls(PersistencePlugin):
             "Group Policy extension DLLs are loaded by the Group Policy engine at "
             "every policy refresh, as SYSTEM."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=(
@@ -490,7 +472,6 @@ class WinsockAutoProxy(PersistencePlugin):
             "catalog, are loaded for name resolution into any process that uses the "
             "network."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
         targets=(
             RegistryTarget(
                 path=(

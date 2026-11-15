@@ -82,7 +82,6 @@ class OfficeAddins(PersistencePlugin):
             "InprocServer32 chain in Software\\Classes. LoadBehavior records whether "
             "the add-in loads automatically."
         ),
-        references=("https://attack.mitre.org/techniques/T1137/006/",),
     )
 
     def run(self) -> list[Finding]:
@@ -247,7 +246,6 @@ class OfficeAiHijack(PersistencePlugin):
             "Values under the ClickToRun Common\\AI key register the COM DLLs Office "
             "loads when its AI features are invoked."
         ),
-        references=("https://attack.mitre.org/techniques/T1137/006/",),
     )
 
     def run(self) -> list[Finding]:

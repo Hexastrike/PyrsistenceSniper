@@ -26,7 +26,6 @@ class ServiceFailureCommand(PersistencePlugin):
             "The FailureCommand value names a program the service control "
             "manager runs when the service fails, so a crash triggers it."
         ),
-        references=("https://attack.mitre.org/techniques/T1543/003/",),
     )
 
     def run(self) -> list[Finding]:

@@ -58,7 +58,6 @@ class KnownDlls(PersistencePlugin):
             "every process that imports them, and its DllDirectory values name that "
             "directory."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/001/",),
     )
 
     def run(self) -> list[Finding]:
@@ -102,7 +101,6 @@ class ExcludeFromKnownDlls(PersistencePlugin):
             "Windows ships the value empty."
         ),
         references=(
-            "https://attack.mitre.org/techniques/T1574/001/",
             "https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-search-order",
         ),
     )
@@ -143,7 +141,6 @@ class DllSearchMode(PersistencePlugin):
             "other registry trace. Windows ships neither value set."
         ),
         references=(
-            "https://attack.mitre.org/techniques/T1574/001/",
             "https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-security",
         ),
     )

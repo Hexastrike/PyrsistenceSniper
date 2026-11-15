@@ -42,7 +42,6 @@ class CorProfiler(PersistencePlugin):
             "machine-wide, per user, or per service, the documented way to attach a "
             "profiler to a single service such as W3SVC."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/012/",),
     )
 
     def run(self) -> list[Finding]:
@@ -63,7 +62,6 @@ class CoreClrProfiler(PersistencePlugin):
             "Core/5+ runtime loads into every managed process that inherits them, set "
             "machine-wide, per user or per service."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/012/",),
     )
 
     def run(self) -> list[Finding]:

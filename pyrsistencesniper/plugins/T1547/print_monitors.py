@@ -24,7 +24,6 @@ class PrintMonitors(PersistencePlugin):
             "at startup, as SYSTEM. The default monitors include Local Port, Standard "
             "TCP/IP Port, USB Monitor and WSD Port."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/010/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\Print\Monitors",
@@ -48,7 +47,6 @@ class PrintProcessors(PersistencePlugin):
             "Print processor DLLs are loaded by the Print Spooler service at startup, "
             "as SYSTEM. The only default print processor is winprint (winprint.dll)."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/012/",),
         targets=(
             RegistryTarget(
                 path=(

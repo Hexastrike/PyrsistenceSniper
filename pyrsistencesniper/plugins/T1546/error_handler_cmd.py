@@ -23,7 +23,6 @@ class ErrorHandlerCmd(PersistencePlugin):
             "ErrorHandler.cmd in System32 is executed by Windows Error Reporting on "
             "certain crashes. The file does not exist by default."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/",),
     )
 
     def run(self) -> list[Finding]:

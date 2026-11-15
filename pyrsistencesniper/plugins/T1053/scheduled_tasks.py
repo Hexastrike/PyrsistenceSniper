@@ -41,7 +41,6 @@ class ScheduledTaskFiles(PersistencePlugin):
             "runs on its triggers: an Exec action starts a command line and a "
             "ComHandler action loads the COM server its CLSID registers."
         ),
-        references=("https://attack.mitre.org/techniques/T1053/005/",),
     )
 
     def run(self) -> list[Finding]:

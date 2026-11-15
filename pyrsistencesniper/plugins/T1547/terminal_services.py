@@ -38,7 +38,6 @@ class TsInitialProgram(PersistencePlugin):
             "every incoming RDP session. The Terminal Server Install key holds a "
             "shadow copy of the Run, RunOnce and RunOnceEx keys."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services",
@@ -107,7 +106,6 @@ class RdpWdsStartupPrograms(PersistencePlugin):
             "The WDS StartupPrograms value lists programs started in every RDP "
             "session. The default is 'rdpclip'."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\Terminal Server\Wds\rdpwd",
@@ -131,7 +129,6 @@ class RdpClxDll(PersistencePlugin):
             "DefaultUserConfiguration specifies a DLL loaded during RDP "
             "connection initialization."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
             RegistryTarget(
                 path=(
@@ -158,7 +155,6 @@ class RdpVirtualChannel(PersistencePlugin):
             "RDP virtual channel add-in DLLs are loaded by the Remote Desktop client "
             "during a session."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
     )
 
     def run(self) -> list[Finding]:

@@ -30,7 +30,6 @@ class RunKeys(PersistencePlugin):
             "Run, RunOnce, RunEx and RunOnceEx keys, and the Policies\\Explorer\\Run "
             "override, start the listed programs at user logon."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows\CurrentVersion\Run",

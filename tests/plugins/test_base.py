@@ -56,6 +56,7 @@ def test_make_finding_populates_all_fields() -> None:
     assert finding.hostname == "TESTHOST"
     assert finding.check_id == "stub_check"
     assert finding.references == (
+        "https://attack.mitre.org/techniques/T9999/",
         "https://example.com/ref1",
         "https://example.com/ref2",
     )

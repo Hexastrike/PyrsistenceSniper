@@ -30,7 +30,6 @@ class HiddenLocalAccount(PersistencePlugin):
             "deliberate decision to keep an account out of sight and is the "
             "standard companion to a backdoor local account."
         ),
-        references=("https://attack.mitre.org/techniques/T1564/002/",),
     )
 
     def run(self) -> list[Finding]:

@@ -41,7 +41,6 @@ class ProtocolHandlerHijack(PersistencePlugin):
             "of that protocol is opened. A per-user class key can shadow a "
             "machine-registered protocol even without a URL Protocol value of its own."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/001/",),
     )
 
     def run(self) -> list[Finding]:
@@ -210,7 +209,6 @@ class SearchProtocolHandler(PersistencePlugin):
             "The search-ms protocol handler names the program started when a search-ms "
             "URI is opened, normally explorer.exe."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/001/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Classes\search-ms\shell\open\command",

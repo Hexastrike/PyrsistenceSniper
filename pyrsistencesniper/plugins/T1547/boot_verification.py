@@ -23,7 +23,6 @@ class BootVerificationProgram(PersistencePlugin):
             "The BootVerificationProgram ImagePath names a program run at every boot "
             "to confirm the boot succeeded, as SYSTEM."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\BootVerificationProgram",

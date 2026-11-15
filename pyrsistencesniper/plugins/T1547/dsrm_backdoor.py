@@ -26,7 +26,6 @@ class DsrmBackdoor(PersistencePlugin):
             "enables network logon with the DSRM password, creating a "
             "persistent backdoor that survives password resets."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
     )
 
     def run(self) -> list[Finding]:

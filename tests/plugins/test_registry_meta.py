@@ -39,7 +39,7 @@ def test_all_plugins_have_complete_definitions() -> None:
         assert len(description) > 10, (
             f"{check_id}: description must be >10 chars, got: {description!r}"
         )
-        assert definition.references, f"{check_id}: missing references"
+        assert definition.reference_links, f"{check_id}: missing references"
 
 
 _DEFAULT_PROFILE = DetectionProfile.load(None)

@@ -31,7 +31,6 @@ class InstalledShimDatabase(PersistencePlugin):
             "shimmed program starts. Windows ships its shims inside the system "
             "database, so an entry here is always a database someone installed."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/011/",),
         targets=(
             RegistryTarget(
                 path=rf"SOFTWARE\{_APPCOMPAT}\InstalledSDB",
@@ -56,7 +55,6 @@ class CustomShimmedExecutables(PersistencePlugin):
             "shim databases. Each value name is the .sdb that runs when that "
             "executable starts, so this key names what a custom shim targets."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/011/",),
     )
 
     def run(self) -> list[Finding]:

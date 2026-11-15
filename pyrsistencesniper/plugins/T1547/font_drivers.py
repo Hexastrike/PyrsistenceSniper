@@ -23,7 +23,6 @@ class FontDrivers(PersistencePlugin):
             "The Font Drivers key names DLLs the font subsystem loads at boot. It is a "
             "legacy mechanism that still works on modern Windows."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Font Drivers",

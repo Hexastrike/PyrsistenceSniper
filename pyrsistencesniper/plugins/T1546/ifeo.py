@@ -78,7 +78,6 @@ class IfeoDebugger(PersistencePlugin):
             "the target executable. With UseFilter set, the Debugger sits in a named "
             "filter subkey below the image key."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/012/",),
     )
 
     def run(self) -> list[Finding]:
@@ -104,7 +103,6 @@ class IfeoSilentProcessExit(PersistencePlugin):
             "monitored process exits. A 32-bit process is configured through the "
             "Wow6432Node view."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/012/",),
     )
 
     def run(self) -> list[Finding]:
@@ -130,7 +128,6 @@ class IfeoDelegatedNtdll(PersistencePlugin):
             "at startup. It is armed by GlobalFlag 0x100 (Application Verifier), which "
             "the loader accepts as either a DWORD or a string."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/012/",),
     )
 
     def run(self) -> list[Finding]:

@@ -57,7 +57,6 @@ class StartupFolder(PersistencePlugin):
             "Programs and shortcuts in the per-user and system-wide Startup folders "
             "run automatically at logon."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
     )
 
     def run(self) -> list[Finding]:

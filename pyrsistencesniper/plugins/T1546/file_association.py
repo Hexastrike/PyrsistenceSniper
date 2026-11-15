@@ -43,7 +43,6 @@ class FileAssociationHijack(PersistencePlugin):
             "ProgID it points to. A per-user registration overrides the system-wide "
             "one."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/001/",),
     )
 
     def run(self) -> list[Finding]:

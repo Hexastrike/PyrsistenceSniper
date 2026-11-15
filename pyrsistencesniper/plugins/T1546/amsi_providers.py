@@ -35,7 +35,6 @@ class AmsiProviders(PersistencePlugin):
             "every process that invokes AMSI, where a provider sees every scan "
             "request."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/015/",),
     )
 
     def run(self) -> list[Finding]:

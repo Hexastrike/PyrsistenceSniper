@@ -27,7 +27,6 @@ class ContentIndexDll(PersistencePlugin):
             "Windows Search indexer loads in place of the default NL6 content indexing "
             "DLL. The value is normally absent."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/",),
     )
 
     def run(self) -> list[Finding]:

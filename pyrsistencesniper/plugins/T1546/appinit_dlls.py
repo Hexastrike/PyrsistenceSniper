@@ -33,7 +33,6 @@ class AppInitDlls(PersistencePlugin):
             "mechanism is active only when LoadAppInit_DLLs is 1, and is disabled on "
             "Windows 8 and later when Secure Boot is on."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/010/",),
     )
 
     def run(self) -> list[Finding]:

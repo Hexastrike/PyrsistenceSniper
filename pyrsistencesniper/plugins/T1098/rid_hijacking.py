@@ -60,7 +60,6 @@ class RidHijacking(PersistencePlugin):
             "with the F value RID (usually set to 500, Administrator) grants "
             "admin privileges to a low-privilege account."
         ),
-        references=("https://attack.mitre.org/techniques/T1098/",),
     )
 
     def run(self) -> list[Finding]:
@@ -96,7 +95,6 @@ class RidSuborner(PersistencePlugin):
             "account-creation APIs, to leave a hidden account whose F value carries "
             "RID 500 while its subkey RID does not."
         ),
-        references=("https://attack.mitre.org/techniques/T1098/",),
     )
 
     def run(self) -> list[Finding]:

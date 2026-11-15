@@ -54,7 +54,7 @@ class PersistencePlugin:
             access_gained=access,
             hostname=self.context.hostname,
             check_id=check.id,
-            references=check.references,
+            references=check.reference_links,
             resolve_target=resolve_target,
             time_evidence=time_evidence,
         )

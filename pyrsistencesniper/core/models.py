@@ -313,3 +313,12 @@ class CheckDefinition:
     description: str = ""
     targets: tuple[RegistryTarget, ...] = field(default_factory=tuple)
     references: tuple[str, ...] = field(default_factory=tuple)
+
+    @property
+    def reference_links(self) -> tuple[str, ...]:
+        """Return the MITRE page of the technique, then any further reading."""
+        technique, _, sub_technique = self.mitre_id.partition(".")
+        page = f"https://attack.mitre.org/techniques/{technique}/"
+        if sub_technique:
+            page += f"{sub_technique}/"
+        return (page, *self.references)

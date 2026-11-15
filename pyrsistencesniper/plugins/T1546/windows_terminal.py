@@ -122,7 +122,6 @@ class WindowsTerminal(PersistencePlugin):
             "A Windows Terminal settings.json profile carries a command line that runs "
             "each time a tab is opened with that profile."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/",),
     )
 
     def run(self) -> list[Finding]:

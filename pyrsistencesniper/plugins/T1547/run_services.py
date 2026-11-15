@@ -23,7 +23,6 @@ class RunServices(PersistencePlugin):
             "RunServices is a deprecated Win9x-era auto-start key, empty on a clean "
             "system."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows\CurrentVersion\RunServices",
@@ -45,7 +44,6 @@ class RunServicesOnce(PersistencePlugin):
             "RunServicesOnce is a deprecated Win9x-era auto-start key, empty on a "
             "clean system."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows\CurrentVersion\RunServicesOnce",

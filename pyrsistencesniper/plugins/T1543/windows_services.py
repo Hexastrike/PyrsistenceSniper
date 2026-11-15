@@ -82,7 +82,6 @@ class WindowsServiceImagePath(PersistencePlugin):
             "service, at boot or when the service is started."
         ),
         references=(
-            "https://attack.mitre.org/techniques/T1543/003/",
             "https://docs.microsoft.com/en-us/windows/win32/services/service-programs",
         ),
     )
@@ -154,7 +153,6 @@ class WindowsServiceDll(PersistencePlugin):
             "when the service starts."
         ),
         references=(
-            "https://attack.mitre.org/techniques/T1543/003/",
             "https://docs.microsoft.com/en-us/windows/win32/services/service-programs",
         ),
     )

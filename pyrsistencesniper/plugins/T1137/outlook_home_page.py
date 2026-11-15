@@ -27,7 +27,6 @@ class OutlookHomePage(PersistencePlugin):
             "folder view and runs arbitrary HTML, JavaScript and ActiveX. The feature "
             "is deprecated and unset in standard deployments."
         ),
-        references=("https://attack.mitre.org/techniques/T1137/004/",),
     )
 
     def run(self) -> list[Finding]:

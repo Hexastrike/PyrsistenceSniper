@@ -23,7 +23,6 @@ class CmdAutoRun(PersistencePlugin):
             "The Command Processor AutoRun value runs a command every time cmd.exe "
             "starts, interactively or from a script."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Command Processor",

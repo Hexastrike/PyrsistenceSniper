@@ -43,7 +43,6 @@ class OfficeDllOverride(PersistencePlugin):
             "naming a DLL the application loads when it starts. The per-user key needs "
             "no administrator rights."
         ),
-        references=("https://attack.mitre.org/techniques/T1137/",),
     )
 
     def run(self) -> list[Finding]:

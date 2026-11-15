@@ -27,7 +27,6 @@ class PowerAutomate(PersistencePlugin):
             "and Scripts folders under the user's AppData, and a flow runs the actions "
             "it defines as that user."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/",),
     )
 
     def run(self) -> list[Finding]:

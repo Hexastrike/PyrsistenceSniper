@@ -120,7 +120,6 @@ class ComTreatAs(PersistencePlugin):
             "a different one, so the substitute's server runs whenever the original "
             "CLSID is activated."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/015/",),
     )
 
     def run(self) -> list[Finding]:

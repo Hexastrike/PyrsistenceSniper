@@ -29,7 +29,6 @@ class VbaMonitors(PersistencePlugin):
             "whenever VBA executes, so hijacking the COM registration runs code on "
             "every Office macro."
         ),
-        references=("https://attack.mitre.org/techniques/T1137/",),
     )
 
     def run(self) -> list[Finding]:

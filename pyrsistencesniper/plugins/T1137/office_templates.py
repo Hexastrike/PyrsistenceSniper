@@ -59,7 +59,6 @@ class OfficeTemplates(PersistencePlugin):
             "start, so a macro embedded in one runs every time the application "
             "opens."
         ),
-        references=("https://attack.mitre.org/techniques/T1137/001/",),
     )
 
     def run(self) -> list[Finding]:

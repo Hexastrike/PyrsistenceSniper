@@ -63,7 +63,6 @@ class PowerShellProfiles(PersistencePlugin):
             "session, system-wide or per user, for both Windows PowerShell and "
             "PowerShell Core."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/013/",),
     )
 
     def run(self) -> list[Finding]:

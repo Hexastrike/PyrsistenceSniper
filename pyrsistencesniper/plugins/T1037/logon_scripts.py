@@ -24,7 +24,6 @@ class LogonScripts(PersistencePlugin):
             "script at logon, before the desktop loads, in that user's own "
             "context."
         ),
-        references=("https://attack.mitre.org/techniques/T1037/001/",),
         targets=(
             RegistryTarget(
                 path=r"Environment",

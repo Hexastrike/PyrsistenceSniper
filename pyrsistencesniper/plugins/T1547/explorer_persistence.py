@@ -25,7 +25,6 @@ class ExplorerLoad(PersistencePlugin):
             "The Load value under Windows NT\\CurrentVersion\\Windows names a program "
             "started at user logon, in that user's context."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Windows",
@@ -52,7 +51,6 @@ class ExplorerBrowserHelperObjects(PersistencePlugin):
             "Helper Objects and loaded into Explorer, and historically Internet "
             "Explorer."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
     )
 
     def run(self) -> list[Finding]:
@@ -99,7 +97,6 @@ class ExplorerAppKey(PersistencePlugin):
             "browser keys, to a program through their ShellExecute or Association "
             "value, which runs when the key is pressed."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
     )
 
     def run(self) -> list[Finding]:

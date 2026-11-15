@@ -28,7 +28,6 @@ class NetworkProviderDll(PersistencePlugin):
             "providers include LanmanWorkstation (ntlanman.dll) and webclient "
             "(davclnt.dll)."
         ),
-        references=("https://attack.mitre.org/techniques/T1556/008/",),
     )
 
     def run(self) -> list[Finding]:

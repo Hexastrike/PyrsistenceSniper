@@ -40,7 +40,6 @@ class ExplorerContextMenu(PersistencePlugin):
             "registered in a user's UsrClass.dat wins over the machine-wide "
             "SOFTWARE\\Classes entry and needs no administrator rights."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
     )
 
     def run(self) -> list[Finding]:

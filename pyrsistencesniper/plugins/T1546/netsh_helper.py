@@ -23,7 +23,6 @@ class NetshHelper(PersistencePlugin):
             "Netsh helper DLLs registered under HKLM\\SOFTWARE\\Microsoft\\NetSh are "
             "loaded every time netsh.exe runs."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/007/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\NetSh",

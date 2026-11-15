@@ -23,7 +23,6 @@ class BootExecute(PersistencePlugin):
             "Session Manager BootExecute programs run before the Windows subsystem "
             "starts. The default is 'autocheck autochk *'."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\Session Manager",
@@ -46,7 +45,6 @@ class SetupExecute(PersistencePlugin):
             "SetupExecute programs run during early system setup, before the graphical "
             "shell. The value is normally set only while Windows is being installed."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\Session Manager",
@@ -69,7 +67,6 @@ class PlatformExecute(PersistencePlugin):
             "PlatformExecute programs run during early boot for hardware-specific "
             "initialization. The value is rarely set."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\Session Manager",
@@ -92,7 +89,6 @@ class SessionManagerExecute(PersistencePlugin):
             "The Session Manager Execute value lists programs run during session "
             "initialization, before user logon."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\Session Manager",
@@ -115,7 +111,6 @@ class S0InitialCommand(PersistencePlugin):
             "S0InitialCommand names a program run during Session 0 initialization, "
             "before interactive logon. The value is rarely set."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\Session Manager",
@@ -138,7 +133,6 @@ class ServiceControlManagerExtension(PersistencePlugin):
             "ServiceControlManagerExtension values name DLLs the service control "
             "manager loads during boot, inside its own SYSTEM process."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\ServiceControlManagerExtension",
@@ -160,7 +154,6 @@ class SessionManagerSubSystems(PersistencePlugin):
             "The SubSystems\\Windows value names the Windows subsystem server the "
             "Session Manager starts during boot. The default references csrss.exe."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\Session Manager\SubSystems",

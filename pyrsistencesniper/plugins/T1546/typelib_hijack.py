@@ -39,7 +39,6 @@ class TypeLibHijack(PersistencePlugin):
             "machine-wide registration, so a user can repoint a type library at a path "
             "of their choosing without administrator rights."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/015/",),
     )
 
     def run(self) -> list[Finding]:

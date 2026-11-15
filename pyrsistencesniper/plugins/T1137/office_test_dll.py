@@ -24,7 +24,6 @@ class OfficeTestDll(PersistencePlugin):
             "applications load at startup; 32-bit Office reads the WoW64 copy. Office "
             "does not create the key by default."
         ),
-        references=("https://attack.mitre.org/techniques/T1137/002/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Office Test\Special\Perf",

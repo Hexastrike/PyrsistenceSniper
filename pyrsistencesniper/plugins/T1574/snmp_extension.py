@@ -24,7 +24,6 @@ class SnmpExtensionAgent(PersistencePlugin):
             "extension agent DLLs the SNMP service loads. The defaults include "
             "inetmib1.dll, snmpmib.dll and hostmib.dll."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Services\SNMP\Parameters\ExtensionAgents",

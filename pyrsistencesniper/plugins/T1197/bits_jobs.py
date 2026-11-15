@@ -182,7 +182,6 @@ class BitsNotifyCommand(PersistencePlugin):
             "runs when the transfer completes or finally fails. The job survives "
             "reboots and lives in no registry key and no scheduled task."
         ),
-        references=("https://attack.mitre.org/techniques/T1197/",),
     )
 
     def run(self) -> list[Finding]:

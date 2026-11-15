@@ -24,7 +24,6 @@ class AppDomainManagerInjection(PersistencePlugin):
             "make the .NET CLR load a custom AppDomainManager assembly before a .NET "
             "application's own code runs."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/014/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\Session Manager\Environment",

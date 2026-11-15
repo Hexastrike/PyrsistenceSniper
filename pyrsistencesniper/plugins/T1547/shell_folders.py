@@ -56,7 +56,6 @@ class ShellFoldersStartup(PersistencePlugin):
             "Startup folder, so redirecting one makes every file in the new directory "
             "run at logon."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
     )
 
     def run(self) -> list[Finding]:

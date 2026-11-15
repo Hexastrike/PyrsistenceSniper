@@ -159,7 +159,6 @@ class GhostTask(PersistencePlugin):
             "counterpart is the residue of a partially planted or partially deleted "
             "task."
         ),
-        references=("https://attack.mitre.org/techniques/T1053/005/",),
     )
 
     def run(self) -> list[Finding]:
@@ -254,10 +253,7 @@ class HiddenScheduledTask(PersistencePlugin):
             "stop listing it. Every Tree key that registers a task carries an SD, so "
             "an absent or empty one is a deletion rather than a default."
         ),
-        references=(
-            "https://attack.mitre.org/techniques/T1053/005/",
-            _TARRASK_REFERENCE,
-        ),
+        references=(_TARRASK_REFERENCE,),
     )
 
     def run(self) -> list[Finding]:

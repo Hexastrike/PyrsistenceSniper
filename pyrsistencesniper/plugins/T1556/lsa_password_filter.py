@@ -45,7 +45,6 @@ class LsaPasswordFilter(PersistencePlugin):
             "password change with the new password in plaintext. The default is "
             "'scecli'."
         ),
-        references=("https://attack.mitre.org/techniques/T1556/002/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\Lsa",

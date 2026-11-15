@@ -26,7 +26,6 @@ class RecycleBinComExtension(PersistencePlugin):
             "Recycle Bin's CLSID run in Explorer when a user opens, empties or "
             "right-clicks the Recycle Bin."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/015/",),
         targets=(
             RegistryTarget(
                 path=f"SOFTWARE\\Classes\\CLSID\\{_RECYCLE_BIN_CLSID}\\shell\\open\\command",

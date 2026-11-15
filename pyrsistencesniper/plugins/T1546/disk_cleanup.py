@@ -25,7 +25,6 @@ class DiskCleanupHandler(PersistencePlugin):
             "Disk Cleanup VolumeCaches handlers are COM objects cleanmgr.exe loads "
             "when it runs, each through the InprocServer32 DLL its CLSID registers."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/015/",),
     )
 
     def run(self) -> list[Finding]:

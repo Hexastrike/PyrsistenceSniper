@@ -46,7 +46,6 @@ class WinlogonShell(PersistencePlugin):
             "The Winlogon Shell value names the shell started after authentication. "
             "The default is 'explorer.exe'."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/004/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon",
@@ -69,7 +68,6 @@ class WinlogonUserinit(_CommaSeparatedWinlogonValue):
             "The Userinit value is a comma-delimited list of programs run immediately "
             "after user authentication. The default is userinit.exe alone."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/004/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon",
@@ -92,7 +90,6 @@ class WinlogonMPNotify(PersistencePlugin):
             "The mpnotify value names the notification program Winlogon starts after "
             "authentication. The value is rarely set."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/004/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon",
@@ -116,7 +113,6 @@ class WinlogonNotifyPackages(PersistencePlugin):
             "Winlogon loads into its own process and calls on logon, "
             "logoff, lock and unlock events, running as SYSTEM."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/004/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\Notify",
@@ -141,7 +137,6 @@ class WinlogonAppSetup(_CommaSeparatedWinlogonValue):
             "runs in the SYSTEM context at every interactive logon, "
             "before the shell starts."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/004/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon",
@@ -165,7 +160,6 @@ class WinlogonSystem(_CommaSeparatedWinlogonValue):
             "in the system context during initialization, and is empty on a default "
             "installation."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/004/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon",
@@ -188,7 +182,6 @@ class WinlogonTaskman(PersistencePlugin):
             "Taskman names the executable launched in place of Task Manager. It is "
             "unset by default."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/004/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon",
@@ -211,7 +204,6 @@ class WinlogonVMApplet(PersistencePlugin):
             "VMApplet names the program Winlogon runs, as SYSTEM, when the system runs "
             "out of virtual memory."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/004/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon",
@@ -236,7 +228,6 @@ class WinlogonGinaDll(PersistencePlugin):
             "later ignore it, so any value on a modern image is a "
             "leftover or a credential-capture attempt."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/004/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon",

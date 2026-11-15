@@ -23,7 +23,6 @@ class ExplorerClsidHijack(PersistencePlugin):
             "The shell command registered on the Desktop, My Computer or My Documents "
             "CLSID runs when a user opens that Explorer namespace."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/015/",),
         targets=(
             RegistryTarget(
                 path=(

@@ -26,7 +26,6 @@ class AppPaths(PersistencePlugin):
             "App Paths entries map a short executable name to a full path, so an entry "
             "decides which binary starts when that name is launched."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/",),
     )
 
     def run(self) -> list[Finding]:

@@ -30,7 +30,6 @@ class TelemetryController(PersistencePlugin):
             "CompatTelRunner.exe loads and the command it runs on the Microsoft "
             "Compatibility Appraiser schedule, both as SYSTEM."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/",),
     )
 
     def run(self) -> list[Finding]:

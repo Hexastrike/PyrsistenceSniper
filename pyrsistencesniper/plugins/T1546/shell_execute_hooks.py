@@ -25,7 +25,6 @@ class ShellExecuteHooks(PersistencePlugin):
             "documents, running programs from the Start menu). The key "
             "is normally empty on modern Windows."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\ShellExecuteHooks",
@@ -47,7 +46,6 @@ class SharedTaskScheduler(PersistencePlugin):
             "SharedTaskScheduler lists COM objects Explorer.exe loads at shell "
             "startup. The key is normally empty on modern Windows."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\SharedTaskScheduler",

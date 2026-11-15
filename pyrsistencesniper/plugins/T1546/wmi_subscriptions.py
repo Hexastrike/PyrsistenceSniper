@@ -220,7 +220,6 @@ class WmiEventSubscription(PersistencePlugin):
             "response to system events. These persist in the CIM repository "
             "and survive reboots."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/003/",),
     )
 
     def run(self) -> list[Finding]:

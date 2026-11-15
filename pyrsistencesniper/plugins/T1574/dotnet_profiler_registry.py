@@ -25,7 +25,6 @@ class DotNetFrameworkProfiler(PersistencePlugin):
             "managed process. The per-user copy of the key needs no administrator "
             "rights."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/012/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\.NETFramework",

@@ -23,7 +23,6 @@ class AuthenticationPackages(PersistencePlugin):
             "Authentication Packages are DLLs LSA loads at system start. The default "
             "is 'msv1_0'."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/002/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\Lsa",
@@ -46,7 +45,6 @@ class SecurityPackages(PersistencePlugin):
             "Security Support Providers (SSPs) are DLLs LSA loads into lsass.exe, "
             "where an SSP sees the plaintext credentials of every interactive logon."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/005/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\Lsa",
@@ -70,7 +68,6 @@ class LsaRunAsPPL(PersistencePlugin):
             "Light. When set to 0 or absent, LSA protection is disabled, "
             "weakening credential protection. Value 1 enables protection."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/008/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\Lsa",
@@ -94,7 +91,6 @@ class LsaCfgFlags(PersistencePlugin):
             "1 enables with UEFI lock, 2 enables without lock. Disabling "
             "Credential Guard weakens credential isolation."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/008/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Control\Lsa",

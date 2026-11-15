@@ -31,7 +31,6 @@ class AeDebug(PersistencePlugin):
             "The AeDebug Debugger value names the just-in-time debugger launched when "
             "a user-mode application crashes."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/012/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AeDebug",
@@ -55,7 +54,6 @@ class AeDebugProtected(PersistencePlugin):
             "The AeDebugProtected Debugger value names the debugger launched when a "
             "protected process crashes."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/012/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\AeDebugProtected",
@@ -79,7 +77,6 @@ class WerDebugger(PersistencePlugin):
             "The Windows Error Reporting Debugger value names a program WER launches "
             "when it handles an application crash."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows\Windows Error Reporting",
@@ -103,7 +100,6 @@ class WerReflectDebugger(PersistencePlugin):
             "The WER ReflectDebugger value names a program WER launches for "
             "reflection-based crash analysis."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows\Windows Error Reporting",
@@ -127,7 +123,6 @@ class WerHangs(PersistencePlugin):
             "The WER Hangs Debugger value names a program launched when Windows "
             "detects that an application has stopped responding."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\Windows\Windows Error Reporting\Hangs",
@@ -151,7 +146,6 @@ class WerRuntimeExceptionHelperModules(PersistencePlugin):
             "RuntimeExceptionHelperModules lists DLLs WER loads when it handles an "
             "unhandled exception."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/",),
     )
 
     def run(self) -> list[Finding]:
@@ -189,7 +183,6 @@ class DotNetDbgManagedDebugger(PersistencePlugin):
             "DbgManagedDebugger names the debugger launched when a managed (.NET) "
             "application crashes."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Microsoft\.NETFramework",
@@ -218,7 +211,6 @@ class LsmDebugger(PersistencePlugin):
             "when the Local Session Manager process exits. Only Windows 7 and earlier "
             "run it as lsm.exe; later versions host it in svchost.exe."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/012/",),
         targets=(
             RegistryTarget(
                 path=(

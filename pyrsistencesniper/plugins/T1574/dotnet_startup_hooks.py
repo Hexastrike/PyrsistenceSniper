@@ -28,7 +28,6 @@ class DotNetStartupHooks(PersistencePlugin):
             "before the Main entry point, in every .NET 5+ application that inherits "
             "the variable."
         ),
-        references=("https://attack.mitre.org/techniques/T1574/012/",),
     )
 
     def run(self) -> list[Finding]:

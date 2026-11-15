@@ -88,7 +88,6 @@ class AccessibilityTools(PersistencePlugin):
             "Microsoft-signed original, or that is signed but identifies itself as a "
             "different program, has been replaced."
         ),
-        references=("https://attack.mitre.org/techniques/T1546/008/",),
     )
 
     def run(self) -> list[Finding]:

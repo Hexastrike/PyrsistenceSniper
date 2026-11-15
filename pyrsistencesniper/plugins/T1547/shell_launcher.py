@@ -24,7 +24,6 @@ class ShellLauncher(PersistencePlugin):
             "entry replace the default Windows shell, explorer.exe, with the program "
             "they name at every logon."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/001/",),
         targets=(
             RegistryTarget(
                 path=r"SOFTWARE\Policies\Microsoft\Windows\System",

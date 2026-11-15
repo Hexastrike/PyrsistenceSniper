@@ -23,7 +23,6 @@ class TimeProviders(PersistencePlugin):
             "Time provider DLLs are loaded by the W32Time service at startup. The "
             "defaults are NtpClient, NtpServer and VMICTimeProvider (Hyper-V)."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/003/",),
         targets=(
             RegistryTarget(
                 path=r"SYSTEM\{controlset}\Services\W32Time\TimeProviders",

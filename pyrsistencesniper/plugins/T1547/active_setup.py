@@ -39,7 +39,6 @@ class ActiveSetup(PersistencePlugin):
             "administrator rights, and the 32-bit list under Wow6432Node is processed "
             "separately."
         ),
-        references=("https://attack.mitre.org/techniques/T1547/014/",),
     )
 
     def run(self) -> list[Finding]:

@@ -97,7 +97,6 @@ class GpScripts(PersistencePlugin):
             "Group Policy scripts.ini and psscripts.ini define startup/shutdown and "
             "logon/logoff scripts, so a CmdLine entry runs at boot or at logon."
         ),
-        references=("https://attack.mitre.org/techniques/T1037/001/",),
     )
 
     def run(self) -> list[Finding]:

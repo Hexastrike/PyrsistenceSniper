@@ -132,7 +132,6 @@ class AdministratorsGroupMembership(PersistencePlugin):
             "normal, so only a member hidden from the sign-in screen, or a SID naming "
             "no account or group in the SAM, appears here."
         ),
-        references=("https://attack.mitre.org/techniques/T1098/",),
     )
 
     def run(self) -> list[Finding]:
