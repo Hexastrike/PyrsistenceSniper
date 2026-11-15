@@ -19,17 +19,10 @@ if TYPE_CHECKING:
 class TestExtract:
     """Cases for reading a publisher from a PE, and the fallbacks when it has none."""
 
-    def test_extract_returns_empty_when_lief_unavailable(self, tmp_path: Path) -> None:
-        """A missing lief is a missing signer, not a failed scan."""
-        extractor = SignerExtractor(FilesystemHelper(image_root=tmp_path))
-        with patch("pyrsistencesniper.core.signer._HAS_LIEF", False):
-            assert extractor.extract("C:\\Windows\\System32\\cmd.exe") == ""
-
     def test_extract_returns_empty_for_nonexistent_file(self, tmp_path: Path) -> None:
         """A file the image never held has no publisher to read."""
         extractor = SignerExtractor(FilesystemHelper(image_root=tmp_path))
-        with patch("pyrsistencesniper.core.signer._HAS_LIEF", True):
-            assert extractor.extract("C:\\nonexistent\\file.exe") == ""
+        assert extractor.extract("C:\\nonexistent\\file.exe") == ""
 
     def test_extract_returns_program_name_from_signature(self, tmp_path: Path) -> None:
         """A signed PE carries its publisher inline, so no catalog lookup is needed."""
@@ -51,12 +44,9 @@ class TestExtract:
         mock_pe = MagicMock()
         mock_pe.signatures = [mock_sig]
 
-        with (
-            patch("pyrsistencesniper.core.signer._HAS_LIEF", True),
-            patch(
-                "pyrsistencesniper.core.signer.lief.PE.parse",
-                return_value=mock_pe,
-            ),
+        with patch(
+            "pyrsistencesniper.core.signer.lief.PE.parse",
+            return_value=mock_pe,
         ):
             result = extractor.extract("C:\\Windows\\System32\\cmd.exe")
         assert result == "Microsoft Windows"
@@ -73,7 +63,6 @@ class TestExtract:
         mock_pe.signatures = []
 
         with (
-            patch("pyrsistencesniper.core.signer._HAS_LIEF", True),
             patch(
                 "pyrsistencesniper.core.signer.lief.PE.parse",
                 return_value=mock_pe,
@@ -96,12 +85,9 @@ class TestExtract:
 
         extractor = SignerExtractor(FilesystemHelper(image_root=tmp_path))
 
-        with (
-            patch("pyrsistencesniper.core.signer._HAS_LIEF", True),
-            patch(
-                "pyrsistencesniper.core.signer.lief.PE.parse",
-                side_effect=RuntimeError("parse failed"),
-            ),
+        with patch(
+            "pyrsistencesniper.core.signer.lief.PE.parse",
+            side_effect=RuntimeError("parse failed"),
         ):
             assert extractor.extract("C:\\Windows\\bad.exe") == ""
 
@@ -203,16 +189,3 @@ class TestCtlParsing:
         )
 
         assert len(_parse_ctl_entries(decoy + real)) == 4
-
-
-class TestCatalogLookup:
-    """Cases for resolving a publisher through the catalog when the PE has none."""
-
-    def test_lookup_in_catalogs_returns_empty_without_asn1(
-        self, tmp_path: Path
-    ) -> None:
-        """Without asn1crypto the catalog path yields no signer, not an error."""
-        extractor = SignerExtractor(FilesystemHelper(image_root=tmp_path))
-
-        with patch("pyrsistencesniper.core.signer._HAS_ASN1", False):
-            assert extractor._lookup_in_catalogs(MagicMock()) == ""

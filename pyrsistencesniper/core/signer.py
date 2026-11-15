@@ -6,26 +6,14 @@ import logging
 from collections.abc import Iterator
 from typing import Any
 
+import lief
+from asn1crypto import cms, core
+
 from pyrsistencesniper.core.filesystem import (
     FilesystemHelper,
     safe_is_dir,
     safe_is_file,
 )
-
-try:
-    import lief
-
-    _HAS_LIEF = True
-except ImportError:
-    _HAS_LIEF = False
-
-try:
-    from asn1crypto import cms, core
-
-    _HAS_ASN1 = True
-except ImportError:
-    _HAS_ASN1 = False
-
 from pyrsistencesniper.core.windows import _io_path
 
 logger = logging.getLogger(__name__)
@@ -166,8 +154,6 @@ class SignerExtractor:
 
     def extract(self, resolved_path: str) -> str:
         """Return the signer program name, or empty string if unavailable."""
-        if not _HAS_LIEF:
-            return ""
         host_path = self._fs.resolve(resolved_path)
         if not safe_is_file(host_path):
             return ""
@@ -196,8 +182,6 @@ class SignerExtractor:
 
     def _lookup_in_catalogs(self, pe: Any) -> str:  # noqa: ANN401
         """Look up a PE's authentihash in the signer index."""
-        if not _HAS_ASN1:
-            return ""
         index = self._get_signer_index()
         for authentihash in (pe.authentihash_sha256, pe.authentihash_sha1):
             signer = index.get(bytes(authentihash))
