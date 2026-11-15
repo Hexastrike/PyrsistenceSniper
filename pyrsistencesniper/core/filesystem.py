@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import errno
+import functools
 import hashlib
 import logging
 import os
@@ -120,6 +121,17 @@ class FilesystemHelper:
         """Return the image root every resolved path stays under."""
         return self._root
 
+    # Resolved once: every lookup compares against it, and resolving it per
+    # call doubled the filesystem round trips of a scan.
+    @functools.cached_property
+    def _resolved_root(self) -> Path | None:
+        """Return the image root with links followed, or None when it cannot be."""
+        try:
+            return self._root.resolve()
+        except (OSError, ValueError):
+            logger.debug("Unresolvable image root: %s", self._root, exc_info=True)
+            return None
+
     def resolve(self, windows_path: str) -> Path:
         """Map a Windows path to an absolute host path under the image root."""
         # Values come from untrusted images and can be oversized or contain NUL,
@@ -132,9 +144,11 @@ class FilesystemHelper:
             # Truncated: logging the whole value is the amplification this guards.
             logger.debug("Path longer than Windows allows: %s", canonical[:80])
             return self._root
+        root = self._resolved_root
+        if root is None:
+            return self._root
         try:
             joined = (self._root / PureWindowsPath(canonical)).resolve()
-            root = self._root.resolve()
         except (OSError, ValueError):
             logger.debug("Unresolvable path: %s", windows_path, exc_info=True)
             return self._root

@@ -50,7 +50,17 @@ class ResolutionPipeline:
     def __init__(self, filesystem: FilesystemHelper) -> None:
         self._fs = filesystem
         self._cache: dict[str, _CacheEntry] = {}
+        self._presence: dict[str, bool | None] = {}
         self._signer = SignerExtractor(filesystem)
+
+    # One image is read once: findings repeat their targets, and each probe of
+    # a mounted image is a filesystem round trip.
+    def _exists(self, path: str) -> bool | None:
+        """Report whether the image holds a file at this path, asking it once."""
+        key = path.lower()
+        if key not in self._presence:
+            self._presence[key] = self._fs.exists(path)
+        return self._presence[key]
 
     def _select_target(self, finding: Finding, exe_path: str) -> str:
         """Pick the image path to inspect."""
@@ -68,7 +78,7 @@ class ResolutionPipeline:
             candidates.append(f"Windows\\{exe_path}")
 
         for candidate in candidates:
-            if candidate and self._fs.exists(candidate):
+            if candidate and self._exists(candidate):
                 return candidate
         return exe_path
 
@@ -85,9 +95,7 @@ class ResolutionPipeline:
 
         cache_key = resolve_path.lower()
         if cache_key not in self._cache:
-            exists = (
-                self._fs.exists(resolve_path) if _is_path_like(resolve_path) else None
-            )
+            exists = self._exists(resolve_path) if _is_path_like(resolve_path) else None
             self._cache[cache_key] = {
                 "exists": exists,
                 "sha256": self._fs.sha256(resolve_path) if exists else "",
