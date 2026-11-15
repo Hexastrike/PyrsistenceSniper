@@ -7,9 +7,9 @@ import json
 import logging
 import random
 import time
+import urllib.request
 from pathlib import Path
 
-import httpx
 import platformdirs
 
 logger = logging.getLogger(__name__)
@@ -25,9 +25,8 @@ _BACKOFF_BASE_S = 0.5
 _BACKOFF_CAP_S = 8.0
 _JITTER_S = 0.25
 
-_HTTP_TOO_MANY_REQUESTS = 429
-_HTTP_SERVER_ERROR_MIN = 500
-_HTTP_SERVER_ERROR_MAX = 600
+# The list is about a megabyte; the cap bounds what a hostile mirror can send.
+_MAX_PAYLOAD_BYTES = 16 << 20
 
 
 def _load_bundled() -> frozenset[str]:
@@ -55,27 +54,24 @@ def _load_cache() -> frozenset[str] | None:
     return frozenset(name.lower() for name in data if name)
 
 
+def _fetch_payload() -> object:
+    """Fetch the LOLBAS list and decode it, raising on any failure."""
+    # The URL is a module constant with an https scheme, never caller input.
+    with urllib.request.urlopen(LOLBAS_URL, timeout=_TIMEOUT_S) as response:
+        body = response.read(_MAX_PAYLOAD_BYTES + 1)
+    if len(body) > _MAX_PAYLOAD_BYTES:
+        raise ValueError(f"LOLBAS payload exceeds {_MAX_PAYLOAD_BYTES} bytes")
+    return json.loads(body)
+
+
 def download_lolbins() -> set[str]:
     """Download LOLBin names from the LOLBAS API and persist to the user cache."""
     for attempt in range(1, _MAX_ATTEMPTS + 1):
         try:
-            response = httpx.get(LOLBAS_URL, timeout=_TIMEOUT_S, follow_redirects=True)
-            status = response.status_code
-            if status == _HTTP_TOO_MANY_REQUESTS or (
-                _HTTP_SERVER_ERROR_MIN <= status < _HTTP_SERVER_ERROR_MAX
-            ):
-                raise httpx.HTTPStatusError(
-                    "transient", request=response.request, response=response
-                )
-            response.raise_for_status()
-            payload = response.json()
+            payload = _fetch_payload()
             break
-        except (
-            httpx.TimeoutException,
-            httpx.NetworkError,
-            httpx.HTTPStatusError,
-            ValueError,
-        ):
+        # urllib reports HTTP status, network and timeout failures as OSError.
+        except (OSError, ValueError):
             if attempt == _MAX_ATTEMPTS:
                 raise
             backoff = min(_BACKOFF_CAP_S, _BACKOFF_BASE_S * (2 ** (attempt - 1)))
