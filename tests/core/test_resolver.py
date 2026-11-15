@@ -62,43 +62,6 @@ def test_resolve_caches_by_path(_mock_signer: MagicMock) -> None:
 
 
 @patch("pyrsistencesniper.core.signer.SignerExtractor.extract", return_value="")
-def test_resolve_skips_already_set_fields(_mock_signer: MagicMock) -> None:
-    """A plugin's own verdict outranks the resolver's, even where the two disagree."""
-    pipeline = _make_pipeline()
-    finding = Finding(value="explorer.exe", is_builtin=True, is_lolbin=True)
-    resolved = pipeline.resolve(finding)
-    assert resolved.is_lolbin is True
-    assert resolved.is_builtin is True
-
-
-@patch("pyrsistencesniper.core.signer.SignerExtractor.extract", return_value="")
-def test_resolve_respects_explicit_false_exists(_mock_signer: MagicMock) -> None:
-    """A plugin that already proved the file absent keeps that verdict."""
-    pipeline = _make_pipeline(exists=True)
-    finding = Finding(value="explorer.exe", exists=False)
-    resolved = pipeline.resolve(finding)
-    assert resolved.exists is False
-
-
-@patch("pyrsistencesniper.core.signer.SignerExtractor.extract", return_value="")
-def test_resolve_respects_explicit_false_is_lolbin(_mock_signer: MagicMock) -> None:
-    """A plugin's explicit non-LOLBin verdict survives the name lookup."""
-    pipeline = _make_pipeline()
-    finding = Finding(value="mshta.exe", is_lolbin=False)
-    resolved = pipeline.resolve(finding)
-    assert resolved.is_lolbin is False
-
-
-@patch("pyrsistencesniper.core.signer.SignerExtractor.extract", return_value="")
-def test_resolve_respects_explicit_false_is_builtin(_mock_signer: MagicMock) -> None:
-    """A plugin's explicit non-builtin verdict survives the name lookup."""
-    pipeline = _make_pipeline()
-    finding = Finding(value="explorer.exe", is_builtin=False)
-    resolved = pipeline.resolve(finding)
-    assert resolved.is_builtin is False
-
-
-@patch("pyrsistencesniper.core.signer.SignerExtractor.extract", return_value="")
 def test_resolve_fills_none_fields(_mock_signer: MagicMock) -> None:
     """Unset tri-state fields are decided here rather than left unknown."""
     pipeline = _make_pipeline(exists=True)

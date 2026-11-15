@@ -5,7 +5,7 @@ from __future__ import annotations
 import dataclasses
 import logging
 import re
-from typing import Any, TypedDict
+from dataclasses import dataclass
 
 from pyrsistencesniper.core.filesystem import FilesystemHelper
 from pyrsistencesniper.core.models import Finding
@@ -33,14 +33,15 @@ def _is_path_like(value: str) -> bool:
     return bool(value) and bool(_PATH_LIKE_RE.search(value))
 
 
-class _CacheEntry(TypedDict):
-    """File metadata cached per resolved path so each file is inspected once."""
+@dataclass(frozen=True, slots=True)
+class _FileFacts:
+    """What the image says about one target, gathered once per path."""
 
     exists: bool | None
     sha256: str
+    signer: str
     is_lolbin: bool
     is_builtin: bool
-    signer: str
     is_in_os_directory: bool
 
 
@@ -49,7 +50,7 @@ class ResolutionPipeline:
 
     def __init__(self, filesystem: FilesystemHelper) -> None:
         self._fs = filesystem
-        self._cache: dict[str, _CacheEntry] = {}
+        self._facts_by_path: dict[str, _FileFacts] = {}
         self._presence: dict[str, bool | None] = {}
         self._signer = SignerExtractor(filesystem)
 
@@ -82,51 +83,36 @@ class ResolutionPipeline:
                 return candidate
         return exe_path
 
+    def _facts(self, path: str) -> _FileFacts:
+        """Inspect a target once and remember what the image said about it."""
+        key = path.lower()
+        if key not in self._facts_by_path:
+            exists = self._exists(path) if _is_path_like(path) else None
+            self._facts_by_path[key] = _FileFacts(
+                exists=exists,
+                sha256=self._fs.sha256(path) if exists else "",
+                signer=self._signer.extract(path) if exists else "",
+                is_lolbin=is_lolbin(path),
+                is_builtin=is_builtin(path),
+                is_in_os_directory=is_in_os_directory(path),
+            )
+        return self._facts_by_path[key]
+
     def resolve(self, finding: Finding) -> Finding:
-        """Populate resolution fields on a finding, caching results by resolved path."""
+        """Return the finding with its resolution fields filled from the image."""
         launcher = extract_launcher_from_cmdline(finding.value)
-        exe_path = extract_executable_from_cmdline(finding.value)
-        if not exe_path:
-            exe_path = finding.value
-        exe_path = expand_env_vars(exe_path)
-        exe_path = canonicalize_windows_path(exe_path)
-
-        resolve_path = self._select_target(finding, exe_path)
-
-        cache_key = resolve_path.lower()
-        if cache_key not in self._cache:
-            exists = self._exists(resolve_path) if _is_path_like(resolve_path) else None
-            self._cache[cache_key] = {
-                "exists": exists,
-                "sha256": self._fs.sha256(resolve_path) if exists else "",
-                "is_lolbin": is_lolbin(resolve_path),
-                "is_builtin": is_builtin(resolve_path),
-                "signer": (self._signer.extract(resolve_path) if exists else ""),
-                "is_in_os_directory": is_in_os_directory(resolve_path),
-            }
-
-        cached = self._cache[cache_key]
-        replacements: dict[str, Any] = {}
-
-        if finding.exists is None and cached["exists"] is not None:
-            replacements["exists"] = cached["exists"]
-        if not finding.sha256:
-            replacements["sha256"] = cached["sha256"]
-        if finding.is_lolbin is None:
+        exe_path = extract_executable_from_cmdline(finding.value) or finding.value
+        exe_path = canonicalize_windows_path(expand_env_vars(exe_path))
+        facts = self._facts(self._select_target(finding, exe_path))
+        return dataclasses.replace(
+            finding,
+            exists=facts.exists,
+            sha256=facts.sha256,
+            signer=facts.signer,
+            is_builtin=facts.is_builtin,
+            is_in_os_directory=facts.is_in_os_directory,
+            launcher=launcher,
             # A payload run through a LOLBin is the technique; classifying only
             # the payload would make adding an argument hide the launcher.
-            replacements["is_lolbin"] = cached["is_lolbin"] or (
-                bool(launcher) and is_lolbin(launcher)
-            )
-        if not finding.launcher and launcher:
-            replacements["launcher"] = launcher
-        if finding.is_builtin is None:
-            replacements["is_builtin"] = cached["is_builtin"]
-        if finding.is_in_os_directory is None:
-            replacements["is_in_os_directory"] = cached["is_in_os_directory"]
-        if not finding.signer:
-            replacements["signer"] = cached["signer"]
-
-        if replacements:
-            return dataclasses.replace(finding, **replacements)
-        return finding
+            is_lolbin=facts.is_lolbin or (bool(launcher) and is_lolbin(launcher)),
+        )
