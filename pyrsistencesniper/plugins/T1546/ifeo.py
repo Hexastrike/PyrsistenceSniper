@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from pyrsistencesniper.core.context import AnalysisContext
 from pyrsistencesniper.core.models import (
     AccessLevel,
@@ -65,8 +67,24 @@ def _collect_view_values(
     return results
 
 
+class _IfeoValue(PersistencePlugin):
+    """Base for checks reporting one value wherever it sits below a set of keys."""
+
+    key_paths: ClassVar[tuple[str, ...]]
+    value_name: ClassVar[str]
+
+    def run(self) -> list[Finding]:
+        """Report the value at any depth below the keys, in every registry view."""
+        return [
+            self._make_finding(path=path, value=value, access=AccessLevel.SYSTEM)
+            for path, value in _collect_view_values(
+                self.context, self.key_paths, self.value_name
+            )
+        ]
+
+
 @register_plugin
-class IfeoDebugger(PersistencePlugin):
+class IfeoDebugger(_IfeoValue):
     """Detects Image File Execution Options Debugger persistence entries."""
 
     definition = CheckDefinition(
@@ -80,18 +98,12 @@ class IfeoDebugger(PersistencePlugin):
         ),
     )
 
-    def run(self) -> list[Finding]:
-        """Report every Debugger value anywhere below an IFEO image key."""
-        return [
-            self._make_finding(path=path, value=value, access=AccessLevel.SYSTEM)
-            for path, value in _collect_view_values(
-                self.context, _IFEO_PATHS, "Debugger"
-            )
-        ]
+    key_paths = _IFEO_PATHS
+    value_name = "Debugger"
 
 
 @register_plugin
-class IfeoSilentProcessExit(PersistencePlugin):
+class IfeoSilentProcessExit(_IfeoValue):
     """Detects Silent Process Exit Monitor persistence entries."""
 
     definition = CheckDefinition(
@@ -105,18 +117,12 @@ class IfeoSilentProcessExit(PersistencePlugin):
         ),
     )
 
-    def run(self) -> list[Finding]:
-        """Report every MonitorProcess registered under SilentProcessExit."""
-        return [
-            self._make_finding(path=path, value=value, access=AccessLevel.SYSTEM)
-            for path, value in _collect_view_values(
-                self.context, _SPE_PATHS, "MonitorProcess"
-            )
-        ]
+    key_paths = _SPE_PATHS
+    value_name = "MonitorProcess"
 
 
 @register_plugin
-class IfeoDelegatedNtdll(PersistencePlugin):
+class IfeoDelegatedNtdll(_IfeoValue):
     """Detects IFEO Verifier DLLs persistence entries."""
 
     definition = CheckDefinition(
@@ -130,11 +136,5 @@ class IfeoDelegatedNtdll(PersistencePlugin):
         ),
     )
 
-    def run(self) -> list[Finding]:
-        """Report every VerifierDlls list anywhere below an IFEO image key."""
-        return [
-            self._make_finding(path=path, value=value, access=AccessLevel.SYSTEM)
-            for path, value in _collect_view_values(
-                self.context, _IFEO_PATHS, "VerifierDlls"
-            )
-        ]
+    key_paths = _IFEO_PATHS
+    value_name = "VerifierDlls"

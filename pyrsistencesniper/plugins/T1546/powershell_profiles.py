@@ -174,28 +174,6 @@ class PowerShellProfiles(PersistencePlugin):
                 continue
             if not safe_is_file(entry):
                 continue
-            self._add(self.filesystem.image_relative(entry), access, findings, reported)
-
-    def _add(
-        self,
-        artifact: str,
-        access: AccessLevel,
-        findings: list[Finding],
-        reported: set[str],
-    ) -> None:
-        """Record one profile script, skipping a file two candidate paths both reach."""
-        # A redirected Documents folder frequently resolves onto the default one,
-        # and Users\Default User is a junction onto Users\Default, so the same
-        # script is reachable by more than one route.
-        key = artifact.casefold()
-        if key in reported:
-            return
-        reported.add(key)
-        findings.append(
-            self._make_finding(
-                path=artifact,
-                value=artifact,
-                access=access,
-                resolve_target=artifact,
+            self._report_file(
+                self.filesystem.image_relative(entry), access, findings, reported
             )
-        )

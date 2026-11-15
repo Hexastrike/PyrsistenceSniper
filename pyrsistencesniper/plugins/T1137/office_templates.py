@@ -73,7 +73,7 @@ class OfficeTemplates(PersistencePlugin):
             for template_relative in _USER_TEMPLATE_FILES:
                 artifact = f"Users\\{profile.username}\\{template_relative}"
                 if self.filesystem.exists(artifact):
-                    self._add(artifact, AccessLevel.USER, findings, reported)
+                    self._report_file(artifact, AccessLevel.USER, findings, reported)
             for folder_relative in _USER_TEMPLATE_FOLDERS:
                 folder = self.filesystem.resolve(
                     f"Users\\{profile.username}\\{folder_relative}"
@@ -113,7 +113,9 @@ class OfficeTemplates(PersistencePlugin):
         if not safe_is_dir(folder):
             return
         for entry in self._bounded_entries(folder):
-            self._add(self.filesystem.image_relative(entry), access, findings, reported)
+            self._report_file(
+                self.filesystem.image_relative(entry), access, findings, reported
+            )
 
     def _bounded_entries(self, folder: Path) -> list[Path]:
         """List the files to examine, capping an overfilled folder and saying so."""
@@ -135,27 +137,3 @@ class OfficeTemplates(PersistencePlugin):
             f"template folder this large is itself an anomaly",
         )
         return entries[:_MAX_ENTRIES_PER_FOLDER]
-
-    # Users\Default User is a junction onto Users\Default on every modern
-    # Windows install, so path resolution lands two discovered profiles on the
-    # same file; without the reported set one artifact would be counted twice.
-    def _add(
-        self,
-        artifact: str,
-        access: AccessLevel,
-        findings: list[Finding],
-        reported: set[str],
-    ) -> None:
-        """Record one template, skipping a file two profile paths both reach."""
-        key = artifact.casefold()
-        if key in reported:
-            return
-        reported.add(key)
-        findings.append(
-            self._make_finding(
-                path=artifact,
-                value=artifact,
-                access=access,
-                resolve_target=artifact,
-            )
-        )

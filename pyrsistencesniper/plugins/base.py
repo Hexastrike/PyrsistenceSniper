@@ -59,6 +59,30 @@ class PersistencePlugin:
             time_evidence=time_evidence,
         )
 
+    # Users\Default User is a junction onto Users\Default, and a redirected
+    # folder often resolves onto the default one, so one file is reachable by
+    # more than one route and would otherwise be counted once per route.
+    def _report_file(
+        self,
+        artifact: str,
+        access: AccessLevel,
+        findings: list[Finding],
+        reported: set[str],
+    ) -> None:
+        """Record a file as its own finding, once however many paths reach it."""
+        key = artifact.casefold()
+        if key in reported:
+            return
+        reported.add(key)
+        findings.append(
+            self._make_finding(
+                path=artifact,
+                value=artifact,
+                access=access,
+                resolve_target=artifact,
+            )
+        )
+
     def run(self) -> list[Finding]:
         """Run the declarative engine; override for detection it cannot express."""
         return execute_definition(
