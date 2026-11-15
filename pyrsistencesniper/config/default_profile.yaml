@@ -11,18 +11,6 @@ checks:
       - reason: 'Default Windows task'
         path_matches: 'Microsoft\\(Windows|OneCore)\\'
 
-  telemetry_controller:
-    allow:
-      - reason: 'Built-in compatibility appraiser command'
-        value_matches: '(?i)^(%windir%|%systemroot%|C:\\Windows)\\system32\\CompatTelRunner\.exe'
-        signer: 'Microsoft'
-      - reason: 'Inbox compatibility appraiser telemetry DLL'
-        value_matches: '(?i)^(aeinv|aemarebackup|appraiser|devinv|generaltel|invagent)\.dll$'
-        signer: 'Microsoft'
-      - reason: 'Inbox compatibility appraiser exported entry point'
-        value_matches: '(?i)^(BackupMareData|CreateDeviceInventory|DoScheduledTelemetryRun|GetApplicationKBs|RunGeneralTelemetry|RunUpdate|UpdateAvStatus|UpdateSoftwareInventoryW)( invsvc)?$'
-        signer: 'Microsoft'
-
   scheduled_task_files:
     allow:
       - reason: 'Built-in Windows scheduled task'
@@ -234,6 +222,18 @@ checks:
     allow:
       - reason: 'Default Windows search handler'
         value_matches: 'Explorer\.exe'
+        signer: 'Microsoft'
+
+  telemetry_controller:
+    allow:
+      - reason: 'Built-in compatibility appraiser command'
+        value_matches: '(?i)^(%windir%|%systemroot%|C:\\Windows)\\system32\\CompatTelRunner\.exe'
+        signer: 'Microsoft'
+      - reason: 'Inbox compatibility appraiser telemetry DLL'
+        value_matches: '(?i)^(aeinv|aemarebackup|appraiser|devinv|generaltel|invagent)\.dll$'
+        signer: 'Microsoft'
+      - reason: 'Inbox compatibility appraiser exported entry point'
+        value_matches: '(?i)^(BackupMareData|CreateDeviceInventory|DoScheduledTelemetryRun|GetApplicationKBs|RunGeneralTelemetry|RunUpdate|UpdateAvStatus|UpdateSoftwareInventoryW)( invsvc)?$'
         signer: 'Microsoft'
 
   # Registrations here are per-user, so every value sits under AppData and the
